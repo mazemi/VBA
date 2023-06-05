@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} progress_form 
    Caption         =   "Progress"
-   ClientHeight    =   1752
+   ClientHeight    =   1986
    ClientLeft      =   84
    ClientTop       =   390
    ClientWidth     =   6126
@@ -15,6 +15,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-Private Sub Label1_Click()
-
+Private Sub CommandButton1_Click()
+    End
 End Sub
