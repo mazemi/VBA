@@ -15,6 +15,3 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-Private Sub CommandButton1_Click()
-    End
-End Sub

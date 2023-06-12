@@ -1,11 +1,4 @@
 Attribute VB_Name = "download_media"
-Sub kobo_account_frm()
-    koboForm.Show
-End Sub
-
-Sub kobo_media_url_frm()
-    UrlForm.Show
-End Sub
 
 Sub download_audit()
 On Error GoTo errHandler:
@@ -89,7 +82,8 @@ On Error GoTo errHandler:
 NextIteration:
     Next iCell
     Application.StatusBar = False
-     Set objXmlHttpReq = Nothing
+    Set objXmlHttpReq = Nothing
+    MsgBox "Audit files downloaded!            ", vbInformation
 Exit Sub
 errHandler:
     MsgBox "There is an issue, please check your KOBO account and audit URL!      ", vbCritical
@@ -109,7 +103,6 @@ Sub download_photo()
     progress_form.Show
     DoEvents
 
-    
     record_count = Cells(Rows.Count, 1).End(xlUp).Row
     percentage_value = record_count / 100
     progress_value = record_count / 270
@@ -205,24 +198,7 @@ errHandler:
     Application.Calculation = xlCalculationAutomatic
 End Sub
 
-Public Function column_letter(column_value As String)
-    Dim colNum As Integer
-    Dim vArr
-    worksheetName = ActiveSheet.Name
-    colNum = WorksheetFunction.Match(column_value, ActiveWorkbook.Sheets(worksheetName).Range("1:1"), 0)
-    vArr = Split(Cells(1, colNum).Address(True, False), "$")
-    col_letter = vArr(0)
-    column_letter = col_letter
-End Function
-
-Public Function column_number(column_value As String)
-    Dim colNum As Integer
-    worksheetName = ActiveSheet.Name
-    colNum = WorksheetFunction.Match(column_value, ActiveWorkbook.Sheets(worksheetName).Range("1:1"), 0)
-    column_number = colNum
-End Function
-
-Public Sub make_folder(uuid As String, folder_name As String)
+Sub make_folder(uuid As String, folder_name As String)
     base_path = ThisWorkbook.path
     If Dir(base_path & "\" & folder_name & "\" & uuid, vbDirectory) = "" Then
         MkDir base_path & "\" & folder_name & "\" & uuid

@@ -22,14 +22,13 @@ Private Sub CommandRun_Click()
         issueText = "Harmonization"
     Else
         issueText = Me.TextOther.Value
+        res = SaveRegistrySetting("ramSetting", "issueTextReg", issueText)
     End If
     
-    res = SaveRegistrySetting("ramSetting", "issueTextReg", issueText)
-    
-'    MsgBox res
     patternCheckAction = True
     Unload Me
 End Sub
+
 
 Private Sub OptionBlank_Click()
     Me.TextOther.Enabled = True
@@ -52,19 +51,6 @@ Private Sub UserForm_Initialize()
     Me.TextOther.Enabled = False
     Me.OptionWrongValue = True
     issueText = "Wrong value"
-    
-'    Dim WshShell As Object
-'    Set WshShell = CreateObject("WScript.Shell")
-'    On Error Resume Next
-'    WshShell.RegRead ("HKCU\Software\Adobe\Acrobat PDFWriter\bDocInfo\")
-'    If Err <> 0 Then
-'      MsgBox "Key doesn't exists or has no default value"
-'      Err.Clear
-'    Else
-'      MsgBox "Key exists"
-'    End If
-'    Set WshShell = Nothing
-'    On Error GoTo yourErrorHandler
 
     Me.TextOther.Value = GetRegistrySetting("ramSetting", "issueTextReg")
     
