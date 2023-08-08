@@ -1,9 +1,10 @@
 Attribute VB_Name = "Consistency_check_module"
-Global SKIP_Qeuestion As Boolean
+Global SKIP_QUESTION As Boolean
 
 Sub consistency_check()
     t = Timer
     Application.ScreenUpdating = False
+    
     Dim tmp_ws As Worksheet
     If WorksheetExists("survey_choices") <> True Then
         MsgBox "Please import the tool.  ", vbInformation
@@ -20,18 +21,15 @@ Sub consistency_check()
         Exit Sub
     End If
     
-    For i = 11 To 22  'last_question
-        
-        If tmp_ws.Cells(i, 1) = "wg_ss_seeing" Then
-            End
-        End If
-
-        
+    For i = 11 To last_question
+        DoEvents
         Application.StatusBar = tmp_ws.Cells(i, 1)
-        SKIP_Qeuestion = False
+        SKIP_QUESTION = False
         Call data_injection(tmp_ws.Cells(i, 1))
-        If SKIP_Qeuestion Then GoTo resume_loop
-            Call log_value_inconsistency
+  
+        If SKIP_QUESTION Then GoTo resume_loop
+        Call log_value_inconsistency
+           
 resume_loop:
     Next i
     
@@ -99,7 +97,7 @@ Sub data_injection(question As String)
     c2 = gen_column_number(question & "_label", dt_ws.Name)
     
     If c1 = 0 Then
-        SKIP_Qeuestion = True
+        SKIP_QUESTION = True
         Exit Sub
     End If
     
@@ -122,8 +120,6 @@ Sub data_injection(question As String)
     
     last_row = temp_ws.Cells(rows.count, 7).End(xlUp).row
     
-'    Debug.Print last_row
-    
     temp_ws.Range("E1:E" & last_row).RemoveDuplicates columns:=1, Header:=xlYes
 
     last_choice = temp_ws.Cells(rows.count, 5).End(xlUp).row
@@ -135,10 +131,75 @@ Sub data_injection(question As String)
             Next
         End If
     End With
-    
-'    If question = "district" Then End
-       
+         
 End Sub
+
+
+Sub new_inject(question As String)
+Dim temp_ws As Worksheet
+Dim dt_ws As Worksheet
+Dim colle As New Collection
+Dim last_row As Long
+Dim q As String
+Dim uuid_col As Long
+Dim c1 As Long
+Dim c2 As Long
+Dim rng As Range
+
+Set temp_ws = sheets("temp_sheet")
+temp_ws.Range("B:P").Delete
+Set dt_ws = sheets(find_main_data)
+
+Call tool_value_choice(question)
+
+uuid_col = gen_column_number("_uuid", dt_ws.Name)
+c1 = gen_column_number(question, dt_ws.Name)
+c2 = gen_column_number(question & "_label", dt_ws.Name)
+
+If c1 = 0 Then
+    SKIP_QUESTION = True
+    Exit Sub
+End If
+
+' Use ranges and arrays to assign values directly
+temp_ws.columns("G:G").Value2 = dt_ws.columns(uuid_col).Value2
+temp_ws.columns("H:H").Value2 = dt_ws.columns(c1).Value2
+temp_ws.columns("E:E").Value2 = dt_ws.columns(c1).Value2
+
+temp_ws.Range("E1").Value2 = temp_ws.Range("E1").Value2 & "_unique"
+
+If c2 > 0 Then
+
+    temp_ws.columns("I:I").Value2 = dt_ws.columns(c2).Value2
+    
+    temp_ws.Range("I1").Value2 = question & "_labelX"
+           
+    temp_ws.Activate
+    Call add_question_label(question)
+    
+End If
+
+last_row = temp_ws.Cells(rows.count, 7).End(xlUp).row
+
+' Use .Value2 instead of .Text or .Value
+temp_ws.Range("E1:E" & last_row).RemoveDuplicates columns:=1, Header:=xlYes
+
+last_choice = temp_ws.Cells(rows.count, 5).End(xlUp).row
+
+With temp_ws.Range("E1:E" & last_choice)
+    If WorksheetFunction.CountA(.Cells) > 0 Then
+        
+        ' Use For Each loop instead of For loop for collections
+        Dim cell As Range
+        For Each cell In .Cells
+            If LenB(cell.Value2) = 0 Then cell.Delete Shift:=xlShiftUp
+        Next cell
+        
+    End If
+End With
+
+End Sub
+
 
 Sub log_value_inconsistency()
     Dim tool_rng As Range
@@ -173,7 +234,7 @@ Sub log_value_inconsistency()
 '    Debug.Print last_row_tool, last_row_value, last_row_dt
     
     For i = 0 To UBound(inconsistant_values)
-        Debug.Print inconsistant_values(i)
+'        Debug.Print inconsistant_values(i)
         
         For j = 2 To last_row_dt
             If temp_ws.Cells(j, 8) = inconsistant_values(i) Then
@@ -201,6 +262,7 @@ label_check:
     End If
     
 End Sub
+
 
 Function get_inconsistency(ByRef tool_rng As Range, ByRef dt_rng As Range) As String()
     Dim cell As Range
