@@ -52,7 +52,7 @@ Sub analyze()
         Set dis_rng = .Range("A2:B" & last_dis)
     End With
 
-    With sheets("analysis_setting")
+    With sheets("analysis_list")
         last_question = .Cells(rows.count, 1).End(xlUp).row
         Set question_rng = .Range("A2:B" & last_question)
     End With
@@ -66,7 +66,7 @@ Sub analyze()
     ' check if keen sheet exist
     If Not WorksheetExists("keen") Then
         Call create_sheet(main_ws.Name, "keen")
-        sheets("keen").Visible = xlVeryHidden
+'        sheets("keen").Visible = xlVeryHidden
     End If
 
     Set keen_sheet = sheets("keen")
@@ -88,9 +88,17 @@ Sub analyze()
     ' dis_value = disaggrigation level
     ' wgt = true or false (weight)
     ' m_type = number or select_one or select_multiple (measurement type)
-
+    
+    analysis_form.TextInfo.value = "Starting ... "
+    
+    Application.Wait (Now + 0.00001)
+    
     Call remove_NA
-
+    
+    str_info = vbLf & analysis_form.TextInfo.value
+   
+    analysis_form.TextInfo.value = "Removed NAs" & str_info
+            
     For Each dis_value In dis_rng.columns(1).Cells
         dis_str = CStr(dis_value)
         is_weight = dis_rng.columns(2).rows(dis_value.row - 1)
@@ -126,6 +134,22 @@ Sub analyze()
                 End
             End If
             
+            measurement_col_letter = gen_column_letter(measurement_str, main_ws.Name)
+            
+            ' skip empty rows in the analysis list
+            If measurement_col_letter = "" Then
+                GoTo NextIteration
+            End If
+            
+            ' skipp empty columns
+            If WorksheetFunction.CountA(main_ws.columns(measurement_col_letter & ":" & measurement_col_letter)) = 1 Then
+                str_info = vbLf & analysis_form.TextInfo.value
+                txt = "Disaggregation level : " & dis_value & " > " & measurement & " skipped " & str_info
+                txt = Replace(txt, "0", "")
+                analysis_form.TextInfo.value = txt
+                GoTo NextIteration
+            End If
+        
             ' show progress on the analysis user form
             If Len(str_info) > 2000 Then
                 analysis_form.TextInfo.value = left(analysis_form.TextInfo.value, 1000)
@@ -137,7 +161,7 @@ Sub analyze()
             txt = Replace(txt, "0", "")
             analysis_form.TextInfo.value = txt
         
-            measurement_col_letter = gen_column_letter(measurement_str, main_ws.Name)
+            
             measurement_type = question_rng.columns(2).rows(measurement.row - 1)
         
             If measurement_type = "integer" Or measurement_type = "decimal" Or measurement_type = "number" Then
@@ -378,15 +402,19 @@ Sub analyze()
                 ' case 7:
             Case Not overall And wgt And m_type = "select_one"
                 Call inject_data(measurement_str, dis_str, wgt)
-                Call unifier(True, True)
+                
+                ' Call unifier(True, True)
+                
     
                 last_row_keen = keen_sheet.Cells(rows.count, 1).End(xlUp).row
-                last_unified_row = keen_sheet.Cells(rows.count, 6).End(xlUp).row
+                
+                ' last_unified_row = keen_sheet.Cells(rows.count, 6).End(xlUp).row
     
                 Set measurement_rng = keen_sheet.Range("A2:A" & last_row_keen)
                 Set disaggregation_collection = unique_values(measurement_rng)
   
-                Set unique_choices = unique_values(keen_sheet.Range("F2:F" & last_unified_row))
+'                Set unique_choices = unique_values(keen_sheet.Range("F2:F" & last_unified_row))
+                Set unique_choices = unique_values(keen_sheet.Range("B2:B" & last_row_keen))
     
                 ' loop through disaggregation options:
                 For Each disaggregation In disaggregation_collection
@@ -400,9 +428,9 @@ Sub analyze()
                             sum_weight = Application.WorksheetFunction.SumIf(keen_sheet.Range("A2:A" & CStr(last_row_keen)), _
                                                                              CStr(disaggregation), keen_sheet.Range("C2:C" & CStr(last_row_keen)))
                
-                            sum_w2 = Application.WorksheetFunction.SumIfs(keen_sheet.Range("G2:G" & CStr(last_unified_row)), _
-                                                                          keen_sheet.Range("E2:E" & CStr(last_unified_row)), CStr(disaggregation), _
-                                                                          keen_sheet.Range("F2:F" & CStr(last_unified_row)), unique_choices(i))
+                            sum_w2 = Application.WorksheetFunction.SumIfs(keen_sheet.Range("C2:C" & CStr(last_row_keen)), _
+                                                                          keen_sheet.Range("A2:A" & CStr(last_row_keen)), CStr(disaggregation), _
+                                                                          keen_sheet.Range("B2:B" & CStr(last_row_keen)), unique_choices(i))
                               
                             choice_percentage = Application.WorksheetFunction.Round(sum_w2 / sum_weight * 100, 1)
                             choice_count = Application.WorksheetFunction.Round((simple_count * choice_percentage) / 100, 0)
@@ -434,16 +462,18 @@ Sub analyze()
                 ' case 8:
             Case Not overall And Not wgt And m_type = "select_one"
                 Call inject_data(measurement_str, dis_str, wgt)
-                Call unifier(True, False)
+                
+                ' Call unifier(True, False)
     
                 last_row_keen = keen_sheet.Cells(rows.count, 1).End(xlUp).row
-                last_unified_row = keen_sheet.Cells(rows.count, 6).End(xlUp).row
+                ' last_unified_row = keen_sheet.Cells(rows.count, 6).End(xlUp).row
     
                 Set measurement_rng = keen_sheet.Range("A2:A" & last_row_keen)
                 Set disaggregation_collection = unique_values(measurement_rng)
   
-                Set unique_choices = unique_values(keen_sheet.Range("F2:F" & last_unified_row))
-    
+                ' Set unique_choices = unique_values(keen_sheet.Range("F2:F" & last_unified_row))
+                Set unique_choices = unique_values(keen_sheet.Range("B2:B" & last_row_keen))
+                
                 ' loop through disaggregation options:
                 For Each disaggregation In disaggregation_collection
     
@@ -456,8 +486,8 @@ Sub analyze()
                             dis_count = Application.WorksheetFunction.CountIf(keen_sheet.Range("A2:A" & CStr(last_row_keen)), _
                                                                               CStr(disaggregation))
                 
-                            choice_count = Application.WorksheetFunction.CountIfs(keen_sheet.Range("E2:E" & CStr(last_unified_row)), _
-                                                                                  CStr(disaggregation), keen_sheet.Range("F2:F" & CStr(last_unified_row)), unique_choices(i))
+                            choice_count = Application.WorksheetFunction.CountIfs(keen_sheet.Range("A2:A" & CStr(last_row_keen)), _
+                                            CStr(disaggregation), keen_sheet.Range("B2:B" & CStr(last_row_keen)), unique_choices(i))
                                   
                             choice_percentage = Application.WorksheetFunction.Round(choice_count / dis_count * 100, 1)
                 
@@ -680,6 +710,8 @@ Sub analyze()
 
 NextIteration:
 
+            sheets("keen").Cells.Clear
+            
         Next  ' loop for question_rng
    
     Next  ' loop for disaggrigation
@@ -878,20 +910,32 @@ Function has_weight() As Boolean
     last_main_col_letter = Split(main_ws.Cells.Find(What:="*", After:=[a1], SearchOrder:=xlByColumns, _
                                                     SearchDirection:=xlPrevious).Cells.Address(1, 0), "$")(0)
     
-    If IsEmpty(last_main_col_letter) Then
-        MsgBox "Please check your main data sheet.   " & vbCrLf & _
-               "The process will be stoped now.", vbInformation
-    End If
-    
     For Each cel In main_ws.Range("A1:" & last_main_col_letter & 1)
         If cel = "weight" Then
             has_weight = True
+            Exit For
         Else
             has_weight = False
         End If
     Next
     
+    Dim a As Long
+    
 End Function
+
+Sub cc()
+' testing
+sheets("keen").Cells.Clear
+
+'        If WorksheetExists("keen") Then
+'            sheets("keen").Visible = xlSheetHidden
+'            sheets("keen").Delete
+'        End If
+
+Call inject_data("es_nfi_vulnerability_index_cat", "province", True)
+Call unifier(True, True)
+End Sub
+
 
 ' get the required data into keen sheet and delete the blank measurement rows
 Sub inject_data(measurement As String, disaggregation As String, weight As Boolean)
@@ -901,8 +945,9 @@ Sub inject_data(measurement As String, disaggregation As String, weight As Boole
     Dim dis_col_letter As String
     Dim weight_col_letter As String
     
-    Set ws = sheets(Public_module.DATA_SHEET)
-
+'    Set ws = sheets(Public_module.DATA_SHEET)
+    Set ws = sheets(find_main_data)
+    
     If LCase(disaggregation) = "all" Then
         measurement_col_letter = gen_column_letter(measurement, ws.Name)
         sheets("keen").columns("A") = ws.columns(measurement_col_letter).Value2
@@ -980,12 +1025,10 @@ Sub remove_NA()
     
     Dim ws As Worksheet
     Set ws = sheets(Public_module.DATA_SHEET)
-    analysis_form.TextInfo.value = "Removing NAs ... "
+    
     ws.Cells.Replace What:="NA", replacement:="", LookAt:=xlWhole, SearchOrder _
                      :=xlByColumns, MatchCase:=True, SearchFormat:=False, ReplaceFormat:=False
-'                     False, FormulaVersion:=xlReplaceFormula2
-        
-    analysis_form.TextInfo.value = "Removed NAs" & vbLf & "Removing NAs ... "
+
 End Sub
 
 
