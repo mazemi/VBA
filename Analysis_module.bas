@@ -2,9 +2,11 @@ Attribute VB_Name = "analysis_module"
 Option Explicit
 
 Sub analyze()
-    
+'    On Error Resume Next
     Public_module.CANCEL_PROCESS = False
     Application.ScreenUpdating = False
+    Application.DisplayAlerts = False
+    
     Dim result_sheet As Worksheet
     Dim keen_sheet As Worksheet
     Dim main_ws As Worksheet
@@ -12,7 +14,7 @@ Sub analyze()
     Dim unique_choices As New Collection
     Dim last_row_survey_sheet As Long
     Dim last_row_choice As Long
-    Dim last_row_survey_choices As Long
+    Dim last_row_xsurvey_choices As Long
     Dim measurement As Variant
     Dim measurement_str As String, dis_str As String
     Dim i As Variant ' for looping through select choices
@@ -44,8 +46,9 @@ Sub analyze()
     Dim choice_count As Long
     Dim last_unified_row As Long
     Dim dis_count As Long
+    Dim answer As Integer
     
-    Set sc_sheet = sheets("survey_choices")
+    Set sc_sheet = ThisWorkbook.sheets("xsurvey_choices")
 
     With sheets("dissagregation_setting")
         last_dis = .Cells(rows.count, 1).End(xlUp).row
@@ -61,12 +64,19 @@ Sub analyze()
     last_row_main_data = main_ws.Cells(rows.count, 1).End(xlUp).row
 
     ' check if result sheet exist
+    If worksheet_exists("result") Then
+        answer = MsgBox("There is another analysis result." & vbNewLine _
+            & "Do you want to overide it?", vbQuestion + vbYesNo + vbDefaultButton2, "Message Box Title")
+        If answer = vbNo Then End
+        sheets("result").Delete
+    End If
+    
     Call check_result_sheet(main_ws.Name)
 
     ' check if keen sheet exist
-    If Not WorksheetExists("keen") Then
+    If Not worksheet_exists("keen") Then
         Call create_sheet(main_ws.Name, "keen")
-'        sheets("keen").Visible = xlVeryHidden
+        sheets("keen").Visible = xlVeryHidden
     End If
 
     Set keen_sheet = sheets("keen")
@@ -74,9 +84,9 @@ Sub analyze()
 
     Set result_sheet = sheets("result")
 
-    last_row_choice = Worksheets("choices").Cells(rows.count, 1).End(xlUp).row
-    last_row_survey_sheet = Worksheets("survey").Cells(rows.count, 1).End(xlUp).row
-    last_row_survey_choices = Worksheets("survey_choices").Cells(rows.count, 1).End(xlUp).row
+    last_row_choice = ThisWorkbook.Worksheets("xchoices").Cells(rows.count, 1).End(xlUp).row
+    last_row_survey_sheet = ThisWorkbook.Worksheets("xsurvey").Cells(rows.count, 1).End(xlUp).row
+    last_row_xsurvey_choices = ThisWorkbook.Worksheets("xsurvey_choices").Cells(rows.count, 1).End(xlUp).row
         
     ' if wieght column exist in the main data sheet, then extract its column name
     If has_weight Then
@@ -402,9 +412,6 @@ Sub analyze()
                 ' case 7:
             Case Not overall And wgt And m_type = "select_one"
                 Call inject_data(measurement_str, dis_str, wgt)
-                
-                ' Call unifier(True, True)
-                
     
                 last_row_keen = keen_sheet.Cells(rows.count, 1).End(xlUp).row
                 
@@ -426,7 +433,7 @@ Sub analyze()
                         For i = 1 To unique_choices.count
                
                             sum_weight = Application.WorksheetFunction.SumIf(keen_sheet.Range("A2:A" & CStr(last_row_keen)), _
-                                                                             CStr(disaggregation), keen_sheet.Range("C2:C" & CStr(last_row_keen)))
+                                                                                CStr(disaggregation), keen_sheet.Range("C2:C" & CStr(last_row_keen)))
                
                             sum_w2 = Application.WorksheetFunction.SumIfs(keen_sheet.Range("C2:C" & CStr(last_row_keen)), _
                                                                           keen_sheet.Range("A2:A" & CStr(last_row_keen)), CStr(disaggregation), _
@@ -462,9 +469,7 @@ Sub analyze()
                 ' case 8:
             Case Not overall And Not wgt And m_type = "select_one"
                 Call inject_data(measurement_str, dis_str, wgt)
-                
-                ' Call unifier(True, False)
-    
+
                 last_row_keen = keen_sheet.Cells(rows.count, 1).End(xlUp).row
                 ' last_unified_row = keen_sheet.Cells(rows.count, 6).End(xlUp).row
     
@@ -678,7 +683,7 @@ Sub analyze()
                                                                               CStr(disaggregation))
                 
                             choice_count = Application.WorksheetFunction.CountIfs(keen_sheet.Range("E2:E" & CStr(last_unified_row)), _
-                                                                                  CStr(disaggregation), keen_sheet.Range("F2:F" & CStr(last_unified_row)), unique_choices(i))
+                                                CStr(disaggregation), keen_sheet.Range("F2:F" & CStr(last_unified_row)), unique_choices(i))
                                   
                             choice_percentage = Application.WorksheetFunction.Round(choice_count / dis_count * 100, 1)
                 
@@ -710,16 +715,16 @@ Sub analyze()
 
 NextIteration:
 
+On Error Resume Next
             sheets("keen").Cells.Clear
-            
+            Debug.Print measurement_str
         Next  ' loop for question_rng
    
     Next  ' loop for disaggrigation
 
-    Application.DisplayAlerts = False
-    
-    If WorksheetExists("keen") Then
-'        sheets("keen").Delete
+    If worksheet_exists("keen") Then
+        sheets("keen").Visible = Hidden
+        sheets("keen").Delete
     End If
     
     Application.DisplayAlerts = True
@@ -735,7 +740,7 @@ NextIteration:
 End Sub
 
 ' if we need to apply weighting a column will be generated by the name w2 = numeric_value * weight
-Sub add_mulitipication(target_col As String)
+Private Sub add_mulitipication(target_col As String)
     Dim last_row As Long
     last_row = Worksheets("keen").Cells(rows.count, 1).End(xlUp).row
     Worksheets("keen").Range(target_col & "1").FormulaR1C1 = "w2"
@@ -745,9 +750,9 @@ Sub add_mulitipication(target_col As String)
         Destination:=Worksheets("keen").Range(target_col & "2:" & target_col & CStr(last_row))
 End Sub
 
-Sub check_result_sheet(sheet_name As String)
+Private Sub check_result_sheet(sheet_name As String)
     ' check if keen sheet exist
-    If Not WorksheetExists("result") Then
+    If Not worksheet_exists("result") Then
         Call create_sheet(sheet_name, "result")
         sheets("result").Cells(1, 1) = "row"
         sheets("result").Cells(1, 2) = "disaggregation"
@@ -776,29 +781,12 @@ Sub check_result_sheet(sheet_name As String)
         sheets("result").columns(11).ColumnWidth = 15
         sheets("result").columns(12).ColumnWidth = 45
         sheets("result").columns(13).ColumnWidth = 7
-
     End If
+    sheets("result").Visible = False
 End Sub
 
-Public Function unique_valuesX(rng As Range) As Collection
-    Dim dic As Object, c As Range, h, tmp As String
-    Dim unique_collection As New Collection
-    
-    Set dic = CreateObject("scripting.dictionary")
-    For Each c In rng
-        tmp = Trim(c.value)
-        If Len(tmp) > 0 Then dic(tmp) = dic(tmp) + 1
-    Next c
-    
-    For Each h In dic.Keys
-        unique_collection.Add CStr(h)
-    Next h
-    
-    Set unique_valuesX = unique_collection
-End Function
-
 ' remove null rows from keen sheet
-Sub delete_blank_rows(col_number As Long)
+Private Sub delete_blank_rows(col_number As Long)
 
     Dim rng As Range
     Dim str_delete As String
@@ -900,7 +888,7 @@ Sub unifier(dis As Boolean, wgh As Boolean)
 End Sub
 
 ' check if main data sheet has weight column or not
-Function has_weight() As Boolean
+Private Function has_weight() As Boolean
     Dim main_ws As Worksheet
     Dim last_main_col_letter As String
     Dim cel As Variant
@@ -923,22 +911,8 @@ Function has_weight() As Boolean
     
 End Function
 
-Sub cc()
-' testing
-sheets("keen").Cells.Clear
-
-'        If WorksheetExists("keen") Then
-'            sheets("keen").Visible = xlSheetHidden
-'            sheets("keen").Delete
-'        End If
-
-Call inject_data("es_nfi_vulnerability_index_cat", "province", True)
-Call unifier(True, True)
-End Sub
-
-
 ' get the required data into keen sheet and delete the blank measurement rows
-Sub inject_data(measurement As String, disaggregation As String, weight As Boolean)
+Private Sub inject_data(measurement As String, disaggregation As String, weight As Boolean)
     Dim ws As Worksheet
     Dim measurement_col_letter As String
     Dim dis_col_lettera As String
@@ -974,61 +948,6 @@ Sub inject_data(measurement As String, disaggregation As String, weight As Boole
     
 End Sub
 
-' return the label of main measurement
-Function var_label(var As String) As String
-    On Error GoTo errHandler
-    
-    Dim last_row_survey As Long
-    Dim v_label As String
-    
-    last_row_survey = Worksheets("survey").Cells(rows.count, 1).End(xlUp).row
-    v_label = WorksheetFunction.Index(sheets("survey").Range("C2:C" & last_row_survey), _
-                                        WorksheetFunction.Match(var, sheets("survey").Range("B2:B" & last_row_survey), 0))
-                
-    If v_label = vbNullString Then
-        var_label = var
-        
-    Else
-        var_label = v_label
-    End If
-    Exit Function
-                
-errHandler:
-    var_label = var
-    
-End Function
 
-' return the label of choice, if not not found return the original choice value
-Function choice_label(question As String, choice As String) As String
-
-    On Error GoTo errHandler
-    
-    Dim ws_sc As Worksheet
-    Set ws_sc = sheets("survey_choices")
-    Dim last_row_survey_choices As Long
-    Dim question_choice As String
-    question_choice = question & choice
-    
-    last_row_survey_choices = ws_sc.Cells(rows.count, 1).End(xlUp).row
-     
-    choice_label = WorksheetFunction.Index(ws_sc.Range("E2:E" & last_row_survey_choices), _
-                                           WorksheetFunction.Match(question_choice, ws_sc.Range("F2:F" & last_row_survey_choices), 0))
-
-    Exit Function
-
-errHandler:
-    choice_label = choice
-
-End Function
-
-Sub remove_NA()
-    
-    Dim ws As Worksheet
-    Set ws = sheets(Public_module.DATA_SHEET)
-    
-    ws.Cells.Replace What:="NA", replacement:="", LookAt:=xlWhole, SearchOrder _
-                     :=xlByColumns, MatchCase:=True, SearchFormat:=False, ReplaceFormat:=False
-
-End Sub
 
 
