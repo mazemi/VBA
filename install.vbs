@@ -45,7 +45,18 @@ Sub CreateTrustedLocation()
 	Dim oFSO
 	Set oFSO = CreateObject("Scripting.FileSystemObject")
 
+	On Error Resume Next
+	'On Error Goto 0
 	oFSO.CopyFile strFile, strFolder, True
+
+	If Err.Number <> 0 Then
+		MsgBox "Installation failed."  & vbCrLf  & _
+			"- Please make sure the MS Excel application 2016 (64 bit) or higher is installed."  & vbCrLf  & _
+			"- Please close the MS Excel application and try again.",,"Fail" 
+		Exit Sub
+		'WScript.Echo "Error in DoStep1: " & Err.Description
+		'Err.Clear
+	End If
 
 	'Name of the application to create the Trusted Location for Access, Excel, Word
 	sAppName = "Excel"
