@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Sub set_indicator_validator()
         
     Dim dt_name As String
@@ -81,8 +82,8 @@ Private Sub CommandReset_Click()
 End Sub
 
 Private Sub CommandSave_Click()
+    Application.ScreenUpdating = False
     Dim val As String
-    
     Dim current_dt_name As String
     Dim new_name As String
     
@@ -109,7 +110,7 @@ Private Sub CommandSave_Click()
     
     If Me.ListWeight.ListCount > 0 Then
         ' check if dissagregation_setting sheet exist
-        If Not WorksheetExists("analysis_list") Then
+        If Not worksheet_exists("analysis_list") Then
             Call create_sheet("dissagregation_setting", "analysis_list")
             sheets("analysis_list").Cells(1, 1) = "question"
             sheets("analysis_list").Cells(1, 2) = "type"
@@ -125,21 +126,25 @@ Private Sub CommandSave_Click()
             End With
             
             Call set_indicator_validator
-            
             Call format_question_type
             
-            Call add_note
-            
+            ' Call add_note
+                   
         End If
         
         If Me.CheckBoxAll Then
             Call add_all_indicators
+            With sheets("analysis_list")
+                .columns("B:B").Copy
+                .columns("B:B").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks:=False, transpose:=False
+            End With
+            sheets("analysis_list").Activate
         End If
         
     End If
       
     Application.Calculation = xlCalculationAutomatic
-    
+    Application.ScreenUpdating = True
     Unload Me
 End Sub
 
@@ -149,11 +154,11 @@ Sub add_all_indicators()
     Dim tmp_ws As Worksheet
     Dim analys_ws As Worksheet
     Dim rng As Range
-    If WorksheetExists("temp_sheet") <> True Then
+    If worksheet_exists("temp_sheet") <> True Then
         Call create_sheet(find_main_data, "temp_sheet")
     End If
     
-    Set sur_ws = sheets("survey")
+    Set sur_ws = ThisWorkbook.sheets("xsurvey")
     Set tmp_ws = sheets("temp_sheet")
     Set analys_ws = sheets("analysis_list")
     tmp_ws.Cells.ClearContents
@@ -185,24 +190,24 @@ Private Sub UserForm_Initialize()
     Application.ScreenUpdating = False
     
     ' check if dissagregation_setting sheet exist
-    If Not WorksheetExists("dissagregation_setting") Then
+    If Not worksheet_exists("dissagregation_setting") Then
         Call create_sheet(sheets(sheets.count).Name, "dissagregation_setting")
         sheets("dissagregation_setting").Cells(1, 1) = "Disaggregation Level"
         sheets("dissagregation_setting").Cells(1, 2) = "Weight"
-        Worksheets("dissagregation_setting").Visible = xlVeryHidden
+        Worksheets("dissagregation_setting").visible = xlVeryHidden
     End If
     Dim dt_sheet_name As String
 
     
     ' check if dissagregation_setting sheet exist
-    If Not WorksheetExists("survey") Or Not WorksheetExists("choices") Then
+    If ThisWorkbook.Worksheets("xsurvey").Range("A1") = vbNullString Then
         MsgBox "Please import the KOBO tools.    ", vbInformation
         End
     End If
     
     dt_sheet_name = find_main_data
   
-    If WorksheetExists(dt_sheet_name) Then
+    If worksheet_exists(dt_sheet_name) Then
         Me.ComboSheets.Text = dt_sheet_name
     End If
 
@@ -211,10 +216,11 @@ Private Sub UserForm_Initialize()
     Set sheet_li = sheet_list                    'Get the collection of worksheet names
     Dim sh As Variant                            'name of a sheet
     For Each sh In sheet_li
-        If ActiveWorkbook.Worksheets(CStr(sh)).Visible Then
+        If ActiveWorkbook.Worksheets(CStr(sh)).visible Then
             If CStr(sh) <> "result" And CStr(sh) <> "log_book" And CStr(sh) <> "analysis_list" And _
                CStr(sh) <> "dissagregation_setting" And CStr(sh) <> "overall" And CStr(sh) <> "survey" And _
-               CStr(sh) <> "choices" And CStr(sh) <> "survey_choices" Then
+               CStr(sh) <> "keen" And CStr(sh) <> "indi_list" And CStr(sh) <> "temp_sheet" And _
+               CStr(sh) <> "choices" And CStr(sh) <> "xsurvey_choices" And CStr(sh) <> "datamerge" Then
                 Me.ComboSheets.AddItem sh
             End If
         End If
@@ -235,6 +241,8 @@ Private Sub UserForm_Initialize()
         .RowSource = dis_rng.Parent.Name & "!" & dis_rng.Resize(dis_rng.rows.count - 1).Offset(1).Address
     End With
      
+    Me.LabelTool.Caption = "Integrated Tool: " & vbCrLf & GetRegistrySetting("ramSetting", "koboToolReg")
+     
     Me.ComboQuestions.Enabled = True
     
     Me.ComboWeight.Enabled = True
@@ -244,7 +252,7 @@ Private Sub UserForm_Initialize()
      
 err_handler:
 
-    If Not WorksheetExists("dissagregation_setting") Then
+    If Not worksheet_exists("dissagregation_setting") Then
         Call create_sheet(main_ws.Name, "dissagregation_setting")
         sheets("dissagregation_setting").Cells(1, 1) = "Disaggregation Level"
         sheets("dissagregation_setting").Cells(1, 2) = "Weight"
@@ -348,51 +356,51 @@ Sub referesh_list()
     End With
 End Sub
 
-Private Sub CommandRemove_Click()
-    
-'    On Error GoTo err_handler
-    Dim strng As String
-    Dim lCol As Long, lRow As Long
-
-    With Me.ListWeight
-        For lRow = 0 To .ListCount - 1           '<--| loop through listbox rows
-            If .Selected(lRow) Then              '<--| if current row selected
-                For lCol = 0 To .columnCount - 1 '<--| loop through listbox columns
-                    strng = strng & .List(lRow, lCol) & "," '<--| build your output string
-                Next lCol
-                Exit For
-            End If
-        Next lRow
-    End With
-    
-    Dim Result() As String
-    Result() = Split(strng, ",")
-
-    Dim a As Integer
-    a = 1
-    
-    Do While Cells(a, 1) <> ""
-    
-        If sheets("dissagregation_setting").Cells(a, 1) = Result(0) And sheets("dissagregation_setting").Cells(a, 2) = Result(1) Then
-            sheets("dissagregation_setting").rows(a).Delete Shift:=xlUp
-            'Row counter should not be incremented if row was just deleted
-        Else
-            'Increment a for next row only if row not deleted
-            a = a + 1
-        End If
-    
-    Loop
-    
-    Call referesh_list
-'    Exit Sub
+'Private Sub CommandRemove_Click()
 '
-'err_handler:
-
-End Sub
+''    On Error GoTo err_handler
+'    Dim strng As String
+'    Dim lCol As Long, lRow As Long
+'
+'    With Me.ListWeight
+'        For lRow = 0 To .ListCount - 1           '<--| loop through listbox rows
+'            If .Selected(lRow) Then              '<--| if current row selected
+'                For lCol = 0 To .columnCount - 1 '<--| loop through listbox columns
+'                    strng = strng & .List(lRow, lCol) & "," '<--| build your output string
+'                Next lCol
+'                Exit For
+'            End If
+'        Next lRow
+'    End With
+'
+'    Dim Result() As String
+'    Result() = Split(strng, ",")
+'
+'    Dim a As Integer
+'    a = 1
+'
+'    Do While Cells(a, 1) <> ""
+'
+'        If sheets("dissagregation_setting").Cells(a, 1) = Result(0) And sheets("dissagregation_setting").Cells(a, 2) = Result(1) Then
+'            sheets("dissagregation_setting").rows(a).Delete Shift:=xlUp
+'            'Row counter should not be incremented if row was just deleted
+'        Else
+'            'Increment a for next row only if row not deleted
+'            a = a + 1
+'        End If
+'
+'    Loop
+'
+'    Call referesh_list
+''    Exit Sub
+''
+''err_handler:
+'
+'End Sub
 
 Function not_good_dis() As Collection
     Dim ws As Worksheet
-    Set ws = sheets("survey")
+    Set ws = ThisWorkbook.sheets("xsurvey")
     Dim rng As Range
     Dim not_good_collection As New Collection
     last_row_survey = ws.Cells(ws.rows.count, 1).End(xlUp).row
@@ -413,7 +421,7 @@ Sub add_note()
     ActiveSheet.Shapes.AddShape(msoShapeRoundedRectangle, 420, 100, 500, 90).Select
         
     Selection.ShapeRange.ShapeStyle = msoShapeStylePreset2
-    Selection.ShapeRange.Adjustments.Item(1) = 0.02057
+    Selection.ShapeRange.Adjustments.item(1) = 0.02057
     Selection.ShapeRange(1).TextFrame2.TextRange.Characters.Text = _
                                                                  "Please add the necessary indicator in the first column.You can use the question_type formula in the second column, for example: =question_type(A2)" & _
                                                                  " Valid types are integer, decimal, select_one and select_multiple."
@@ -426,7 +434,7 @@ Sub add_note()
     With Selection.ShapeRange(1).TextFrame2.TextRange.Characters(1, 73).Font
         .NameComplexScript = "+mn-cs"
         .NameFarEast = "+mn-ea"
-        .Fill.Visible = msoTrue
+        .Fill.visible = msoTrue
         .Fill.ForeColor.ObjectThemeColor = msoThemeColorDark1
         .Size = 11
         .Name = "+mn-lt"
@@ -435,7 +443,7 @@ Sub add_note()
         .Bold = msoTrue
         .NameComplexScript = "+mn-cs"
         .NameFarEast = "+mn-ea"
-        .Fill.Visible = msoTrue
+        .Fill.visible = msoTrue
         .Fill.ForeColor.ObjectThemeColor = msoThemeColorDark1
         .Size = 11
         .Name = "+mn-lt"
@@ -443,7 +451,7 @@ Sub add_note()
     With Selection.ShapeRange(1).TextFrame2.TextRange.Characters(88, 43).Font
         .NameComplexScript = "+mn-cs"
         .NameFarEast = "+mn-ea"
-        .Fill.Visible = msoTrue
+        .Fill.visible = msoTrue
         .Fill.ForeColor.ObjectThemeColor = msoThemeColorDark1
         .Size = 11
         .Name = "+mn-lt"
@@ -451,7 +459,7 @@ Sub add_note()
     With Selection.ShapeRange(1).TextFrame2.TextRange.Characters(131, 18).Font
         .NameComplexScript = "+mn-cs"
         .NameFarEast = "+mn-ea"
-        .Fill.Visible = msoTrue
+        .Fill.visible = msoTrue
         .Fill.ForeColor.ObjectThemeColor = msoThemeColorDark1
         .Size = 11
         .Name = "+mn-lt"

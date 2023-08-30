@@ -1,23 +1,46 @@
 Attribute VB_Name = "Consistency_check_module"
+Option Explicit
 Global SKIP_QUESTION As Boolean
 
 Sub consistency_check()
-    t = Timer
+    On Error GoTo errHandler
+    Application.DisplayAlerts = False
+    Dim t As Date
+    Dim last_question As Long
+    Dim i As Long
+    Dim uuid_col As Long
+
+    wait_form.main_label = "Please wait ..."
+    wait_form.Show vbModeless
+    wait_form.Repaint
+    
     Application.ScreenUpdating = False
     
+    uuid_col = gen_column_number("_uuid", find_main_data)
+
+    If uuid_col = 0 Then
+         MsgBox "There is no _uuid column in the main dataset.", vbInformation
+         Unload wait_form
+         Exit Sub
+    End If
+    
     Dim tmp_ws As Worksheet
-    If WorksheetExists("survey_choices") <> True Then
+    If ThisWorkbook.sheets("xsurvey").Range("A1") = vbNullString Then
         MsgBox "Please import the tool.  ", vbInformation
+        Unload wait_form
         Exit Sub
     End If
     
+    Call remove_empty_col
     Call setup_check
+    
     Set tmp_ws = sheets("temp_sheet")
     
     last_question = tmp_ws.Cells(rows.count, 1).End(xlUp).row
     
     If last_question < 11 Then
-        MsgBox "No catagory question detected.  ", vbInformation
+        MsgBox "No categorical question detected.  ", vbInformation
+        Unload wait_form
         Exit Sub
     End If
     
@@ -25,6 +48,8 @@ Sub consistency_check()
         DoEvents
         Application.StatusBar = tmp_ws.Cells(i, 1)
         SKIP_QUESTION = False
+        If no_value(tmp_ws.Cells(i, 1)) Then GoTo resume_loop
+        
         Call data_injection(tmp_ws.Cells(i, 1))
   
         If SKIP_QUESTION Then GoTo resume_loop
@@ -33,24 +58,43 @@ Sub consistency_check()
 resume_loop:
     Next i
     
+    If worksheet_exists("temp_sheet") Then
+        Application.DisplayAlerts = False
+        sheets("temp_sheet").visible = xlSheetHidden
+        sheets("temp_sheet").Delete
+    End If
+        
+    Unload wait_form
     Application.ScreenUpdating = True
-    
     Application.StatusBar = False
+    Application.DisplayAlerts = True
+    Exit Sub
     
-    Debug.Print "Finished.", Timer - t
+errHandler:
+
+    If worksheet_exists("temp_sheet") Then
+        sheets("temp_sheet").visible = xlSheetHidden
+        sheets("temp_sheet").Delete
+    End If
     
+    Unload wait_form
+    Application.ScreenUpdating = True
+    Application.StatusBar = False
+    Application.DisplayAlerts = True
+    MsgBox "Checking failed!       ", vbInformation
+
 End Sub
 
 Sub setup_check()
-
+    Dim last_row_dt As Long
     Dim tool_ws As Worksheet
     Dim temp_ws As Worksheet
     Dim dt_ws As Worksheet
     
-    Set tool_ws = sheets("survey_choices")
+    Set tool_ws = ThisWorkbook.sheets("xsurvey_choices")
     Set dt_ws = sheets(find_main_data)
     
-    If WorksheetExists("temp_sheet") <> True Then
+    If worksheet_exists("temp_sheet") <> True Then
         Call create_sheet(dt_ws.Name, "temp_sheet")
     End If
     
@@ -60,7 +104,10 @@ Sub setup_check()
     
     temp_ws.Range("A1") = "type"
     temp_ws.Range("A2") = "select_one"
-'    temp_ws.Range("A3") = "select_multiple"
+    
+    ' maybe later
+    ' temp_ws.Range("A3") = "select_multiple"
+    
     temp_ws.Range("A5") = "question"
      
     temp_ws.Range("A10") = "question"
@@ -85,6 +132,8 @@ Sub data_injection(question As String)
     Dim c1 As Long
     Dim c2 As Long
     Dim rng As Range
+    Dim last_choice As Long
+    Dim i As Long
     
     Set temp_ws = sheets("temp_sheet")
     temp_ws.Range("B:P").Delete
@@ -95,7 +144,7 @@ Sub data_injection(question As String)
     uuid_col = gen_column_number("_uuid", dt_ws.Name)
     c1 = gen_column_number(question, dt_ws.Name)
     c2 = gen_column_number(question & "_label", dt_ws.Name)
-    
+       
     If c1 = 0 Then
         SKIP_QUESTION = True
         Exit Sub
@@ -135,72 +184,6 @@ Sub data_injection(question As String)
 End Sub
 
 
-Sub new_inject(question As String)
-Dim temp_ws As Worksheet
-Dim dt_ws As Worksheet
-Dim colle As New Collection
-Dim last_row As Long
-Dim q As String
-Dim uuid_col As Long
-Dim c1 As Long
-Dim c2 As Long
-Dim rng As Range
-
-Set temp_ws = sheets("temp_sheet")
-temp_ws.Range("B:P").Delete
-Set dt_ws = sheets(find_main_data)
-
-Call tool_value_choice(question)
-
-uuid_col = gen_column_number("_uuid", dt_ws.Name)
-c1 = gen_column_number(question, dt_ws.Name)
-c2 = gen_column_number(question & "_label", dt_ws.Name)
-
-If c1 = 0 Then
-    SKIP_QUESTION = True
-    Exit Sub
-End If
-
-' Use ranges and arrays to assign values directly
-temp_ws.columns("G:G").Value2 = dt_ws.columns(uuid_col).Value2
-temp_ws.columns("H:H").Value2 = dt_ws.columns(c1).Value2
-temp_ws.columns("E:E").Value2 = dt_ws.columns(c1).Value2
-
-temp_ws.Range("E1").Value2 = temp_ws.Range("E1").Value2 & "_unique"
-
-If c2 > 0 Then
-
-    temp_ws.columns("I:I").Value2 = dt_ws.columns(c2).Value2
-    
-    temp_ws.Range("I1").Value2 = question & "_labelX"
-           
-    temp_ws.Activate
-    Call add_question_label(question)
-    
-End If
-
-last_row = temp_ws.Cells(rows.count, 7).End(xlUp).row
-
-' Use .Value2 instead of .Text or .Value
-temp_ws.Range("E1:E" & last_row).RemoveDuplicates columns:=1, Header:=xlYes
-
-last_choice = temp_ws.Cells(rows.count, 5).End(xlUp).row
-
-With temp_ws.Range("E1:E" & last_choice)
-    If WorksheetFunction.CountA(.Cells) > 0 Then
-        
-        ' Use For Each loop instead of For loop for collections
-        Dim cell As Range
-        For Each cell In .Cells
-            If LenB(cell.Value2) = 0 Then cell.Delete Shift:=xlShiftUp
-        Next cell
-        
-    End If
-End With
-
-End Sub
-
-
 Sub log_value_inconsistency()
     Dim tool_rng As Range
     Dim value_rng As Range
@@ -210,11 +193,16 @@ Sub log_value_inconsistency()
     Dim log_ws As Worksheet
     Dim inconsistant_values() As String
     Dim i As Long
+    Dim j As Long
+    Dim k As Long
     Dim new_log As Long
+    Dim last_row_tool As Long
+    Dim last_row_value As Long
+    Dim last_row_dt As Long
     
     Set temp_ws = sheets("temp_sheet")
     
-    If WorksheetExists("log_book") <> True Then
+    If worksheet_exists("log_book") <> True Then
         Call create_log_sheet(find_main_data)
     End If
     
@@ -231,11 +219,7 @@ Sub log_value_inconsistency()
 
     If (Not inconsistant_values) = -1 Then GoTo label_check
     
-'    Debug.Print last_row_tool, last_row_value, last_row_dt
-    
     For i = 0 To UBound(inconsistant_values)
-'        Debug.Print inconsistant_values(i)
-        
         For j = 2 To last_row_dt
             If temp_ws.Cells(j, 8) = inconsistant_values(i) Then
                 new_log = log_ws.Cells(rows.count, 1).End(xlUp).row + 1
@@ -250,13 +234,13 @@ Sub log_value_inconsistency()
 label_check:
 
     If Right(temp_ws.Range("J1"), 6) = "labelX" Then
-        For K = 2 To last_row_dt
-            If temp_ws.Cells(K, "I") <> temp_ws.Cells(K, "J") Then
+        For k = 2 To last_row_dt
+            If temp_ws.Cells(k, "I") <> temp_ws.Cells(k, "J") Then
                 new_log = log_ws.Cells(rows.count, 1).End(xlUp).row + 1
-                log_ws.Cells(new_log, "A").value = temp_ws.Cells(K, "G")
+                log_ws.Cells(new_log, "A").value = temp_ws.Cells(k, "G")
                 log_ws.Cells(new_log, "B").value = temp_ws.Range("I1")
                 log_ws.Cells(new_log, "C").value = "check the label"
-                log_ws.Cells(new_log, "E").value = temp_ws.Cells(K, "J")
+                log_ws.Cells(new_log, "E").value = temp_ws.Cells(k, "J")
             End If
         Next
     End If
@@ -289,7 +273,7 @@ Private Sub tool_value_choice(q_name As String)
     Dim last_choice As Long
     Dim coll As New Collection
     
-    Set tool_ws = sheets("survey_choices")
+    Set tool_ws = ThisWorkbook.sheets("xsurvey_choices")
     Set temp_ws = sheets("temp_sheet")
     
     temp_ws.Range("A6") = q_name

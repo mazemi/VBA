@@ -1,25 +1,33 @@
 Attribute VB_Name = "Public_module"
-Global Data_sheet As String
-Global Sample_sheet As String
-Global Data_strata As String
-Global Sample_strata As String
-Global Sample_pop As String
-Global ana As Integer
-Global cancel_proc As Boolean
+Global ISSUE_TEXT As String
+Global PATTERN_CHECK_ACTION As Boolean
+Global ROW_ARRAY() As Integer
+Global DATA_SHEET As String
+Global PLAN_NUMBER As Long
+Global PLAN_STRING As String
+Global SAMPLE_SHEET As String
+Global DATA_STRATA As String
+Global SAMPLE_STRATA As String
+Global SAMPLE_POPULATION As String
+Global CANCEL_PROCESS As Boolean
+Global CURRENT_WORK_BOOK As Workbook
+Global CHART_COUNT As Long
 
-
-Public Function Col_Letter(lngCol As Long) As String
+Public Function number_to_letter(col_num As Long, input_ws As Worksheet) As String
+    On Error Resume Next
     Dim vArr
-    vArr = Split(Cells(1, lngCol).Address(True, False), "$")
-    Col_Letter = vArr(0)
+    vArr = Split(input_ws.Cells(1, col_num).Address(True, False), "$")
+    number_to_letter = vArr(0)
 End Function
 
-Function col_number(ColName As String)
-    col_number = Range(ColName & 1).column
+Function letter_to_number(col_name As String, input_ws As Worksheet)
+    On Error Resume Next
+    letter_to_number = input_ws.Range(col_name & 1).column
 End Function
 
-Public Function WorksheetExists(sName As String) As Boolean
-    WorksheetExists = Evaluate("ISREF('" & sName & "'!A1)")
+Public Function worksheet_exists(sName As String) As Boolean
+    On Error Resume Next
+    worksheet_exists = Evaluate("ISREF('" & sName & "'!A1)")
 End Function
 
 Public Function column_number(column_value As String) As Long
@@ -50,7 +58,7 @@ Public Function column_letter(column_value As String) As String
     If Not IsError(colNum) Then
         column_letter = Replace(Cells(1, colNum).Address(False, False), "1", "")
     Else
-        column_letter = "" '
+        column_letter = ""                       '
     End If
 End Function
 
@@ -68,6 +76,7 @@ Public Function gen_column_number(column_value As String, sheet_name As String) 
     End If
     
 End Function
+
 Public Function gen_column_letter(column_value As String, sheet_name As String) As String
     On Error Resume Next
     Dim colNum As Long
@@ -81,43 +90,44 @@ Public Function gen_column_letter(column_value As String, sheet_name As String) 
         gen_column_letter = ""
     End If
 End Function
+
+Public Function data_column_letter(column_value As String) As String
+    On Error Resume Next
+    Dim colNum As Long
+    Dim vArr
+    Dim ws_name As String
+    ws_name = find_main_data
+    
+    colNum = Application.Match(column_value, sheets(ws_name).Range("1:1"), 0)
+    
+    If Not IsError(colNum) Then
+        data_column_letter = Replace(sheets(ws_name).Cells(1, colNum).Address(False, False), "1", "")
+    Else
+        data_column_letter = ""
+    End If
+End Function
+
+Public Function uuid_coln() As Long
+    On Error Resume Next
+    Dim colNum As Long
+    Dim worksheetName As String
+
+    colNum = Application.Match("_uuid", sheets(find_main_data).Range("1:1"), 0)
+    
+    If Not IsError(colNum) Then
+        uuid_coln = colNum
+    Else
+        uuid_coln = 0
+    End If
+End Function
+
 Public Sub create_sheet(sheet_name_base As String, new_sheet_name As String)
+    On Error Resume Next
     sheets.Add(After:=sheets(sheet_name_base)).Name = new_sheet_name
 End Sub
 
-Sub get_files()
-    On Error GoTo errHandler:
-    Dim oFSO As Object
-    Dim oFolder As Object
-    Dim oFile As Object, sf
-    Dim i As Integer, colFolders As New Collection, ws As Worksheet
-    Set ws = ActiveSheet
-    Set oFSO = CreateObject("Scripting.FileSystemObject")
-    Set oFolder = oFSO.GetFolder(ThisWorkbook.path & "\audit")
-    
-    colFolders.Add oFolder          'start with this folder
-    Do While colFolders.count > 0      'process all folders
-        Set oFolder = colFolders(1)    'get a folder to process
-        colFolders.Remove 1            'remove item at index 1
-    
-        For Each oFile In oFolder.Files
-            ws.Cells(i + 1, 1) = oFolder.path
-            ws.Cells(i + 1, 2) = oFile.Name
-            i = i + 1
-        Next oFile
-
-        'add any subfolders to the collection for processing
-        For Each sf In oFolder.SubFolders
-            colFolders.Add sf
-        Next sf
-    Loop
-    
-Exit Sub
-errHandler:
-    MsgBox "There is an issue, please make suere the audit files are existed!", vbCritical
-End Sub
-
-Function UnmatchedElements(array1 As Variant, array2 As Variant, check_both As Boolean) As Collection
+Function unmatched_elements(array1 As Variant, array2 As Variant, check_both As Boolean) As Collection
+    On Error Resume Next
     Dim arr1() As Variant
     Dim arr2() As Variant
     Dim unmatched As New Collection
@@ -131,10 +141,9 @@ Function UnmatchedElements(array1 As Variant, array2 As Variant, check_both As B
         arr2 = .transpose(array2)
     End With
     
-    
     ' Find elements in arr1 that are not in arr2
     For i = LBound(arr1) To UBound(arr1)
-        If Not IsInArray(arr1(i), arr2) Then
+        If Not is_in_array(arr1(i), arr2) Then
             unmatched.Add arr1(i)
         End If
     Next i
@@ -142,34 +151,29 @@ Function UnmatchedElements(array1 As Variant, array2 As Variant, check_both As B
     If check_both Then
         ' Find elements in arr2 that are not in arr1
         For i = LBound(arr2) To UBound(arr2)
-            If Not IsInArray(arr2(i), arr1) Then
+            If Not is_in_array(arr2(i), arr1) Then
                 unmatched.Add arr2(i)
             End If
         Next i
     End If
     
-    ' Print the unmatched elements
-'    For i = 1 To unmatched.Count
-'        Debug.Print unmatched(i)
-'    Next i
-    
-   Set UnmatchedElements = unmatched
+    Set unmatched_elements = unmatched
     
 End Function
 
-Function IsInArray(val As Variant, arr As Variant) As Boolean
+Function is_in_array(val As Variant, arr As Variant) As Boolean
     Dim i As Long
     For i = LBound(arr) To UBound(arr)
         If val = arr(i) Then
-            IsInArray = True
+            is_in_array = True
             Exit Function
         End If
     Next i
-    IsInArray = False
+    is_in_array = False
 End Function
 
 Sub clear_filter(ws As Worksheet)
-
+    On Error Resume Next
     Dim filtered_col As Long
 
     If ws.FilterMode Then
@@ -186,44 +190,30 @@ Sub clear_filter(ws As Worksheet)
     
 End Sub
 
-Sub GetUniqueAndCount()
-    Dim d As Object, c As Range, k, tmp As String
-
-    Set d = CreateObject("scripting.dictionary")
-    For Each c In Selection
-        tmp = Trim(c.value)
-        If Len(tmp) > 0 Then d(tmp) = d(tmp) + 1
-    Next c
-
-    For Each k In d.Keys
-        Debug.Print k, d(k)
-    Next k
+Sub clear_active_filter()
+    On Error Resume Next
+    If (ActiveSheet.AutoFilterMode And ActiveSheet.FilterMode) Or ActiveSheet.FilterMode Then
+        ActiveSheet.ShowAllData
+    End If
 
 End Sub
+
+' This function returns a collection of worksheet names in the workbook
 Function sheet_list() As Collection
-    'This function returns a collection of worksheet names in the workbook
+    On Error Resume Next
+    
     Dim sheets As Collection
     Set sheets = New Collection
-    Dim ws As Worksheet 'Use a worksheet variable instead of an index
-    For Each ws In ThisWorkbook.Worksheets 'Loop through each worksheet in the workbook
-        sheets.Add ws.Name 'Add the worksheet name to the collection
+    Dim ws As Worksheet
+    For Each ws In ActiveWorkbook.Worksheets
+        ' add the worksheet name to the collection
+        sheets.Add ws.Name
     Next ws
     Set sheet_list = sheets
 End Function
 
-Public Function Contains(col As Collection, key As Variant) As Boolean
-Dim obj As Variant
-On Error GoTo err
-    Contains = True
-    obj = col(key)
-    Exit Function
-err:
-
-    Contains = False
-End Function
-
-
 Function unique_values(rng As Range) As Collection
+    On Error Resume Next
     Dim d As Object, c As Range, h, tmp As String
     Dim unique_collection As New Collection
     
@@ -234,9 +224,210 @@ Function unique_values(rng As Range) As Collection
     Next c
 
     For Each h In d.Keys
-'        Debug.Print h
-         unique_collection.Add CStr(h)
+        'Debug.Print h
+        unique_collection.Add CStr(h)
     Next h
     Set unique_values = unique_collection
 End Function
+
+Function find_main_data() As String
+    On Error Resume Next
+    Dim dt As String
+    dt = ""
+    dt = GetRegistrySetting("ramSetting", "dataReg")
+
+    If dt <> "" Then
+        If worksheet_exists(dt) Then
+            find_main_data = dt
+            Exit Function
+        End If
+    End If
+    
+    select_data_form.Show
+    find_main_data = GetRegistrySetting("ramSetting", "dataReg")
+    
+End Function
+
+Function replace_char(str As String)
+    On Error Resume Next
+    Dim i As Long
+    Dim char As Variant
+    Dim new_str As String
+    Dim char_set As String
+    
+    new_str = str
+    ' char_set = "!,@,#,$,%,^,&,*,{,[,],},~,`"
+    char_set = "!,@,#,%,^,&,*,~,`"
+    
+    For Each char In Split(char_set, ",")
+        new_str = Replace(new_str, char, "_")
+    Next
+    
+'    Debug.Print new_str
+
+    replace_char = new_str
+    
+End Function
+
+Public Function alpha_numeric_only(strSource As String) As String
+    Dim i As Integer
+    Dim strResult As String
+
+    For i = 1 To Len(strSource)
+        Select Case Asc(Mid(strSource, i, 1))
+            Case 48 To 57, 65 To 90, 97 To 122: 'include 32 if you want to include space
+                strResult = strResult & Mid(strSource, i, 1)
+        End Select
+    Next
+    
+    If Len(strResult) < 15 Then
+        alpha_numeric_only = strResult
+    Else
+        alpha_numeric_only = left(strResult, 15)
+    End If
+   
+End Function
+
+Sub remove_empty_col()
+    Dim dt_ws As Worksheet
+    Dim i As Long
+    Dim last_col As Long
+    Dim colle As New Collection
+    
+    Set dt_ws = sheets(find_main_data)
+    
+    last_col = dt_ws.Cells(1, columns.count).End(xlToLeft).column
+    
+    For i = 1 To last_col
+        If WorksheetFunction.CountA(dt_ws.columns(i)) = 0 Then
+            colle.Add i
+        End If
+    Next
+
+    For j = colle.count To 1 Step -1
+        dt_ws.columns(colle.item(j)).Delete
+    Next j
+End Sub
+
+Sub no_value_col()
+    Dim dt_ws As Worksheet
+    Dim i As Long
+    Dim last_col As Long
+    Dim colle As New Collection
+    Dim str As String
+    
+    Set dt_ws = sheets(find_main_data)
+    
+    last_col = dt_ws.Cells(1, columns.count).End(xlToLeft).column
+    
+    For i = 1 To last_col
+        If WorksheetFunction.CountA(dt_ws.columns(i)) = 1 Then
+            colle.Add i
+        End If
+    Next
+    str = "Column" & vbTab & "Value"
+    
+    If colle.count > 0 Then
+        For j = 1 To colle.count
+            ' Debug.Print colle.Item(j), number_to_letter(colle.Item(j), dt_ws)
+            str = str & vbCrLf & number_to_letter(colle.item(j), dt_ws) & vbTab & dt_ws.Cells(1, colle.item(j))
+        Next j
+    
+    empty_col_form.TextEmpty = str
+    empty_col_form.Show
+    Else
+        MsgBox "No empty column.   ", vbInformation
+    End If
+ 
+End Sub
+
+Function no_value(question As String) As Boolean
+
+    Dim dt_ws As Worksheet
+    Dim question_col As Long
+    Dim last_col As Long
+
+    Set dt_ws = sheets(find_main_data)
+    
+    question_col = gen_column_number(question, dt_ws.Name)
+    
+    If question_col = 0 Then
+        no_value = True
+        Exit Function
+    End If
+    
+    If WorksheetFunction.CountA(dt_ws.columns(question_col)) = 1 Then
+        no_value = True
+    Else
+        no_value = False
+    End If
+
+End Function
+
+Sub create_log_shortcut()
+    Application.OnKey "+^{M}", "show_issue"
+End Sub
+
+Sub delete_log_shortcut()
+    Application.OnKey "^{M}"
+End Sub
+
+' return the label of main measurement
+Function var_label(var As String) As String
+    On Error GoTo errHandler
+    
+    Dim last_row_survey As Long
+    Dim v_label As String
+    
+    last_row_survey = ThisWorkbook.Worksheets("xsurvey").Cells(rows.count, 1).End(xlUp).row
+    v_label = WorksheetFunction.Index(ThisWorkbook.sheets("xsurvey").Range("C2:C" & last_row_survey), _
+            WorksheetFunction.Match(var, ThisWorkbook.sheets("xsurvey").Range("B2:B" & last_row_survey), 0))
+                
+    If v_label = vbNullString Then
+        var_label = var
+        
+    Else
+        var_label = v_label
+    End If
+    Exit Function
+                
+errHandler:
+    var_label = var
+    
+End Function
+
+' return the label of choice, if not not found return the original choice value
+Function choice_label(question As String, choice As String) As String
+
+    On Error GoTo errHandler
+    
+    Dim ws_sc As Worksheet
+    Set ws_sc = ThisWorkbook.sheets("xsurvey_choices")
+    Dim last_row_xsurvey_choices As Long
+    Dim question_choice As String
+    question_choice = question & choice
+    
+    last_row_xsurvey_choices = ws_sc.Cells(rows.count, 1).End(xlUp).row
+     
+    choice_label = WorksheetFunction.Index(ws_sc.Range("E2:E" & last_row_xsurvey_choices), _
+                        WorksheetFunction.Match(question_choice, ws_sc.Range("F2:F" & last_row_xsurvey_choices), 0))
+
+    Exit Function
+
+errHandler:
+    choice_label = choice
+
+End Function
+
+Sub remove_NA()
+    
+    Dim ws As Worksheet
+    Set ws = sheets(Public_module.DATA_SHEET)
+    
+    ws.Cells.Replace What:="NA", replacement:="", LookAt:=xlWhole, SearchOrder:=xlByColumns, _
+            MatchCase:=True, SearchFormat:=False, ReplaceFormat:=False
+
+End Sub
+
+
 

@@ -6,7 +6,7 @@ Sub analyze()
     Public_module.CANCEL_PROCESS = False
     Application.ScreenUpdating = False
     Application.DisplayAlerts = False
-    
+    Dim wb As Workbook
     Dim result_sheet As Worksheet
     Dim keen_sheet As Worksheet
     Dim main_ws As Worksheet
@@ -48,6 +48,7 @@ Sub analyze()
     Dim dis_count As Long
     Dim answer As Integer
     
+    Set wb = ActiveWorkbook
     Set sc_sheet = ThisWorkbook.sheets("xsurvey_choices")
 
     With sheets("dissagregation_setting")
@@ -55,13 +56,17 @@ Sub analyze()
         Set dis_rng = .Range("A2:B" & last_dis)
     End With
 
-    With sheets("analysis_list")
+    With wb.sheets("analysis_list")
+        .columns("B:B").Copy
+        .columns("B:B").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks:=False, transpose:=False
         last_question = .Cells(rows.count, 1).End(xlUp).row
         Set question_rng = .Range("A2:B" & last_question)
     End With
-
-    Set main_ws = sheets(find_main_data)
-    last_row_main_data = main_ws.Cells(rows.count, 1).End(xlUp).row
+    
+    Call remove_empty_col
+    
+    Set main_ws = wb.sheets(find_main_data)
+    last_row_main_data = main_ws.Cells(rows.count, uuid_coln).End(xlUp).row
 
     ' check if result sheet exist
     If worksheet_exists("result") Then
@@ -76,13 +81,13 @@ Sub analyze()
     ' check if keen sheet exist
     If Not worksheet_exists("keen") Then
         Call create_sheet(main_ws.Name, "keen")
-        sheets("keen").Visible = xlVeryHidden
+        sheets("keen").visible = xlVeryHidden
     End If
 
-    Set keen_sheet = sheets("keen")
+    Set keen_sheet = wb.sheets("keen")
     sheets("keen").Cells.Clear
 
-    Set result_sheet = sheets("result")
+    Set result_sheet = wb.sheets("result")
 
     last_row_choice = ThisWorkbook.Worksheets("xchoices").Cells(rows.count, 1).End(xlUp).row
     last_row_survey_sheet = ThisWorkbook.Worksheets("xsurvey").Cells(rows.count, 1).End(xlUp).row
@@ -102,7 +107,7 @@ Sub analyze()
     analysis_form.TextInfo.value = "Starting ... "
     
     Application.Wait (Now + 0.00001)
-    
+      
     Call remove_NA
     
     str_info = vbLf & analysis_form.TextInfo.value
@@ -227,7 +232,7 @@ Sub analyze()
                 result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(sum_w2 / sum_weight, 1)
                 result_sheet.Cells(n, 13) = "w"
         
-                sheets("keen").Cells.Clear
+                keen_sheet.Cells.Clear
        
                 ' case 2:
             Case overall And Not wgt And m_type = "number"
@@ -250,7 +255,7 @@ Sub analyze()
                 result_sheet.Cells(n, 8) = "average"
                 result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(simple_mean, 1)
     
-                sheets("keen").Cells.Clear
+                keen_sheet.Cells.Clear
    
                 ' case 3:
             Case Not overall And wgt And m_type = "number"
@@ -290,7 +295,7 @@ Sub analyze()
         
                 Next
 
-                sheets("keen").Cells.Clear
+                keen_sheet.Cells.Clear
    
                 ' case 4:
             Case Not overall And Not wgt And m_type = "number"
@@ -326,7 +331,7 @@ Sub analyze()
         
                 Next
 
-                sheets("keen").Cells.Clear
+                keen_sheet.Cells.Clear
 
                 ' select_one calculation
                 ' case 5:
@@ -370,7 +375,7 @@ Sub analyze()
         
                 End If
     
-                sheets("keen").Cells.Clear
+                keen_sheet.Cells.Clear
 
                 ' case 6:
             Case overall And Not wgt And m_type = "select_one"
@@ -407,7 +412,7 @@ Sub analyze()
         
                 End If
 
-                sheets("keen").Cells.Clear
+                keen_sheet.Cells.Clear
 
                 ' case 7:
             Case Not overall And wgt And m_type = "select_one"
@@ -464,7 +469,7 @@ Sub analyze()
         
                 Next
 
-                sheets("keen").Cells.Clear
+                keen_sheet.Cells.Clear
 
                 ' case 8:
             Case Not overall And Not wgt And m_type = "select_one"
@@ -517,7 +522,7 @@ Sub analyze()
     
                 Next
 
-                sheets("keen").Cells.Clear
+                keen_sheet.Cells.Clear
 
                 ' select_multiple calculation
                 ' case 9:
@@ -562,7 +567,7 @@ Sub analyze()
         
                 End If
     
-                sheets("keen").Cells.Clear
+                keen_sheet.Cells.Clear
     
                 ' case 10:
             Case overall And Not wgt And m_type = "select_multiple"
@@ -655,7 +660,7 @@ Sub analyze()
         
                 Next
 
-                sheets("keen").Cells.Clear
+                keen_sheet.Cells.Clear
 
                 ' case 12:
             Case Not overall And Not wgt And m_type = "select_multiple"
@@ -708,7 +713,7 @@ Sub analyze()
     
                 Next
 
-                sheets("keen").Cells.Clear
+                keen_sheet.Cells.Clear
 
                 ' end of the select case
             End Select
@@ -716,15 +721,15 @@ Sub analyze()
 NextIteration:
 
 On Error Resume Next
-            sheets("keen").Cells.Clear
-            Debug.Print measurement_str
+            keen_sheet.Cells.Clear
+'            Debug.Print measurement_str
         Next  ' loop for question_rng
    
     Next  ' loop for disaggrigation
 
     If worksheet_exists("keen") Then
-        sheets("keen").Visible = Hidden
-        sheets("keen").Delete
+        wb.sheets("keen").visible = Hidden
+        wb.sheets("keen").Delete
     End If
     
     Application.DisplayAlerts = True
@@ -742,6 +747,8 @@ End Sub
 ' if we need to apply weighting a column will be generated by the name w2 = numeric_value * weight
 Private Sub add_mulitipication(target_col As String)
     Dim last_row As Long
+'    Dim wb As Workbook
+'    Set wb = ActiveWorkbook
     last_row = Worksheets("keen").Cells(rows.count, 1).End(xlUp).row
     Worksheets("keen").Range(target_col & "1").FormulaR1C1 = "w2"
     Application.CutCopyMode = False
@@ -752,48 +759,51 @@ End Sub
 
 Private Sub check_result_sheet(sheet_name As String)
     ' check if keen sheet exist
+    Dim wb As Workbook
+    Set wb = ActiveWorkbook
+    
     If Not worksheet_exists("result") Then
         Call create_sheet(sheet_name, "result")
-        sheets("result").Cells(1, 1) = "row"
-        sheets("result").Cells(1, 2) = "disaggregation"
-        sheets("result").Cells(1, 3) = "disaggregation value"
-        sheets("result").Cells(1, 4) = "disaggregation label"
-        sheets("result").Cells(1, 5) = "variable"
-        sheets("result").Cells(1, 6) = "variable label"
-        sheets("result").Cells(1, 7) = "valid numbers"
-        sheets("result").Cells(1, 8) = "measurement type"
-        sheets("result").Cells(1, 9) = "measurement value"
-        sheets("result").Cells(1, 10) = "count"
-        sheets("result").Cells(1, 11) = "choice"
-        sheets("result").Cells(1, 12) = "choice label"
-        sheets("result").Cells(1, 13) = "weight"
+        wb.sheets("result").Cells(1, 1) = "row"
+        wb.sheets("result").Cells(1, 2) = "disaggregation"
+        wb.sheets("result").Cells(1, 3) = "disaggregation value"
+        wb.sheets("result").Cells(1, 4) = "disaggregation label"
+        wb.sheets("result").Cells(1, 5) = "variable"
+        wb.sheets("result").Cells(1, 6) = "variable label"
+        wb.sheets("result").Cells(1, 7) = "valid numbers"
+        wb.sheets("result").Cells(1, 8) = "measurement type"
+        wb.sheets("result").Cells(1, 9) = "measurement value"
+        wb.sheets("result").Cells(1, 10) = "count"
+        wb.sheets("result").Cells(1, 11) = "choice"
+        wb.sheets("result").Cells(1, 12) = "choice label"
+        wb.sheets("result").Cells(1, 13) = "weight"
         
-        sheets("result").columns(1).ColumnWidth = 6
-        sheets("result").columns(2).ColumnWidth = 15
-        sheets("result").columns(3).ColumnWidth = 18
-        sheets("result").columns(4).ColumnWidth = 25
-        sheets("result").columns(5).ColumnWidth = 15
-        sheets("result").columns(6).ColumnWidth = 45
-        sheets("result").columns(7).ColumnWidth = 15
-        sheets("result").columns(8).ColumnWidth = 15
-        sheets("result").columns(9).ColumnWidth = 20
-        sheets("result").columns(10).ColumnWidth = 10
-        sheets("result").columns(11).ColumnWidth = 15
-        sheets("result").columns(12).ColumnWidth = 45
-        sheets("result").columns(13).ColumnWidth = 7
+        wb.sheets("result").columns(1).ColumnWidth = 6
+        wb.sheets("result").columns(2).ColumnWidth = 15
+        wb.sheets("result").columns(3).ColumnWidth = 18
+        wb.sheets("result").columns(4).ColumnWidth = 25
+        wb.sheets("result").columns(5).ColumnWidth = 15
+        wb.sheets("result").columns(6).ColumnWidth = 45
+        wb.sheets("result").columns(7).ColumnWidth = 15
+        wb.sheets("result").columns(8).ColumnWidth = 15
+        wb.sheets("result").columns(9).ColumnWidth = 20
+        wb.sheets("result").columns(10).ColumnWidth = 10
+        wb.sheets("result").columns(11).ColumnWidth = 15
+        wb.sheets("result").columns(12).ColumnWidth = 45
+        wb.sheets("result").columns(13).ColumnWidth = 7
     End If
-    sheets("result").Visible = False
+    wb.sheets("result").visible = False
 End Sub
 
 ' remove null rows from keen sheet
 Private Sub delete_blank_rows(col_number As Long)
-
+'    Dim wb As Workbook
     Dim rng As Range
     Dim str_delete As String
     Dim last_row As Long
     Dim last_keen As Long
     Dim last_measurement As Long
-    
+'    Set wb = ActiveWorkbook
     last_row = sheets("keen").Range("A" & sheets("keen").rows.count).End(xlUp).row
     Set rng = sheets("keen").Range("A1:C" & last_row)
     

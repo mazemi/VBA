@@ -13,22 +13,23 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+
 Private Sub CommandRun_Click()
     If Me.OptionWrongValue = True Then
-        issueText = "Wrong value"
+        Public_module.ISSUE_TEXT = "Wrong value"
     ElseIf Me.OptionOutlier = True Then
-        issueText = "Outlier"
+        Public_module.ISSUE_TEXT = "Outlier"
     ElseIf Me.OptionHarmonization = True Then
-        issueText = "Harmonization"
+        Public_module.ISSUE_TEXT = "Translation and Harmonization"
     Else
-        issueText = Me.TextOther.Value
-        res = SaveRegistrySetting("ramSetting", "issueTextReg", issueText)
+        Public_module.ISSUE_TEXT = Me.TextOther.value
+        res = SaveRegistrySetting("ramSetting", "issueTextReg", Public_module.ISSUE_TEXT)
     End If
     
-    patternCheckAction = True
+    Public_module.PATTERN_CHECK_ACTION = True
     Unload Me
 End Sub
-
 
 Private Sub OptionBlank_Click()
     Me.TextOther.Enabled = True
@@ -47,11 +48,12 @@ Private Sub OptionWrongValue_Click()
 End Sub
 
 Private Sub UserForm_Initialize()
-    patternCheckAction = False
+    Public_module.PATTERN_CHECK_ACTION = False
     Me.TextOther.Enabled = False
     Me.OptionWrongValue = True
-    issueText = "Wrong value"
+    Public_module.ISSUE_TEXT = "Wrong value"
 
-    Me.TextOther.Value = GetRegistrySetting("ramSetting", "issueTextReg")
+    Me.TextOther.value = GetRegistrySetting("ramSetting", "issueTextReg")
     
 End Sub
+

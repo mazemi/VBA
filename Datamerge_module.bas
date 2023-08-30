@@ -2,7 +2,7 @@ Attribute VB_Name = "Datamerge_module"
 Option Explicit
 
 Sub generate_datamerge()
-'    On Error Resume Next
+    On Error Resume Next
     Application.ScreenUpdating = False
     DoEvents
     Dim last_row_result  As Long
@@ -21,8 +21,11 @@ Sub generate_datamerge()
     Call lookup
     Call clean_up
     Call add_label_to_datamerge
-
+    Call populate_indicators
+    
     sheets("datamerge").Activate
+    sheets("datamerge").Range("D4").Select
+    ActiveWindow.FreezePanes = True
     
     Application.ScreenUpdating = True
     
@@ -61,7 +64,7 @@ Sub add_label_to_datamerge()
     last_row_survey = survey_ws.Cells(survey_ws.rows.count, 1).End(xlUp).row
     
     
-    Debug.Print last_col
+'    Debug.Print last_col
     
     dm_ws.rows("1:2").Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
     
@@ -107,6 +110,53 @@ resume_loop:
     Call merge_first_row
     Call styler
 End Sub
+
+Private Sub populate_indicators()
+
+'    Dim header_arr() As Variant
+    Dim ws As Worksheet
+    Dim indi_ws As Worksheet
+    Dim last_col As Long
+    
+    Set ws = sheets("datamerge")
+    
+    If Not worksheet_exists("indi_list") Then
+        Call create_sheet(sheets(1).Name, "indi_list")
+        sheets("indi_list").visible = xlVeryHidden
+    End If
+    
+    Set indi_ws = sheets("indi_list")
+    indi_ws.Cells.Clear
+    
+    last_col = ws.Cells(1, columns.count).End(xlToLeft).column
+
+    ws.Range(ws.Cells(1, 4), ws.Cells(1, last_col)).Copy
+    indi_ws.Range("A1").PasteSpecial _
+        Paste:=xlPasteAll, Operation:=xlNone, SkipBlanks:=True, transpose:=True
+        
+    Call delete_blanks
+    
+End Sub
+
+Sub delete_blanks()
+    
+    Dim rng As Range
+    Dim str_delete As String
+    Dim last_row As Long
+    Dim last_indi As Long
+    Dim last_measurement As Long
+    Dim rows As Long, i As Long
+    
+    last_row = sheets("indi_list").Range("A" & sheets("indi_list").rows.count).End(xlUp).row
+    Set rng = sheets("indi_list").Range("A1:A" & last_row)
+
+    Set rng = sheets("indi_list").Range("A1:A" & last_row)
+    rows = rng.rows.count
+    For i = rows To 1 Step (-1)
+        If WorksheetFunction.CountA(rng.rows(i)) = 0 Then rng.rows(i).Delete
+    Next
+End Sub
+
 
 Function find_question_label(question As String) As String
 
@@ -164,9 +214,9 @@ Sub make_dis_level()
     
     Set res_rng = res_ws.Range("A1").CurrentRegion
     
-    res_rng.Sort Key1:=res_rng.Range("E1"), Order1:=xlAscending, Header:=xlYes
-    res_rng.Sort Key1:=res_rng.Range("D1"), Order1:=xlAscending, Header:=xlYes
-    res_rng.Sort Key1:=res_rng.Range("B1"), Order1:=xlAscending, Header:=xlYes
+    res_rng.Sort key1:=res_rng.Range("E1"), Order1:=xlAscending, Header:=xlYes
+    res_rng.Sort key1:=res_rng.Range("D1"), Order1:=xlAscending, Header:=xlYes
+    res_rng.Sort key1:=res_rng.Range("B1"), Order1:=xlAscending, Header:=xlYes
     
     last_row_result = res_ws.Cells(res_ws.rows.count, 1).End(xlUp).row
     
@@ -268,19 +318,8 @@ Sub make_header()
     ws.Range("G1") = "G"
     ws.Range("H1") = "H"
     
-    ws.Range("E1").CurrentRegion.AutoFilter.Sort.SortFields.Clear
-    
-    ws.AutoFilter.Sort.SortFields.Add2 key:=Range("H1:H" & last_header), _
-         SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    ws.Range("E1").CurrentRegion.Sort key1:=Range("H1:H" & last_header), Order1:=xlAscending, Header:=xlYes
         
-    With ws.AutoFilter.Sort
-        .Header = xlYes
-        .MatchCase = False
-        .Orientation = xlTopToBottom
-        .SortMethod = xlPinYin
-        .Apply
-    End With
-    
     ws.Range("E1") = vbNullString
     ws.Range("F:F").Cells.ClearContents
     
