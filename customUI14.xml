@@ -1,0 +1,148 @@
+<customUI  xmlns="http://schemas.microsoft.com/office/2009/07/customui">
+	<!-- <ribbon startFromScratch="false"> -->
+	    <ribbon>
+		<tabs>
+			<tab id="customTab" label="RAM">
+				<group id="BasicSetting">
+					<button id="KOBOSetting" label="Setting" imageMso="AdministrationHome" size="large" onAction="KOBOSetting"
+                        screentip="Setting"
+                        supertip="Set your KOBO account and the name of your dataset." />
+				</group>	
+				<group id="BasicInspectionGroup" label="Basic Inspection">	
+					<button id="DownloadAudit" label="Download Audit" imageMso="DownloadContents" size="normal" onAction="DownloadAudit" 
+                        screentip="Download Audit"
+                        supertip="If you set your KOBO account information and the URL column, all audit files will be downloaded.
+You can see the number of downloaded files in the Excel status bar at the bottom of the application."
+				
+					/>
+					
+                    <button id="TimeChecking" label="Time Check" imageMso="GroupTimer" size="normal" onAction="TimeChecking" 
+                        screentip="Time Check"
+                        supertip="To check the interview duration, click on this option. 
+A progress window will appear and add two columns at the end of your data set. 
+The duration column will show the total time spent on each interview in minutes."	
+					/>
+					
+                    <box id="box11" boxStyle="horizontal">
+                        <button id="CancelDo" label="Stop!" imageMso="PanningHand" size="normal" onAction="CancelDo" 
+                            screentip="Stop"
+                            supertip="By clicking this button, the running task will be stopped."						
+                        />
+                        
+                        <button id="ClearFilter" imageMso="FilterClearAllFilters" size="normal" onAction="ClearFilter" 
+                            screentip="Clear Filter"
+                            supertip="This option clear any active filter in the sheet."						
+                        />                        
+
+                    </box>
+                        
+                   <button id="EmptyColumns" label="Empty Columns" imageMso="ConditionalFormattingHighlightCompareColumns" size="normal" onAction="EmptyColumns"
+                        screentip="Empty Columns"
+                        supertip="Shows empty columns if there is any."                                
+                   /> 
+                   
+					<button id="CheckDuplicates" label="Check Duplicates" imageMso="ConditionalFormattingHighlightDuplicateValues" size="normal" onAction="CheckDuplicates" 
+                        screentip="Check Duplicates"
+                        supertip="The utility will scan the '_uuid' column and show the result at the end of your data set."						
+					/>
+					
+                    <button id="ConsistencyCheck" label="Consistency Check" imageMso="NavPaneThumbnailView" size="normal" onAction="ConsistencyCheck"
+                        screentip="Consistency Check"
+                        supertip="Compare select_one data types of the dataset with the corresponding tool."                                
+                   /> 
+				
+				</group>
+                    
+                <group id="LabelGroup">
+                    <button id="AddLabel" label="Add Label" imageMso="DataTypeText" size="large" onAction="AddLabel" 
+                        screentip="Add Label"
+                        supertip="To make your data more readable, use this utility to add labels in a new column."                   
+                    />	
+                </group>
+                            
+				<group id="DataCheckingGroup">
+					 <splitButton id="splitButtonCheck" size="large" >
+                        <button id="AutoCheckData" imageMso="DatabaseQueryNew" label="Logical Check" onAction="AutoCheckData"
+                            screentip="Logical Check"
+                            supertip="This feature allows you to perform logical checks between two columns or within a single column."	                        
+                        />
+                          <menu id="menuCheck" itemSize="large">
+                               <button id="SetLogicalChekc" label="Add Logical Check" imageMso="ProjectManageDeliverables" onAction="SetLogicalChekc"
+                                    screentip="Add Logical Check"
+                                    supertip="By clicking Set Logical Checks a new window appears. You can write a role based on one or two columns."	                                
+                               />
+                               <button id="LogicalChekcList" label="Show Logical Checks" imageMso="GroupMacros" onAction="LogicalChekcList"
+                                    screentip="Show Logical Checks"
+                                    supertip="Shows the list of checking roles. "                               
+                               />
+                               <menuSeparator id="separator1"/>
+                               <button id="ImportLogicalChekc" label="Import Logical Check" imageMso="ObjectNudgeLeft" onAction="ImportLogicalChekc"
+                                    screentip="Import Logical Checks"
+                                    supertip="Imports a pre-defined data checking roles."                                
+                               />
+                               <button id="ExportLogicalChekc" label="Export Logical Check" imageMso="TableExportMenu" onAction="ExportLogicalChekc"
+                                    screentip="Export Logical Checks"
+                                    supertip="Export the current data checking roles."                                  
+                               />
+          
+                          </menu>
+                     </splitButton>                
+                     
+                     <button id="AddToLogs" label="Add To Logs" imageMso="AddContentType" size="large" onAction="AddToLogs" 
+                        screentip="Add To Logs"
+                        supertip="Adds the selected data into the logbook."                    
+                     />
+
+
+                     <button id="DetectOutliers" label="Outliers" imageMso="FlagThisWeek" size="large" onAction="DetectOutliers" 
+                        screentip="Outliers"
+                        supertip="Detect the outliers from a numeric column."                       
+                     />	
+                     
+                     <dialogBoxLauncher>
+                        <button id="AddToLogsMore" label= "Logs Enrichment" imageMso="GroupTaskFormFieldsNew" onAction="AddToLogsMore" 
+                            screentip="Logs Enrichment"
+                            supertip="This option allow you to include any relevant details that you need and check the logbook."                        
+                        />
+					</dialogBoxLauncher>
+                       							
+				</group>
+				
+				<group id="ReplaceCleanedLogsGroup">
+					<button id="ReplaceLogs" label="Replace Logs" imageMso="SyncNow" size="large" onAction="ReplaceLogs" 
+                        screentip="Replace Logs"
+                        supertip="The option will replace the old values with the new ones from the logbook to the main dataset." 					
+					/>
+				</group>
+				
+				<group id="AnalysisGroup" label="Analysis">
+					<button id="Weighting" label="Weighting" imageMso="SetPertWeights" size="large" onAction="DoWeighting" 
+                        screentip="Weighting"
+                        supertip="To adjust your data according to the sampling framework, you can implement weight into your dataset." 					
+					/>
+                     <!--   <separator id="sep2" visible="true"/> -->
+					<button id="Disaggregations" label="Disaggregation" imageMso="OutlineSubtotals" size="large" onAction="Disaggregations" 
+                        screentip="Disaggregation"
+                        supertip="To set the disaggregation level for the analysis."					
+					/>
+					<button id="RunAnalysis" label="Analyze" imageMso="AutoFormatChange" size="large" onAction="RunAnalysis" 
+                        screentip="Analyze"
+                        supertip="For generating analysis result and datamerge. Also, the system shows you a progress report as it calculates the indicators and disaggregates the data. "				
+					/>
+					<button id="AllFigures" label="Figures" imageMso="ChartInsert" size="large" onAction="AllFigures" 
+                        screentip="Figures"
+                        supertip="This option will create separate tables and charts for each categorical variable in your data."					
+					/>
+					
+				    <dialogBoxLauncher>
+                        <button id="FindIndicator" label= "Find indicator" onAction="FindIndicator" 
+                            screentip="Find indicator"
+                            supertip="Find the indicator table or chart."                        
+                        />
+					</dialogBoxLauncher>	
+				</group>    
+				    		        
+			</tab>
+		</tabs>
+	</ribbon>
+</customUI>
