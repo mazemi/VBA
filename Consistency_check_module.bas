@@ -36,7 +36,7 @@ Sub consistency_check()
     
     Set tmp_ws = sheets("temp_sheet")
     
-    last_question = tmp_ws.Cells(rows.count, 1).End(xlUp).row
+    last_question = tmp_ws.Cells(rows.count, 1).End(xlUp).Row
     
     If last_question < 11 Then
         MsgBox "No categorical question detected.  ", vbInformation
@@ -60,7 +60,7 @@ resume_loop:
     
     If worksheet_exists("temp_sheet") Then
         Application.DisplayAlerts = False
-        sheets("temp_sheet").visible = xlSheetHidden
+        sheets("temp_sheet").Visible = xlSheetHidden
         sheets("temp_sheet").Delete
     End If
         
@@ -73,7 +73,7 @@ resume_loop:
 errHandler:
 
     If worksheet_exists("temp_sheet") Then
-        sheets("temp_sheet").visible = xlSheetHidden
+        sheets("temp_sheet").Visible = xlSheetHidden
         sheets("temp_sheet").Delete
     End If
     
@@ -95,7 +95,7 @@ Sub setup_check()
     Set dt_ws = sheets(find_main_data)
     
     If worksheet_exists("temp_sheet") <> True Then
-        Call create_sheet(dt_ws.Name, "temp_sheet")
+        Call create_sheet(dt_ws.name, "temp_sheet")
     End If
     
     Set temp_ws = sheets("temp_sheet")
@@ -114,7 +114,7 @@ Sub setup_check()
 
     temp_ws.Range("C1") = "choice"
 
-    last_row_dt = dt_ws.UsedRange.rows(dt_ws.UsedRange.rows.count).row
+    last_row_dt = dt_ws.UsedRange.rows(dt_ws.UsedRange.rows.count).Row
     
     tool_ws.Range("A1").CurrentRegion.AdvancedFilter Action:=xlFilterCopy, _
              CriteriaRange:=temp_ws.Range("A1").CurrentRegion, CopyToRange:=temp_ws.Range("A10"), Unique:=True
@@ -141,24 +141,24 @@ Sub data_injection(question As String)
     
     Call tool_value_choice(question)
     
-    uuid_col = gen_column_number("_uuid", dt_ws.Name)
-    c1 = gen_column_number(question, dt_ws.Name)
-    c2 = gen_column_number(question & "_label", dt_ws.Name)
+    uuid_col = gen_column_number("_uuid", dt_ws.name)
+    c1 = gen_column_number(question, dt_ws.name)
+    c2 = gen_column_number(question & "_label", dt_ws.name)
        
     If c1 = 0 Then
         SKIP_QUESTION = True
         Exit Sub
     End If
     
-    temp_ws.columns("G:G").value = dt_ws.columns(uuid_col).value
-    temp_ws.columns("H:H").value = dt_ws.columns(c1).value
-    temp_ws.columns("E:E").value = dt_ws.columns(c1).value
+    temp_ws.columns("G:G").Value = dt_ws.columns(uuid_col).Value
+    temp_ws.columns("H:H").Value = dt_ws.columns(c1).Value
+    temp_ws.columns("E:E").Value = dt_ws.columns(c1).Value
     
-    temp_ws.Range("E1").value = temp_ws.Range("E1").value & "_unique"
+    temp_ws.Range("E1").Value = temp_ws.Range("E1").Value & "_unique"
     
     If c2 > 0 Then
 
-        temp_ws.columns("I:I").value = dt_ws.columns(c2).value
+        temp_ws.columns("I:I").Value = dt_ws.columns(c2).Value
         
         temp_ws.Range("I1") = question & "_labelX"
                
@@ -167,11 +167,11 @@ Sub data_injection(question As String)
         
     End If
     
-    last_row = temp_ws.Cells(rows.count, 7).End(xlUp).row
+    last_row = temp_ws.Cells(rows.count, 7).End(xlUp).Row
     
     temp_ws.Range("E1:E" & last_row).RemoveDuplicates columns:=1, Header:=xlYes
 
-    last_choice = temp_ws.Cells(rows.count, 5).End(xlUp).row
+    last_choice = temp_ws.Cells(rows.count, 5).End(xlUp).Row
     
     With temp_ws.Range("E1:E" & last_choice)
         If WorksheetFunction.CountA(.Cells) > 0 Then
@@ -182,7 +182,6 @@ Sub data_injection(question As String)
     End With
          
 End Sub
-
 
 Sub log_value_inconsistency()
     Dim tool_rng As Range
@@ -208,9 +207,9 @@ Sub log_value_inconsistency()
     
     Set log_ws = sheets("log_book")
 
-    last_row_tool = temp_ws.Cells(rows.count, 3).End(xlUp).row ' col C, choice
-    last_row_value = temp_ws.Cells(rows.count, 5).End(xlUp).row ' col E, unique values in the dataset
-    last_row_dt = temp_ws.Cells(rows.count, 7).End(xlUp).row ' col G, _uuid
+    last_row_tool = temp_ws.Cells(rows.count, 3).End(xlUp).Row ' col C, choice
+    last_row_value = temp_ws.Cells(rows.count, 5).End(xlUp).Row ' col E, unique values in the dataset
+    last_row_dt = temp_ws.Cells(rows.count, 7).End(xlUp).Row ' col G, _uuid
     
     Set tool_rng = temp_ws.Range("C2:C" & last_row_tool)
     Set value_rng = temp_ws.Range("E2:E" & last_row_value)
@@ -222,11 +221,11 @@ Sub log_value_inconsistency()
     For i = 0 To UBound(inconsistant_values)
         For j = 2 To last_row_dt
             If temp_ws.Cells(j, 8) = inconsistant_values(i) Then
-                new_log = log_ws.Cells(rows.count, 1).End(xlUp).row + 1
-                log_ws.Cells(new_log, "A").value = temp_ws.Cells(j, 7)
-                log_ws.Cells(new_log, "B").value = temp_ws.Cells(1, 8)
-                log_ws.Cells(new_log, "C").value = "invalid option"
-                log_ws.Cells(new_log, "E").value = temp_ws.Cells(j, 8)
+                new_log = log_ws.Cells(rows.count, 1).End(xlUp).Row + 1
+                log_ws.Cells(new_log, "A").Value = temp_ws.Cells(j, 7)
+                log_ws.Cells(new_log, "B").Value = temp_ws.Cells(1, 8)
+                log_ws.Cells(new_log, "C").Value = "invalid option"
+                log_ws.Cells(new_log, "D").Value = temp_ws.Cells(j, 8)
             End If
         Next j
     Next i
@@ -236,11 +235,11 @@ label_check:
     If Right(temp_ws.Range("J1"), 6) = "labelX" Then
         For k = 2 To last_row_dt
             If temp_ws.Cells(k, "I") <> temp_ws.Cells(k, "J") Then
-                new_log = log_ws.Cells(rows.count, 1).End(xlUp).row + 1
-                log_ws.Cells(new_log, "A").value = temp_ws.Cells(k, "G")
-                log_ws.Cells(new_log, "B").value = temp_ws.Range("I1")
-                log_ws.Cells(new_log, "C").value = "check the label"
-                log_ws.Cells(new_log, "E").value = temp_ws.Cells(k, "J")
+                new_log = log_ws.Cells(rows.count, 1).End(xlUp).Row + 1
+                log_ws.Cells(new_log, "A").Value = temp_ws.Cells(k, "G")
+                log_ws.Cells(new_log, "B").Value = temp_ws.Range("I1")
+                log_ws.Cells(new_log, "C").Value = "check the label"
+                log_ws.Cells(new_log, "D").Value = temp_ws.Cells(k, "J")
             End If
         Next
     End If
@@ -258,7 +257,7 @@ Function get_inconsistency(ByRef tool_rng As Range, ByRef dt_rng As Range) As St
     For Each cell In dt_rng
         If (Application.WorksheetFunction.CountIf(tool_rng, cell)) < 1 Then
             ReDim Preserve uniques(i)
-            uniques(i) = cell.value
+            uniques(i) = cell.Value
             i = i + 1
         End If
     Next cell
@@ -283,7 +282,7 @@ Private Sub tool_value_choice(q_name As String)
     tool_ws.Range("A1").CurrentRegion.AdvancedFilter Action:=xlFilterCopy, _
             CriteriaRange:=temp_ws.Range("A5").CurrentRegion, CopyToRange:=temp_ws.Range("C1")
             
-    last_choice = temp_ws.Cells(rows.count, 3).End(xlUp).row
+    last_choice = temp_ws.Cells(rows.count, 3).End(xlUp).Row
         
 End Sub
 

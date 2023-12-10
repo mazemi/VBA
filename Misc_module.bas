@@ -1,12 +1,41 @@
 Attribute VB_Name = "Misc_module"
+Public Sub GetValueFromBrowser()
+    Dim ie As Object
+    Dim url As String
+    Dim myPoints As String
+
+    url = "https://mazemi.github.io/Add-ins_guide/"
+    Set ie = CreateObject("InternetExplorer.Application")
+
+    With ie
+      .Visible = 0
+      .Navigate url
+       While .Busy Or .ReadyState <> 4
+         DoEvents
+       Wend
+    End With
+Debug.Print 1
+    Dim Doc As HTMLDocument
+    Set Doc = ie.Document
+
+    myPoints = Trim(Doc.getElementsByName("ram-version")(0).Value)
+    Range("A1").Value = myPoints
+Debug.Print myPoints
+End Sub
+
+Sub show_sheet()
+    sheets("dissagregation_setting").Visible = True
+    sheets("analysis_list").Visible = True
+End Sub
+
 Sub compare_strata()
     Dim r1 As Range
     Dim r2 As Range
     Dim res As Boolean
     Dim d As Variant
     
-    a = Cells(rows.count, 1).End(xlUp).row
-    b = Cells(rows.count, 2).End(xlUp).row
+    a = Cells(rows.count, 1).End(xlUp).Row
+    b = Cells(rows.count, 2).End(xlUp).Row
 
     Dim col1 As New Collection
     Dim col2 As New Collection
@@ -40,13 +69,14 @@ Function HasKey(coll As Collection, strKey As String) As Boolean
     err.Clear
 End Function
 
+
 Sub show_last()
     On Error Resume Next
     Dim header_arr() As Variant
     
-    last_row = sheets(find_main_data).Cells(rows.count, 1).End(xlUp).row
-    last_row2 = sheets(find_main_data).UsedRange.rows(ActiveSheet.UsedRange.rows.count).row
-    last_col = sheets(find_main_data).Cells(1, columns.count).End(xlToLeft).column
+    last_row = sheets(find_main_data).Cells(rows.count, 1).End(xlUp).Row
+    last_row2 = sheets(find_main_data).UsedRange.rows(ActiveSheet.UsedRange.rows.count).Row
+    last_col = sheets(find_main_data).Cells(1, columns.count).End(xlToLeft).Column
     
     ' below needs to be improved
     header_arr = sheets(find_main_data).Range(Cells(1, 1), Cells(1, 1).End(xlToRight)).Value2
@@ -80,16 +110,39 @@ Sub Convert_to_Text(ByRef xRange As String, Optional ByVal W_Sheet As Worksheet)
     If W_Sheet Is Nothing Then Set W_Sheet = ActiveSheet
     Set V_Range = W_Sheet.Range(xRange).SpecialCells(xlCellTypeVisible)
     For Each xCell In V_Range
-        If Not IsEmpty(xCell.value) And IsNumeric(xCell.value) Then
-            TP = xCell.value
+        If Not IsEmpty(xCell.Value) And IsNumeric(xCell.Value) Then
+            TP = xCell.Value
             xCell.ClearContents
             xCell.NumberFormat = "@"
-            xCell.value = CStr(TP)
+            xCell.Value = CStr(TP)
         End If
     Next xCell
 End Sub
 
+Sub show_keen()
+    If worksheet_exists("keen") Then
+        sheets("keen").Visible = True
+    End If
+End Sub
 
+Function MeanOfColumn(arr As Variant, colIndex As Long) As Double
+    Dim i As Long
+    Dim colArr() As Double
+    ReDim colArr(1 To UBound(arr, 1))
+    For i = 1 To UBound(arr, 1)
+        colArr(i) = arr(i, colIndex)
+    Next i
+    MeanOfColumn = WorksheetFunction.Average(colArr)
+End Function
 
+Function MedianOfColumn(arr As Variant, colIndex As Long) As Double
+    Dim i As Long
+    Dim colArr() As Double
+    ReDim colArr(1 To UBound(arr, 1))
+    For i = 1 To UBound(arr, 1)
+        colArr(i) = arr(i, colIndex)
+    Next i
+    MedianOfColumn = WorksheetFunction.median(colArr)
+End Function
 
 

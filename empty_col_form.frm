@@ -1,11 +1,12 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} empty_col_form 
    Caption         =   "Empty Columns"
-   ClientHeight    =   3372
-   ClientLeft      =   84
-   ClientTop       =   390
-   ClientWidth     =   6276
+   ClientHeight    =   4692
+   ClientLeft      =   -6
+   ClientTop       =   -48
+   ClientWidth     =   6324
    OleObjectBlob   =   "empty_col_form.frx":0000
+   ShowModal       =   0   'False
    StartUpPosition =   1  'CenterOwner
 End
 Attribute VB_Name = "empty_col_form"
@@ -13,4 +14,30 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+
+Private Sub ListBoxEmptyCols_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
+    On Error Resume Next
+    Dim ws As Worksheet
+    Set ws = sheets(find_main_data)
+    Dim col_name As String
+    Dim col_number As Long
+    
+    col_name = Me.ListBoxEmptyCols.Value
+    col_number = letter_to_number(col_name, ws)
+    ws.Activate
+    
+    ActiveWindow.ScrollRow = 1
+    If col_number > 2 Then
+        ActiveWindow.ScrollColumn = col_number - 2
+    ElseIf col_number = 2 Then
+        ActiveWindow.ScrollColumn = col_number - 1
+    ElseIf col_number = 1 Then
+        ActiveWindow.ScrollColumn = col_number
+    End If
+    
+    ws.columns(col_number).Activate
+    
+End Sub
+
 

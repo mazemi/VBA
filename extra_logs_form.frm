@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} extra_logs_form 
    Caption         =   "Logbook option"
-   ClientHeight    =   1914
-   ClientLeft      =   84
-   ClientTop       =   390
-   ClientWidth     =   7320
+   ClientHeight    =   1818
+   ClientLeft      =   0
+   ClientTop       =   -42
+   ClientWidth     =   7422
    OleObjectBlob   =   "extra_logs_form.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -15,7 +15,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 Private Sub CommandAdd_Click()
-        
+    On Error Resume Next
     Application.ScreenUpdating = False
     
     If Me.ComboQuestion = vbNullString Then
@@ -45,7 +45,7 @@ Private Sub CommandAdd_Click()
 '            Debug.Print i, Me.ComboQuestion
             Exit For
         Else
-            new_col = log_ws.Cells(1, columns.count).End(xlToLeft).column + 1
+            new_col = log_ws.Cells(1, columns.count).End(xlToLeft).Column + 1
         End If
         
     Next
@@ -57,10 +57,10 @@ Private Sub CommandAdd_Click()
     
     question_col_letter = data_column_letter(Me.ComboQuestion)
     uuid_col_letter = data_column_letter("_uuid")
-    last_log = log_ws.Cells(rows.count, 1).End(xlUp).row
+    last_log = log_ws.Cells(rows.count, 1).End(xlUp).Row
     
     uuid_coln = gen_column_number("_uuid", find_main_data)
-    last_dt = dt_ws.Cells(rows.count, uuid_coln).End(xlUp).row
+    last_dt = dt_ws.Cells(rows.count, uuid_coln).End(xlUp).Row
   
     new_col_letter = Split(log_ws.Cells(1, new_col).Address, "$")(1)
 '    Debug.Print new_col, new_col_letter
@@ -87,11 +87,17 @@ Private Sub CommandAdd_Click()
 End Sub
 
 Private Sub CommandLogDuplicate_Click()
+    On Error Resume Next
     Call find_duplicate_log
 End Sub
 
-Private Sub UserForm_Initialize()
+Private Sub CommandRemoveduplicatedLogs_Click()
+    On Error Resume Next
+    Call remove_duplicate_log
+End Sub
 
+Private Sub UserForm_Initialize()
+    On Error Resume Next
     If Not worksheet_exists("log_book") Then
         MsgBox "The logbook dose not exist!   ", vbInformation
         End
@@ -113,7 +119,7 @@ Private Sub PopulateComboBox()
     header_arr = ws.Range(ws.Cells(1, 1), ws.Cells(1, 1).End(xlToRight)).Value2
     
     With Application
-        header_arr = .transpose(.transpose(header_arr))
+        header_arr = .Transpose(.Transpose(header_arr))
     End With
     
     Me.ComboQuestion.List = header_arr

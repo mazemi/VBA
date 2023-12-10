@@ -14,14 +14,27 @@ Sub CancelDo(control As IRibbonControl)
     Application.StatusBar = False
     
     If worksheet_exists("keen") Then
+        sheets("keen").Visible = xlSheetHidden
         sheets("keen").Delete
     End If
     
+    If worksheet_exists("keen2") Then
+        sheets("keen2").Visible = xlSheetHidden
+        sheets("keen2").Delete
+    End If
+    
+    If worksheet_exists("indi_list") Then
+        sheets("indi_list").Visible = xlSheetHidden
+        sheets("indi_list").Delete
+    End If
+    
     If worksheet_exists("temp_sheet") Then
+        sheets("temp_sheet").Visible = xlSheetHidden
         sheets("temp_sheet").Delete
     End If
     
     If worksheet_exists("redeem") Then
+        sheets("redeem").Visible = xlSheetHidden
         sheets("redeem").Delete
     End If
     

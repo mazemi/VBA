@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} weighting_form 
    Caption         =   "Weighting Setting"
-   ClientHeight    =   4944
-   ClientLeft      =   84
-   ClientTop       =   390
-   ClientWidth     =   7542
+   ClientHeight    =   4896
+   ClientLeft      =   -60
+   ClientTop       =   -264
+   ClientWidth     =   7350
    OleObjectBlob   =   "weighting_form.frx":0000
    ShowModal       =   0   'False
    StartUpPosition =   1  'CenterOwner
@@ -16,12 +16,14 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 
+
+
 Private Sub CommandTestStrata_Click()
     On Error Resume Next
     Application.DisplayAlerts = False
     Application.ScreenUpdating = False
     
-    If Me.CombData.value = "" Or Me.ComboSampling.value = "" Or Me.ComboDataStrata.value = "" Or Me.ComboSamplingStrata.value = "" Or Me.ComboPopulation.value = "" Then
+    If Me.CombData.Value = "" Or Me.ComboSampling.Value = "" Or Me.ComboDataStrata.Value = "" Or Me.ComboSamplingStrata.Value = "" Or Me.ComboPopulation.Value = "" Then
         MsgBox "Please set up all the parameteres.          ", vbExclamation
         Exit Sub
     End If
@@ -32,10 +34,10 @@ Private Sub CommandTestStrata_Click()
     Dim current_dt_name As String
     Dim new_dt_name As String
       
-    current_smp_name = Me.ComboSampling.value
+    current_smp_name = Me.ComboSampling.Value
     new_smp_name = alpha_numeric_only(current_smp_name)
     
-    current_dt_name = Me.CombData.value
+    current_dt_name = Me.CombData.Value
     new_dt_name = alpha_numeric_only(current_dt_name)
     
     If current_dt_name = current_smp_name Then
@@ -59,24 +61,24 @@ Private Sub CommandTestStrata_Click()
     dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", new_dt_name)
      
     If new_dt_name <> current_dt_name Then
-        sheets(current_dt_name).Name = new_dt_name
+        sheets(current_dt_name).name = new_dt_name
     End If
     
     If new_smp_name <> current_smp_name Then
-        sheets(current_smp_name).Name = new_smp_name
+        sheets(current_smp_name).name = new_smp_name
     End If
 
     dt = SaveRegistrySetting("ramSetting", "dataReg", new_dt_name)
     smp = SaveRegistrySetting("ramSetting", "samplingReg", new_smp_name)
-    dt_strata = SaveRegistrySetting("ramSetting", "dataStrataReg", Me.ComboDataStrata.value)
-    smp_strata = SaveRegistrySetting("ramSetting", "samplingStrataReg", Me.ComboSamplingStrata.value)
-    smp_population = SaveRegistrySetting("ramSetting", "samplingPopulationReg", Me.ComboPopulation.value)
+    dt_strata = SaveRegistrySetting("ramSetting", "dataStrataReg", Me.ComboDataStrata.Value)
+    smp_strata = SaveRegistrySetting("ramSetting", "samplingStrataReg", Me.ComboSamplingStrata.Value)
+    smp_population = SaveRegistrySetting("ramSetting", "samplingPopulationReg", Me.ComboPopulation.Value)
 
     Public_module.DATA_SHEET = new_dt_name
     Public_module.SAMPLE_SHEET = new_smp_name
-    Public_module.DATA_STRATA = Me.ComboDataStrata.value
-    Public_module.SAMPLE_STRATA = Me.ComboSamplingStrata.value
-    Public_module.SAMPLE_POPULATION = Me.ComboPopulation.value
+    Public_module.DATA_STRATA = Me.ComboDataStrata.Value
+    Public_module.SAMPLE_STRATA = Me.ComboSamplingStrata.Value
+    Public_module.SAMPLE_POPULATION = Me.ComboPopulation.Value
     
     sheets(Public_module.DATA_SHEET).Activate
     clear_active_filter
@@ -96,8 +98,8 @@ End Sub
 
 Private Sub CommandWeight_Click()
     On Error GoTo errHandler
-    If Me.CombData.value = "" Or Me.ComboSampling.value = "" Or Me.ComboDataStrata.value = "" Or _
-        Me.ComboSamplingStrata.value = "" Or Me.ComboPopulation.value = "" Then
+    If Me.CombData.Value = "" Or Me.ComboSampling.Value = "" Or Me.ComboDataStrata.Value = "" Or _
+        Me.ComboSamplingStrata.Value = "" Or Me.ComboPopulation.Value = "" Then
         MsgBox "Please set up all the parameteres.          ", vbExclamation
         Exit Sub
     End If
@@ -108,10 +110,10 @@ Private Sub CommandWeight_Click()
     Dim current_dt_name As String
     Dim new_dt_name As String
     
-    current_smp_name = Me.ComboSampling.value
+    current_smp_name = Me.ComboSampling.Value
     new_smp_name = alpha_numeric_only(current_smp_name)
     
-    current_dt_name = Me.CombData.value
+    current_dt_name = Me.CombData.Value
     new_dt_name = alpha_numeric_only(current_dt_name)
     
     If current_dt_name = current_smp_name Then
@@ -131,20 +133,20 @@ Private Sub CommandWeight_Click()
     dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", new_dt_name)
      
     If new_dt_name <> current_dt_name Then
-        sheets(current_dt_name).Name = new_dt_name
+        sheets(current_dt_name).name = new_dt_name
     End If
     
     dt = SaveRegistrySetting("ramSetting", "dataReg", new_dt_name)
     smp = SaveRegistrySetting("ramSetting", "samplingReg", current_smp_name)
-    dt_strata = SaveRegistrySetting("ramSetting", "dataStrataReg", Me.ComboDataStrata.value)
-    smp_strata = SaveRegistrySetting("ramSetting", "samplingStrataReg", Me.ComboSamplingStrata.value)
-    smp_population = SaveRegistrySetting("ramSetting", "samplingPopulationReg", Me.ComboPopulation.value)
+    dt_strata = SaveRegistrySetting("ramSetting", "dataStrataReg", Me.ComboDataStrata.Value)
+    smp_strata = SaveRegistrySetting("ramSetting", "samplingStrataReg", Me.ComboSamplingStrata.Value)
+    smp_population = SaveRegistrySetting("ramSetting", "samplingPopulationReg", Me.ComboPopulation.Value)
     
     Public_module.DATA_SHEET = new_dt_name
     Public_module.SAMPLE_SHEET = current_smp_name
-    Public_module.DATA_STRATA = Me.ComboDataStrata.value
-    Public_module.SAMPLE_STRATA = Me.ComboSamplingStrata.value
-    Public_module.SAMPLE_POPULATION = Me.ComboPopulation.value
+    Public_module.DATA_STRATA = Me.ComboDataStrata.Value
+    Public_module.SAMPLE_STRATA = Me.ComboSamplingStrata.Value
+    Public_module.SAMPLE_POPULATION = Me.ComboPopulation.Value
     
     Call calculate_weight
     
@@ -167,7 +169,7 @@ Private Sub UserForm_Initialize()
     Dim smp As String
     Dim sh As Variant                            'name of a sheet
     For Each sh In sheet_li
-        If ActiveWorkbook.Worksheets(CStr(sh)).visible Then
+        If ActiveWorkbook.Worksheets(CStr(sh)).Visible Then
         
             If CStr(sh) <> "result" And CStr(sh) <> "log_book" And CStr(sh) <> "analysis_list" And _
                 CStr(sh) <> "dissagregation_setting" And CStr(sh) <> "overall" And CStr(sh) <> "survey" And _
@@ -185,16 +187,16 @@ Private Sub UserForm_Initialize()
     smp = GetRegistrySetting("ramSetting", "samplingReg")
     
     If worksheet_exists(smp) Then
-        Me.ComboSampling.value = smp
+        Me.ComboSampling.Value = smp
     End If
     
     If worksheet_exists(dt) Then
-        Me.CombData.value = dt
+        Me.CombData.Value = dt
     End If
   
-    Me.ComboDataStrata.value = GetRegistrySetting("ramSetting", "dataStrataReg")
-    Me.ComboSamplingStrata.value = GetRegistrySetting("ramSetting", "samplingStrataReg")
-    Me.ComboPopulation.value = GetRegistrySetting("ramSetting", "samplingPopulationReg")
+    Me.ComboDataStrata.Value = GetRegistrySetting("ramSetting", "dataStrataReg")
+    Me.ComboSamplingStrata.Value = GetRegistrySetting("ramSetting", "samplingStrataReg")
+    Me.ComboPopulation.Value = GetRegistrySetting("ramSetting", "samplingPopulationReg")
        
 End Sub
 
@@ -209,7 +211,7 @@ Private Sub PopulateComboBox(sheet_name As String, con As String)
     header_arr = ws.Range(ws.Cells(1, 1), ws.Cells(1, 1).End(xlToRight)).Value2
     
     For Each c In Me.Controls
-        If c.Name = con Then
+        If c.name = con Then
             c.Clear
             For Each i In header_arr
 
@@ -223,7 +225,7 @@ End Sub
 Private Sub ComboSampling_Change()
     'This subroutine updates the population and sampling strata combo boxes based on the selected worksheet name
     Dim val As String
-    val = Me.ComboSampling.value
+    val = Me.ComboSampling.Value
     
     Me.ComboPopulation.Enabled = True
     Me.ComboPopulation.Clear
@@ -237,7 +239,7 @@ End Sub
 
 Private Sub CombData_Change()
     Dim val As String
-    val = Me.CombData.value
+    val = Me.CombData.Value
 
     Me.ComboDataStrata.Enabled = True
     Me.ComboDataStrata.Clear

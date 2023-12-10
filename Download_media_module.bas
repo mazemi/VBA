@@ -26,7 +26,7 @@ Sub download_audit()
     End If
     
     uuid_col_number = column_number("_uuid")
-    record_count = ws.Cells(ws.rows.count, uuid_col_number).End(xlUp).row
+    record_count = ws.Cells(ws.rows.count, uuid_col_number).End(xlUp).Row
     base_path = ActiveWorkbook.path
     If Dir(base_path & "\audit", vbDirectory) = "" Then
         MkDir base_path & "\audit"
@@ -52,7 +52,7 @@ Sub download_audit()
             GoTo NextIteration
         End If
         
-        strFileName = ActiveWorkbook.path & "\audit\" & ws.Cells(iCell.row, uuid_col_number) & "\audit.csv"
+        strFileName = ActiveWorkbook.path & "\audit\" & ws.Cells(iCell.Row, uuid_col_number) & "\audit.csv"
         strFileExists = Dir(strFileName)
         
         If strFileExists = "" Then
@@ -64,16 +64,16 @@ Sub download_audit()
             objXmlHttpReq.send
             
             If objXmlHttpReq.Status = 200 Then
-                Application.StatusBar = "Downloding audit files: " & iCell.row - 1
+                Application.StatusBar = "Downloding audit files: " & iCell.Row - 1
                 DoEvents
                 Set objStream = CreateObject("ADODB.Stream")
                 objStream.Open
                 objStream.Type = 1
                 
                 objStream.Write objXmlHttpReq.responseBody
-                Call make_folder(ws.Cells(iCell.row, uuid_col_number), "audit")
+                Call make_folder(ws.Cells(iCell.Row, uuid_col_number), "audit")
                 
-                objStream.SaveToFile ActiveWorkbook.path & "\audit\" & ws.Cells(iCell.row, uuid_col_number) & "\audit.csv", 2
+                objStream.SaveToFile ActiveWorkbook.path & "\audit\" & ws.Cells(iCell.Row, uuid_col_number) & "\audit.csv", 2
                 objStream.Close
             Else
                 err_counter = err_counter + 1

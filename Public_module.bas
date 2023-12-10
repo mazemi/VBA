@@ -1,10 +1,9 @@
 Attribute VB_Name = "Public_module"
 Global ISSUE_TEXT As String
 Global PATTERN_CHECK_ACTION As Boolean
-Global ROW_ARRAY() As Integer
+Global ROW_ARRAY() As Long
 Global DATA_SHEET As String
 Global PLAN_NUMBER As Long
-Global PLAN_STRING As String
 Global SAMPLE_SHEET As String
 Global DATA_STRATA As String
 Global SAMPLE_STRATA As String
@@ -12,6 +11,7 @@ Global SAMPLE_POPULATION As String
 Global CANCEL_PROCESS As Boolean
 Global CURRENT_WORK_BOOK As Workbook
 Global CHART_COUNT As Long
+Global SPIN As Boolean
 
 Public Function number_to_letter(col_num As Long, input_ws As Worksheet) As String
     On Error Resume Next
@@ -22,7 +22,7 @@ End Function
 
 Function letter_to_number(col_name As String, input_ws As Worksheet)
     On Error Resume Next
-    letter_to_number = input_ws.Range(col_name & 1).column
+    letter_to_number = input_ws.Range(col_name & 1).Column
 End Function
 
 Public Function worksheet_exists(sName As String) As Boolean
@@ -35,7 +35,7 @@ Public Function column_number(column_value As String) As Long
     Dim colNum As Long
     Dim worksheetName As String
     
-    worksheetName = ActiveSheet.Name
+    worksheetName = ActiveSheet.name
     
     colNum = Application.Match(column_value, ActiveWorkbook.sheets(worksheetName).Range("1:1"), 0)
     
@@ -51,7 +51,7 @@ Public Function column_letter(column_value As String) As String
     On Error Resume Next
     Dim colNum As Long
     Dim vArr
-    worksheetName = ActiveSheet.Name
+    worksheetName = ActiveSheet.name
 
     colNum = Application.Match(column_value, ActiveWorkbook.sheets(worksheetName).Range("1:1"), 0)
     
@@ -73,6 +73,21 @@ Public Function gen_column_number(column_value As String, sheet_name As String) 
         gen_column_number = colNum
     Else
         gen_column_number = 0
+    End If
+    
+End Function
+
+Public Function this_gen_column_number(column_value As String, sheet_name As String) As Long
+    On Error Resume Next
+    Dim colNum As Long
+    Dim worksheetName As String
+
+    colNum = Application.Match(column_value, ThisWorkbook.sheets(sheet_name).Range("1:1"), 0)
+    
+    If Not IsError(colNum) Then
+        this_gen_column_number = colNum
+    Else
+        this_gen_column_number = 0
     End If
     
 End Function
@@ -123,7 +138,7 @@ End Function
 
 Public Sub create_sheet(sheet_name_base As String, new_sheet_name As String)
     On Error Resume Next
-    sheets.Add(After:=sheets(sheet_name_base)).Name = new_sheet_name
+    sheets.Add(after:=sheets(sheet_name_base)).name = new_sheet_name
 End Sub
 
 Function unmatched_elements(array1 As Variant, array2 As Variant, check_both As Boolean) As Collection
@@ -134,11 +149,11 @@ Function unmatched_elements(array1 As Variant, array2 As Variant, check_both As 
     Dim i As Long
         
     With Application
-        arr1 = .transpose(array1)
+        arr1 = .Transpose(array1)
     End With
     
     With Application
-        arr2 = .transpose(array2)
+        arr2 = .Transpose(array2)
     End With
     
     ' Find elements in arr1 that are not in arr2
@@ -207,20 +222,20 @@ Function sheet_list() As Collection
     Dim ws As Worksheet
     For Each ws In ActiveWorkbook.Worksheets
         ' add the worksheet name to the collection
-        sheets.Add ws.Name
+        sheets.Add ws.name
     Next ws
     Set sheet_list = sheets
 End Function
 
 Function unique_values(rng As Range) As Collection
     On Error Resume Next
-    Dim d As Object, c As Range, h, tmp As String
+    Dim d As Object, c As Range, h, Tmp As String
     Dim unique_collection As New Collection
     
     Set d = CreateObject("scripting.dictionary")
     For Each c In rng
-        tmp = Trim(c.value)
-        If Len(tmp) > 0 Then d(tmp) = d(tmp) + 1
+        Tmp = Trim(c.Value)
+        If Len(Tmp) > 0 Then d(Tmp) = d(Tmp) + 1
     Next c
 
     For Each h In d.Keys
@@ -296,7 +311,7 @@ Sub remove_empty_col()
     
     Set dt_ws = sheets(find_main_data)
     
-    last_col = dt_ws.Cells(1, columns.count).End(xlToLeft).column
+    last_col = dt_ws.Cells(1, columns.count).End(xlToLeft).Column
     
     For i = 1 To last_col
         If WorksheetFunction.CountA(dt_ws.columns(i)) = 0 Then
@@ -315,26 +330,48 @@ Sub no_value_col()
     Dim last_col As Long
     Dim colle As New Collection
     Dim str As String
+    Dim rng As Range
     
     Set dt_ws = sheets(find_main_data)
     
-    last_col = dt_ws.Cells(1, columns.count).End(xlToLeft).column
+    last_col = dt_ws.Cells(1, columns.count).End(xlToLeft).Column
     
     For i = 1 To last_col
-        If WorksheetFunction.CountA(dt_ws.columns(i)) = 1 Then
+        If WorksheetFunction.CountA(dt_ws.columns(i)) = 1 Or WorksheetFunction.CountA(dt_ws.columns(i)) = 0 Then
             colle.Add i
         End If
     Next
-    str = "Column" & vbTab & "Value"
-    
+
     If colle.count > 0 Then
-        For j = 1 To colle.count
-            ' Debug.Print colle.Item(j), number_to_letter(colle.Item(j), dt_ws)
-            str = str & vbCrLf & number_to_letter(colle.item(j), dt_ws) & vbTab & dt_ws.Cells(1, colle.item(j))
-        Next j
     
-    empty_col_form.TextEmpty = str
-    empty_col_form.Show
+        If Not worksheet_exists("temp_sheet") Then
+            Call create_sheet(find_main_data, "temp_sheet")
+            sheets("temp_sheet").Visible = False
+        End If
+        
+        sheets("temp_sheet").Cells.Clear
+        sheets("temp_sheet").Range("A1") = "Column"
+        sheets("temp_sheet").Range("B1") = "Value"
+        For j = 1 To colle.count
+
+            ' Debug.Print number_to_letter(colle.item(j), dt_ws), dt_ws.Cells(1, colle.item(j))
+             Debug.Print dt_ws.Cells(1, colle.item(j))
+            sheets("temp_sheet").Range("A" & j + 1) = number_to_letter(colle.item(j), dt_ws)
+            sheets("temp_sheet").Range("B" & j + 1) = dt_ws.Cells(1, colle.item(j))
+
+        Next j
+        
+        With empty_col_form.ListBoxEmptyCols
+            .ColumnHeads = True
+            .columnCount = 2
+            .ColumnWidths = "60;140"
+        End With
+        
+        Set rng = sheets("temp_sheet").Range("A1").CurrentRegion
+        empty_col_form.ListBoxEmptyCols.RowSource = _
+            rng.Parent.name & "!" & rng.Resize(rng.rows.count - 1).Offset(1).Address
+        empty_col_form.Show
+    
     Else
         MsgBox "No empty column.   ", vbInformation
     End If
@@ -349,7 +386,7 @@ Function no_value(question As String) As Boolean
 
     Set dt_ws = sheets(find_main_data)
     
-    question_col = gen_column_number(question, dt_ws.Name)
+    question_col = gen_column_number(question, dt_ws.name)
     
     If question_col = 0 Then
         no_value = True
@@ -365,10 +402,12 @@ Function no_value(question As String) As Boolean
 End Function
 
 Sub create_log_shortcut()
+    On Error Resume Next
     Application.OnKey "+^{M}", "show_issue"
 End Sub
 
 Sub delete_log_shortcut()
+    On Error Resume Next
     Application.OnKey "^{M}"
 End Sub
 
@@ -379,7 +418,7 @@ Function var_label(var As String) As String
     Dim last_row_survey As Long
     Dim v_label As String
     
-    last_row_survey = ThisWorkbook.Worksheets("xsurvey").Cells(rows.count, 1).End(xlUp).row
+    last_row_survey = ThisWorkbook.Worksheets("xsurvey").Cells(rows.count, 1).End(xlUp).Row
     v_label = WorksheetFunction.Index(ThisWorkbook.sheets("xsurvey").Range("C2:C" & last_row_survey), _
             WorksheetFunction.Match(var, ThisWorkbook.sheets("xsurvey").Range("B2:B" & last_row_survey), 0))
                 
@@ -407,8 +446,7 @@ Function choice_label(question As String, choice As String) As String
     Dim question_choice As String
     question_choice = question & choice
     
-    last_row_xsurvey_choices = ws_sc.Cells(rows.count, 1).End(xlUp).row
-     
+    last_row_xsurvey_choices = ws_sc.Cells(rows.count, 1).End(xlUp).Row
     choice_label = WorksheetFunction.Index(ws_sc.Range("E2:E" & last_row_xsurvey_choices), _
                         WorksheetFunction.Match(question_choice, ws_sc.Range("F2:F" & last_row_xsurvey_choices), 0))
 
@@ -419,8 +457,31 @@ errHandler:
 
 End Function
 
-Sub remove_NA()
+Sub extract_choice(str As String)
+    On Error Resume Next
+    Dim ws As Worksheet
+    Dim rng As Range
     
+    ' check if tools exist
+    If ThisWorkbook.Worksheets("xsurvey").Range("A1") = vbNullString Then
+        MsgBox "Please import the KOBO tools.    ", vbInformation
+        End
+    End If
+    
+    Set ws = ThisWorkbook.sheets("xsurvey_choices")
+    ws.columns("H:K").Clear
+    Set rng = ws.Range("A1").CurrentRegion
+    
+    ws.Cells(1, "H") = "question"
+    ws.Cells(1, "K") = "choice"
+    ws.Cells(2, "H") = "'=" & str
+    
+    rng.AdvancedFilter xlFilterCopy, ws.Range("H1:H2"), ws.Range("K1"), True
+        
+End Sub
+
+Sub remove_NA()
+    On Error Resume Next
     Dim ws As Worksheet
     Set ws = sheets(Public_module.DATA_SHEET)
     
@@ -428,6 +489,7 @@ Sub remove_NA()
             MatchCase:=True, SearchFormat:=False, ReplaceFormat:=False
 
 End Sub
+
 
 
 

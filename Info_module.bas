@@ -1,14 +1,10 @@
 Attribute VB_Name = "Info_module"
-Public Const DIRECT_VERSION As String = "1.5"
+Public Const VERSION As String = "2.0 alpha"
 
 ' *********************************************************
-' Date: 28 August 2023
-' improvement in the add label functionality
-' consistency check for select_one added
-' implemetation of global tool
-' datamerge with lables
-' enhancement of overall figures
-' detect empty columns in the main dataset
-' improved log replacement
+' Date: 3 Dec 2023
+' median added
+' improved analysis
+' improvement in the tool integration with English label
 ' *********************************************************
 

@@ -1,11 +1,12 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} analysis_form 
    Caption         =   "Analysis"
-   ClientHeight    =   5286
-   ClientLeft      =   36
-   ClientTop       =   174
-   ClientWidth     =   7452
+   ClientHeight    =   5172
+   ClientLeft      =   -252
+   ClientTop       =   -1122
+   ClientWidth     =   7020
    OleObjectBlob   =   "analysis_form.frx":0000
+   ShowModal       =   0   'False
    StartUpPosition =   1  'CenterOwner
 End
 Attribute VB_Name = "analysis_form"
@@ -21,11 +22,12 @@ Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
 End Sub
 
 Private Sub CommandRunAnalysis_Click()
-    
+Application.ScreenUpdating = False
     Dim wb As Workbook
     Set wb = ActiveWorkbook
     Dim uuid_col As Long
-    
+    Dim start_time As Double
+    start_time = Timer
     On Error GoTo errHandler
     
     If Not worksheet_exists("dissagregation_setting") Then
@@ -63,18 +65,77 @@ Private Sub CommandRunAnalysis_Click()
         Exit Sub
     End If
     
-    Call analyze
+    DoEvents
     
+    Me.dmLabel.Visible = False
+    Debug.Print "call dm: " & Timer - start_time
+
+    Call do_analize
+
+    str_info = vbLf & analysis_form.TextInfo.Value
+    txt = "Generating Datamerge... " & str_info
+    Me.TextInfo.Value = txt
+    Me.Repaint
     Call generate_datamerge
+
+    Application.DisplayAlerts = False
+    
+    If worksheet_exists("keen") Then
+        sheets("keen").Visible = xlSheetHidden
+        sheets("keen").Delete
+    End If
+    
+    If worksheet_exists("keen2") Then
+        sheets("keen2").Visible = xlSheetHidden
+        sheets("keen2").Delete
+    End If
+
+    If worksheet_exists("temp_sheet") Then
+        sheets("temp_sheet").Visible = xlSheetHidden
+        sheets("temp_sheet").Delete
+    End If
+    
+    If worksheet_exists("redeem") Then
+        sheets("redeem").Visible = xlSheetHidden
+        sheets("redeem").Delete
+    End If
+        
+    Application.DisplayAlerts = True
     
     wb.Save
     
     Unload analysis_form
 
     Exit Sub
-    
+
 errHandler:
-    MsgBox "Pleass set properly your main dataset, disaggregation levels and analysis variables.      ", vbInformation
+
+    If worksheet_exists("keen") Then
+        sheets("keen").Visible = xlSheetHidden
+        sheets("keen").Delete
+    End If
+    
+    If worksheet_exists("keen2") Then
+        sheets("keen2").Visible = xlSheetHidden
+        sheets("keen2").Delete
+    End If
+
+    If worksheet_exists("temp_sheet") Then
+        sheets("temp_sheet").Visible = xlSheetHidden
+        sheets("temp_sheet").Delete
+    End If
+    
+    If worksheet_exists("redeem") Then
+        sheets("redeem").Visible = xlSheetHidden
+        sheets("redeem").Delete
+    End If
+    
+    Application.DisplayAlerts = True
+    
+    MsgBox " Oops!, Something went wrong! Pleass check properly your main dataset, disaggregation levels and analysis variables.      ", vbInformation
+    
+    Unload analysis_form
+    
     Exit Sub
 
 End Sub
@@ -97,6 +158,10 @@ Private Sub UserForm_Initialize()
         MsgBox "Please set the dissagregation levels. ", vbInformation
         Unload analysis_form
         Exit Sub
+    End If
+    
+    If worksheet_exists("datamerge") Then
+        Me.dmLabel.Visible = True
     End If
     
     Public_module.DATA_SHEET = find_main_data

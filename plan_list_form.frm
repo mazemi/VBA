@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} plan_list_form 
    Caption         =   "Cleaning Plan"
-   ClientHeight    =   5592
-   ClientLeft      =   84
-   ClientTop       =   390
-   ClientWidth     =   8238.001
+   ClientHeight    =   5520
+   ClientLeft      =   -12
+   ClientTop       =   -48
+   ClientWidth     =   10860
    OleObjectBlob   =   "plan_list_form.frx":0000
    ShowModal       =   0   'False
    StartUpPosition =   1  'CenterOwner
@@ -14,6 +14,8 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+
 
 Private Sub CommandDelete_Click()
     If Me.ListPlan.List(0) = "NO CEALNING PLAN!" Then
@@ -39,19 +41,21 @@ Private Sub CommandDeleteAll_Click()
     
     Dim answer As Integer
     
-    If ThisWorkbook.sheets("logical_checks").Range("A1") = vbNullString Then Exit Sub
+    If ThisWorkbook.sheets("xlogical_checks").Range("A1") = vbNullString Then Exit Sub
     
     answer = MsgBox("All the cleaning roles will be removed." & vbCrLf & _
                     "Do you want to Continue?", vbQuestion + vbYesNo)
     
     If answer = vbYes Then
 
-        ThisWorkbook.sheets("logical_checks").Cells.Clear
+        ThisWorkbook.sheets("xlogical_checks").Cells.Clear
         Me.ListPlan.Clear
         Call UserForm_Initialize
     End If
 
 End Sub
+
+
 
 Private Sub ListPlan_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     On Error Resume Next
@@ -65,19 +69,21 @@ Private Sub ListPlan_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
 End Sub
 
 Private Sub UserForm_Initialize()
+    On Error Resume Next
     Application.ScreenUpdating = False
     Dim ws As Worksheet
     
-    Set ws = ThisWorkbook.sheets("logical_checks")
+    Set ws = ThisWorkbook.sheets("xlogical_checks")
     
-    last_row = ws.Cells(rows.count, 1).End(xlUp).row
+    last_row = ws.Cells(rows.count, 1).End(xlUp).Row
      
     If ws.Cells(1, 1) <> "" Then
     
         Dim str As String
         For i = 1 To last_row
-            str = "If ( " & ws.Cells(i, 1) & " is " & ws.Cells(i, 2) & " " & ws.Cells(i, 3) & " " & _
-                  ws.Cells(i, 4) & " is " & ws.Cells(i, 5) & " ) -> flagg it as : " & ws.Cells(i, 6)
+            str = "If ( " & ws.Cells(i, 1) & " " & ws.Cells(i, 2) & " " & ws.Cells(i, 3) & " " & _
+                ws.Cells(i, 4) & " " & ws.Cells(i, 5) & " " & ws.Cells(i, 6) & " " & _
+                ws.Cells(i, 7) & " ) -> flag: " & ws.Cells(i, 8)
             str = Replace(str, "   ", " ")
             str = Replace(str, "  ", " ")
             Me.ListPlan.AddItem str, i - 1
@@ -90,10 +96,14 @@ End Sub
 
 Private Sub CommandEdit_Click()
     On Error Resume Next
+
+    If Me.ListPlan.List(0) = "NO CEALNING PLAN!" Then
+        Exit Sub
+    End If
+    
     n = Me.ListPlan.ListCount
     Dim i As Long
     For i = 0 To n - 1
-        
         If Me.ListPlan.Selected(i) Then
             Public_module.PLAN_NUMBER = i + 1
             plan_form.Show
@@ -103,7 +113,8 @@ Private Sub CommandEdit_Click()
 End Sub
 
 Sub delete_row(n As Long)
-    ThisWorkbook.sheets("logical_checks").rows(n).EntireRow.Delete
+    On Error Resume Next
+    ThisWorkbook.sheets("xlogical_checks").rows(n).EntireRow.Delete
 End Sub
 
 

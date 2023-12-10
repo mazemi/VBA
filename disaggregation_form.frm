@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} disaggregation_form 
    Caption         =   "Analysis Disaggregations"
-   ClientHeight    =   4998
-   ClientLeft      =   84
-   ClientTop       =   390
-   ClientWidth     =   9060.001
+   ClientHeight    =   5028
+   ClientLeft      =   -54
+   ClientTop       =   -258
+   ClientWidth     =   9150.001
    OleObjectBlob   =   "disaggregation_form.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -15,10 +15,10 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 Sub set_indicator_validator()
-        
+'    On Error Resume Next
     Dim dt_name As String
     dt_name = find_main_data
-    
+    Debug.Print dt_name
     ActiveWorkbook.sheets("analysis_list").Activate
     ActiveWorkbook.sheets("analysis_list").Range("A2:A" & rows.count).Select
     
@@ -75,6 +75,7 @@ Sub format_question_type()
 End Sub
 
 Private Sub CommandReset_Click()
+    On Error Resume Next
     sheets("dissagregation_setting").Cells.Clear
     sheets("dissagregation_setting").Cells(1, 1) = "Disaggregation Level"
     sheets("dissagregation_setting").Cells(1, 2) = "Weight"
@@ -82,13 +83,14 @@ Private Sub CommandReset_Click()
 End Sub
 
 Private Sub CommandSave_Click()
+    On Error Resume Next
     Application.ScreenUpdating = False
     Dim val As String
     Dim current_dt_name As String
     Dim new_name As String
     
-    If Me.ComboSheets.value <> vbNullString Then
-        current_dt_name = Me.ComboSheets.value
+    If Me.ComboSheets.Value <> vbNullString Then
+        current_dt_name = Me.ComboSheets.Value
         new_name = alpha_numeric_only(current_dt_name)
         
         If Len(new_name) > 15 Then
@@ -97,25 +99,25 @@ Private Sub CommandSave_Click()
         
         Public_module.DATA_SHEET = new_name
         dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", new_name)
-        sheets(current_dt_name).Name = new_name
+        sheets(current_dt_name).name = new_name
         
     Else
-        Public_module.DATA_SHEET = Me.ComboSheets.value
-        dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", Me.ComboSheets.value)
+        Public_module.DATA_SHEET = Me.ComboSheets.Value
+        dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", Me.ComboSheets.Value)
     End If
     
 
     Public_module.DATA_SHEET = new_name
     dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", new_name)
-    
+
     If Me.ListWeight.ListCount > 0 Then
-        ' check if dissagregation_setting sheet exist
+
+        ' check if analysis_list sheet exist
         If Not worksheet_exists("analysis_list") Then
             Call create_sheet("dissagregation_setting", "analysis_list")
             sheets("analysis_list").Cells(1, 1) = "question"
             sheets("analysis_list").Cells(1, 2) = "type"
-            
-            sheets("analysis_list").columns("A:A").ColumnWidth = 30
+            sheets("analysis_list").columns("A:A").ColumnWidth = 40
             sheets("analysis_list").columns("B:B").ColumnWidth = 20
         
             With sheets("analysis_list").Range("A1:B1").Interior
@@ -124,11 +126,9 @@ Private Sub CommandSave_Click()
                 .TintAndShade = -0.15
                 .Parent.Font.Bold = True
             End With
-            
+             
             Call set_indicator_validator
             Call format_question_type
-            
-            ' Call add_note
                    
         End If
         
@@ -136,7 +136,7 @@ Private Sub CommandSave_Click()
             Call add_all_indicators
             With sheets("analysis_list")
                 .columns("B:B").Copy
-                .columns("B:B").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks:=False, transpose:=False
+                .columns("B:B").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
             End With
             sheets("analysis_list").Activate
         End If
@@ -174,7 +174,7 @@ Sub add_all_indicators()
     
     rng.AdvancedFilter xlFilterCopy, tmp_ws.Range("A1").CurrentRegion, tmp_ws.Range("C1")
     analys_ws.Range(analys_ws.Range("A2:B2"), analys_ws.Range("A2:B2").End(xlDown)).ClearContents
-    last_indicator = tmp_ws.Cells(rows.count, 3).End(xlUp).row
+    last_indicator = tmp_ws.Cells(rows.count, 3).End(xlUp).Row
     analys_ws.Range("A2:A" & last_indicator).Value2 = tmp_ws.Range("C2:C" & last_indicator).Value2
     analys_ws.Range("B2:B" & last_indicator).Formula = "=question_type(A2)"
     
@@ -191,15 +191,14 @@ Private Sub UserForm_Initialize()
     
     ' check if dissagregation_setting sheet exist
     If Not worksheet_exists("dissagregation_setting") Then
-        Call create_sheet(sheets(sheets.count).Name, "dissagregation_setting")
+        Call create_sheet(sheets(sheets.count).name, "dissagregation_setting")
         sheets("dissagregation_setting").Cells(1, 1) = "Disaggregation Level"
         sheets("dissagregation_setting").Cells(1, 2) = "Weight"
-        Worksheets("dissagregation_setting").visible = xlVeryHidden
+        Worksheets("dissagregation_setting").Visible = xlVeryHidden
     End If
     Dim dt_sheet_name As String
-
     
-    ' check if dissagregation_setting sheet exist
+    ' check if tools exist
     If ThisWorkbook.Worksheets("xsurvey").Range("A1") = vbNullString Then
         MsgBox "Please import the KOBO tools.    ", vbInformation
         End
@@ -208,7 +207,7 @@ Private Sub UserForm_Initialize()
     dt_sheet_name = find_main_data
   
     If worksheet_exists(dt_sheet_name) Then
-        Me.ComboSheets.Text = dt_sheet_name
+        Me.ComboSheets.text = dt_sheet_name
     End If
 
     Dim dissagregation_ws As Worksheet, dis_rng As Range
@@ -216,7 +215,7 @@ Private Sub UserForm_Initialize()
     Set sheet_li = sheet_list                    'Get the collection of worksheet names
     Dim sh As Variant                            'name of a sheet
     For Each sh In sheet_li
-        If ActiveWorkbook.Worksheets(CStr(sh)).visible Then
+        If ActiveWorkbook.Worksheets(CStr(sh)).Visible Then
             If CStr(sh) <> "result" And CStr(sh) <> "log_book" And CStr(sh) <> "analysis_list" And _
                CStr(sh) <> "dissagregation_setting" And CStr(sh) <> "overall" And CStr(sh) <> "survey" And _
                CStr(sh) <> "keen" And CStr(sh) <> "indi_list" And CStr(sh) <> "temp_sheet" And _
@@ -231,14 +230,14 @@ Private Sub UserForm_Initialize()
     
     Set dissagregation_ws = sheets("dissagregation_setting")
 
-    Set dis_rng = dissagregation_ws.Range("A1:B" & dissagregation_ws.Range("A" & dissagregation_ws.rows.count).End(xlUp).row)
+    Set dis_rng = dissagregation_ws.Range("A1:B" & dissagregation_ws.Range("A" & dissagregation_ws.rows.count).End(xlUp).Row)
     
     With Me.ListWeight
         .BorderStyle = 1
         .ColumnHeads = True
         .columnCount = dis_rng.columns.count
-        .ColumnWidths = "120,20"
-        .RowSource = dis_rng.Parent.Name & "!" & dis_rng.Resize(dis_rng.rows.count - 1).Offset(1).Address
+        .ColumnWidths = "140,10"
+        .RowSource = dis_rng.Parent.name & "!" & dis_rng.Resize(dis_rng.rows.count - 1).Offset(1).Address
     End With
      
     Me.LabelTool.Caption = "Integrated Tool: " & vbCrLf & GetRegistrySetting("ramSetting", "koboToolReg")
@@ -253,7 +252,7 @@ Private Sub UserForm_Initialize()
 err_handler:
 
     If Not worksheet_exists("dissagregation_setting") Then
-        Call create_sheet(main_ws.Name, "dissagregation_setting")
+        Call create_sheet(main_ws.name, "dissagregation_setting")
         sheets("dissagregation_setting").Cells(1, 1) = "Disaggregation Level"
         sheets("dissagregation_setting").Cells(1, 2) = "Weight"
     End If
@@ -262,18 +261,19 @@ End Sub
 
 Private Sub CommandAddWeight_Click()
     
-    q = Me.ComboQuestions.value
-    w = Me.ComboWeight.value
+    q = Me.ComboQuestions.Value
+    w = Me.ComboWeight.Value
     
     If q = "" Or w = "" Then
         Exit Sub
     End If
     
+
     Dim rng As Range
-    last_dis = sheets("dissagregation_setting").Cells(rows.count, 1).End(xlUp).row
+    last_dis = sheets("dissagregation_setting").Cells(rows.count, 1).End(xlUp).Row
     Set rng = sheets("dissagregation_setting").Range("A2:B" & CStr(last_dis))
     
-    If rng.row > 1 Then
+    If rng.Row > 1 Then
         For Each diss_value In rng.columns(1).Cells
             If diss_value = q Then
                 MsgBox "Duplicate disaggregation!              ", vbExclamation
@@ -282,13 +282,13 @@ Private Sub CommandAddWeight_Click()
         Next
     End If
     
-    If rng.row > 10 Then
-        MsgBox "Maximum disaggregation levels!              ", vbExclamation
+    If last_dis > 7 Then
+        MsgBox "Maximum disaggregation level is seven!              ", vbExclamation
         Exit Sub
     End If
     
-    sheets("dissagregation_setting").Cells(last_dis + 1, 1) = Me.ComboQuestions.value
-    sheets("dissagregation_setting").Cells(last_dis + 1, 2) = Me.ComboWeight.value
+    sheets("dissagregation_setting").Cells(last_dis + 1, 1) = Me.ComboQuestions.Value
+    sheets("dissagregation_setting").Cells(last_dis + 1, 2) = Me.ComboWeight.Value
     
     Call referesh_list
 End Sub
@@ -296,7 +296,7 @@ End Sub
 Private Sub ComboSheets_Change()
     Dim val As String
     
-    val = Me.ComboSheets.value
+    val = Me.ComboSheets.Value
     
     If val = "" Then
         Exit Sub
@@ -329,7 +329,7 @@ Private Sub PopulateComboBox(sheet_name As String, con As String)
     '    Set not_for_dis = not_good_dis
 
     For Each c In Me.Controls
-        If c.Name = con Then
+        If c.name = con Then
             c.Clear
             c.AddItem "ALL"
             For Each i In header_arr
@@ -345,65 +345,23 @@ Sub referesh_list()
     Dim dis_rng As Range
     Set dissagregation_ws = sheets("dissagregation_setting")
 
-    Set dis_rng = dissagregation_ws.Range("A1:B" & dissagregation_ws.Range("A" & dissagregation_ws.rows.count).End(xlUp).row)
+    Set dis_rng = dissagregation_ws.Range("A1:B" & dissagregation_ws.Range("A" & dissagregation_ws.rows.count).End(xlUp).Row)
     
     With Me.ListWeight
         .BorderStyle = 1
         .ColumnHeads = True
         .columnCount = dis_rng.columns.count
-        .ColumnWidths = "120,20"
-        .RowSource = dis_rng.Parent.Name & "!" & dis_rng.Resize(dis_rng.rows.count - 1).Offset(1).Address
+        .ColumnWidths = "140,10"
+        .RowSource = dis_rng.Parent.name & "!" & dis_rng.Resize(dis_rng.rows.count - 1).Offset(1).Address
     End With
 End Sub
-
-'Private Sub CommandRemove_Click()
-'
-''    On Error GoTo err_handler
-'    Dim strng As String
-'    Dim lCol As Long, lRow As Long
-'
-'    With Me.ListWeight
-'        For lRow = 0 To .ListCount - 1           '<--| loop through listbox rows
-'            If .Selected(lRow) Then              '<--| if current row selected
-'                For lCol = 0 To .columnCount - 1 '<--| loop through listbox columns
-'                    strng = strng & .List(lRow, lCol) & "," '<--| build your output string
-'                Next lCol
-'                Exit For
-'            End If
-'        Next lRow
-'    End With
-'
-'    Dim Result() As String
-'    Result() = Split(strng, ",")
-'
-'    Dim a As Integer
-'    a = 1
-'
-'    Do While Cells(a, 1) <> ""
-'
-'        If sheets("dissagregation_setting").Cells(a, 1) = Result(0) And sheets("dissagregation_setting").Cells(a, 2) = Result(1) Then
-'            sheets("dissagregation_setting").rows(a).Delete Shift:=xlUp
-'            'Row counter should not be incremented if row was just deleted
-'        Else
-'            'Increment a for next row only if row not deleted
-'            a = a + 1
-'        End If
-'
-'    Loop
-'
-'    Call referesh_list
-''    Exit Sub
-''
-''err_handler:
-'
-'End Sub
 
 Function not_good_dis() As Collection
     Dim ws As Worksheet
     Set ws = ThisWorkbook.sheets("xsurvey")
     Dim rng As Range
     Dim not_good_collection As New Collection
-    last_row_survey = ws.Cells(ws.rows.count, 1).End(xlUp).row
+    last_row_survey = ws.Cells(ws.rows.count, 1).End(xlUp).Row
     
     ws.Range("$A$2:$B$" & CStr(last_row_survey)).AutoFilter Field:=1, Criteria1:="<>*select_one*", Operator:=xlAnd, Criteria2:="<>*calculate*"
     Set rng = ws.Range("B2:B" & last_row_survey).SpecialCells(xlCellTypeVisible)
@@ -422,7 +380,7 @@ Sub add_note()
         
     Selection.ShapeRange.ShapeStyle = msoShapeStylePreset2
     Selection.ShapeRange.Adjustments.item(1) = 0.02057
-    Selection.ShapeRange(1).TextFrame2.TextRange.Characters.Text = _
+    Selection.ShapeRange(1).TextFrame2.TextRange.Characters.text = _
                                                                  "Please add the necessary indicator in the first column.You can use the question_type formula in the second column, for example: =question_type(A2)" & _
                                                                  " Valid types are integer, decimal, select_one and select_multiple."
         
@@ -434,35 +392,35 @@ Sub add_note()
     With Selection.ShapeRange(1).TextFrame2.TextRange.Characters(1, 73).Font
         .NameComplexScript = "+mn-cs"
         .NameFarEast = "+mn-ea"
-        .Fill.visible = msoTrue
+        .Fill.Visible = msoTrue
         .Fill.ForeColor.ObjectThemeColor = msoThemeColorDark1
         .Size = 11
-        .Name = "+mn-lt"
+        .name = "+mn-lt"
     End With
     With Selection.ShapeRange(1).TextFrame2.TextRange.Characters(74, 14).Font
         .Bold = msoTrue
         .NameComplexScript = "+mn-cs"
         .NameFarEast = "+mn-ea"
-        .Fill.visible = msoTrue
+        .Fill.Visible = msoTrue
         .Fill.ForeColor.ObjectThemeColor = msoThemeColorDark1
         .Size = 11
-        .Name = "+mn-lt"
+        .name = "+mn-lt"
     End With
     With Selection.ShapeRange(1).TextFrame2.TextRange.Characters(88, 43).Font
         .NameComplexScript = "+mn-cs"
         .NameFarEast = "+mn-ea"
-        .Fill.visible = msoTrue
+        .Fill.Visible = msoTrue
         .Fill.ForeColor.ObjectThemeColor = msoThemeColorDark1
         .Size = 11
-        .Name = "+mn-lt"
+        .name = "+mn-lt"
     End With
     With Selection.ShapeRange(1).TextFrame2.TextRange.Characters(131, 18).Font
         .NameComplexScript = "+mn-cs"
         .NameFarEast = "+mn-ea"
-        .Fill.visible = msoTrue
+        .Fill.Visible = msoTrue
         .Fill.ForeColor.ObjectThemeColor = msoThemeColorDark1
         .Size = 11
-        .Name = "+mn-lt"
+        .name = "+mn-lt"
     End With
 
     ActiveSheet.Shapes.Range(Array("Rounded Rectangle 1")).Select

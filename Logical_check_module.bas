@@ -1,31 +1,35 @@
 Attribute VB_Name = "logical_check_module"
 Option Explicit
 
-Sub single_check(r As Long)
+Sub auto_check()
     On Error Resume Next
     Application.ScreenUpdating = False
     Dim ws As Worksheet
+    Dim temp_ws As Worksheet
     Dim plan_ws As Worksheet
     Dim rng As Range
-    Dim filtered_rng1 As Range
-    Dim filtered_rng2 As Range
+    Dim filtered_rng As Range
     Dim cr_rng As Range
-    Dim new_row As Long
+    Dim last_dt As Long
     Dim plan_row As Long
     Dim condition1 As String
     Dim condition2 As String
     Dim condition1_col As String
     Dim condition2_col As String
+    Dim i As Long
+    Dim last_tmp As Long
     Dim col_n1 As Long
     Dim col_n2 As Long
     Dim uuid_coln As Long
+    Dim single_val As Range
+    Dim tmp_rng As Range
     
-    If ThisWorkbook.sheets("logical_checks").Range("A1") = "" Then
+    If ThisWorkbook.sheets("xlogical_checks").Range("A1") = "" Then
         MsgBox "There is not any logical check!   ", vbInformation
         Exit Sub
     End If
     
-    Set plan_ws = ThisWorkbook.sheets("logical_checks")
+    Set plan_ws = ThisWorkbook.sheets("xlogical_checks")
     Set ws = sheets(find_main_data)
     
     If (ws.AutoFilterMode And ws.FilterMode) Or ws.FilterMode Then
@@ -43,188 +47,283 @@ Sub single_check(r As Long)
     
     Call remove_empty_col
     
-    col_n1 = 0
-    col_n2 = 0
-    new_row = ws.Cells(rows.count, uuid_coln).End(xlUp).row
+    last_dt = ws.Cells(rows.count, uuid_coln).End(xlUp).Row
     
-    plan_row = plan_ws.Cells(rows.count, 1).End(xlUp).row
+    plan_row = plan_ws.Cells(rows.count, 1).End(xlUp).Row
     
+    plan_ws.Range("M1") = Null
+    plan_ws.Range("M2") = Null
+    plan_ws.Range("M3") = Null
+    plan_ws.Range("N1") = Null
+    plan_ws.Range("N2") = Null
+    plan_ws.Range("N3") = Null
+        
     ws.Activate
+    
+    If Not worksheet_exists("temp_sheet") Then
+        Call create_sheet(find_main_data, "temp_sheet")
+    End If
+    
+    Set temp_ws = sheets("temp_sheet")
+    
+    For i = 1 To plan_row
+    
+        temp_ws.Cells.Clear
+        
+        If (ws.AutoFilterMode And ws.FilterMode) Or ws.FilterMode Then
+            ws.ShowAllData
+        End If
+        
+        Public_module.ISSUE_TEXT = plan_ws.Cells(i, "H")
+        Set cr_rng = Nothing
+        
+        ' numeric conversion
+        condition1 = plan_ws.Cells(i, "C")
+        condition2 = plan_ws.Cells(i, "G")
+        
+        Dim rng1 As Range, cel1 As Range
+        Dim rng2 As Range, cel2 As Range
+        
+        If IsNumeric(condition1) Then
+            condition1_col = gen_column_letter(plan_ws.Cells(i, "A"), find_main_data)
+            If condition1_col <> vbNullString Then
+                Set rng1 = ws.Range(condition1_col & "2:" & condition1_col & last_dt)
+                For Each cel1 In rng1.Cells
+                    If Len(cel1.Value) <> 0 And IsNumeric(cel1.Value) Then
+                        cel1.Value = CSng(cel1.Value)
+                    End If
+                Next cel1
+            End If
+        End If
+        
+        If IsNumeric(condition2) Then
+            condition2_col = gen_column_letter(plan_ws.Cells(i, "E"), find_main_data)
+            If condition2_col <> vbNullString Then
+                Set rng2 = ws.Range(condition2_col & "2:" & condition2_col & last_dt)
+                For Each cel2 In rng2.Cells
+                    If Len(cel2.Value) <> 0 And IsNumeric(cel2.Value) Then
+                        cel2.Value = CSng(cel2.Value)
+                    End If
+                Next cel2
+            End If
+        End If
+        
+        ' case 1
+        If plan_ws.Cells(i, "D") = "" Then
+            col_n1 = gen_column_number(plan_ws.Cells(i, "A"), find_main_data)
+            
+            If col_n1 = 0 Then
+                GoTo resumeLoop
+            End If
+            
+            plan_ws.Range("M1") = plan_ws.Cells(i, "A")
+            plan_ws.Range("M2") = give_operator("B" & i) & plan_ws.Cells(i, "C")
+            temp_ws.Range("A1") = "_uuid"
+            temp_ws.Range("B1") = plan_ws.Cells(i, "A")
+            
+            Set cr_rng = plan_ws.Range("M1").CurrentRegion
+            rng.AdvancedFilter xlFilterCopy, cr_rng, temp_ws.Range("A1").CurrentRegion
+            
+            If Not add_to_log Then
+                GoTo resumeLoop
+            End If
+            
+        ' case 2
+        ElseIf plan_ws.Cells(i, "D") = "and" And plan_ws.Cells(i, "A") = plan_ws.Cells(i, "E") Then
+            col_n1 = gen_column_number(plan_ws.Cells(i, "A"), find_main_data)
+            
+            If col_n1 = 0 Then
+                GoTo resumeLoop
+            End If
+            
+            plan_ws.Range("M1") = plan_ws.Cells(i, "A")
+            plan_ws.Range("M2") = give_operator("B" & i) & plan_ws.Cells(i, "C")
+            temp_ws.Range("A1") = "_uuid"
+            temp_ws.Range("B1") = plan_ws.Cells(i, "A")
+            
+            Set cr_rng = plan_ws.Range("M1").CurrentRegion
+            rng.AdvancedFilter xlFilterCopy, cr_rng, temp_ws.Range("A1").CurrentRegion
+            
+            ' extera filter for "and"
+            plan_ws.Range("M2") = give_operator("F" & i) & plan_ws.Cells(i, "G")
+            
+            temp_ws.Range("D1") = "_uuid"
+            temp_ws.Range("E1") = plan_ws.Cells(i, "A")
+            
+            Set cr_rng = Nothing
+            Set cr_rng = plan_ws.Range("M1").CurrentRegion
+            Set tmp_rng = temp_ws.Range("A1").CurrentRegion
+            
+            tmp_rng.AdvancedFilter xlFilterCopy, cr_rng, temp_ws.Range("D1").CurrentRegion
+            temp_ws.columns("A:C").Delete Shift:=xlToLeft
+            
+            If Not add_to_log Then
+                GoTo resumeLoop
+            End If
+            
+        ' case 3
+        ElseIf plan_ws.Cells(i, "D") = "or" And plan_ws.Cells(i, "A") = plan_ws.Cells(i, "E") Then
+            
+            col_n1 = gen_column_number(plan_ws.Cells(i, "A"), find_main_data)
+
+            If col_n1 = 0 Then
+                GoTo resumeLoop
+            End If
+  
+            plan_ws.Range("M1") = plan_ws.Cells(i, "A")
+            plan_ws.Range("M2") = give_operator("B" & i) & plan_ws.Cells(i, "C")
+            plan_ws.Range("M3") = give_operator("F" & i) & plan_ws.Cells(i, "G")
+            temp_ws.Range("A1") = "_uuid"
+            temp_ws.Range("B1") = plan_ws.Cells(i, "A")
+            
+            Set cr_rng = plan_ws.Range("M1").CurrentRegion
+            rng.AdvancedFilter xlFilterCopy, cr_rng, temp_ws.Range("A1").CurrentRegion
+            
+            If Not add_to_log Then
+                GoTo resumeLoop
+            End If
+
+        ' case 4
+        ElseIf plan_ws.Cells(i, "D") = "and" And plan_ws.Cells(i, 1) <> plan_ws.Cells(i, 4) Then
+            col_n1 = gen_column_number(plan_ws.Cells(i, "A"), find_main_data)
+            col_n2 = gen_column_number(plan_ws.Cells(i, "E"), find_main_data)
+            
+            If col_n1 = 0 Or col_n2 = 0 Then
+                GoTo resumeLoop
+            End If
+            
+            plan_ws.Range("M1") = plan_ws.Cells(i, "A")
+            plan_ws.Range("M2") = give_operator("B" & i) & plan_ws.Cells(i, "C")
+            plan_ws.Range("N1") = plan_ws.Cells(i, "E")
+            plan_ws.Range("N2") = give_operator("F" & i) & plan_ws.Cells(i, "G")
+            
+            temp_ws.Range("A1") = "_uuid"
+            temp_ws.Range("B1") = plan_ws.Cells(i, "A")
+            temp_ws.Range("C1") = plan_ws.Cells(i, "E")
+            
+            Set cr_rng = plan_ws.Range("M1").CurrentRegion
+            rng.AdvancedFilter xlFilterCopy, cr_rng, temp_ws.Range("A1").CurrentRegion
+            
+            If Not add_to_log Then
+                GoTo resumeLoop
+            End If
+            
+        ' case 5
+        ElseIf plan_ws.Cells(i, "D") = "or" And plan_ws.Cells(i, 1) <> plan_ws.Cells(i, 4) Then
+            col_n1 = gen_column_number(plan_ws.Cells(i, "A"), find_main_data)
+            col_n2 = gen_column_number(plan_ws.Cells(i, "E"), find_main_data)
+            
+            If col_n1 = 0 Or col_n2 = 0 Then
+                GoTo resumeLoop
+            End If
+            
+            plan_ws.Range("M1") = plan_ws.Cells(i, "A")
+            plan_ws.Range("M2") = give_operator("B" & i) & plan_ws.Cells(i, "C")
+            plan_ws.Range("N1") = plan_ws.Cells(i, "E")
+            plan_ws.Range("N3") = give_operator("F" & i) & plan_ws.Cells(i, "G")
+            
+            temp_ws.Range("A1") = "_uuid"
+            temp_ws.Range("B1") = plan_ws.Cells(i, "A")
+            temp_ws.Range("C1") = plan_ws.Cells(i, "E")
+            
+            Set cr_rng = plan_ws.Range("M1").CurrentRegion
+            rng.AdvancedFilter xlFilterCopy, cr_rng, temp_ws.Range("A1").CurrentRegion
+            
+            If Not add_to_log Then
+                GoTo resumeLoop
+            End If
+            
+        End If
+        
+resumeLoop:
+
+        plan_ws.Range("M1") = Null
+        plan_ws.Range("M2") = Null
+        plan_ws.Range("M3") = Null
+        plan_ws.Range("N1") = Null
+        plan_ws.Range("N2") = Null
+        plan_ws.Range("N3") = Null
+    
+    Next
+    
+    Application.DisplayAlerts = False
+            
+    If worksheet_exists("temp_sheet") Then
+        sheets("temp_sheet").Delete
+    End If
+
+    Application.DisplayAlerts = True
     
     If (ws.AutoFilterMode And ws.FilterMode) Or ws.FilterMode Then
         ws.ShowAllData
     End If
     
-    Public_module.PATTERN_CHECK_ACTION = True
-    Public_module.ISSUE_TEXT = plan_ws.Cells(r, 6)
-    
-    ' numeric conversion
-    condition1 = remove_operator(plan_ws.Cells(r, 2))
-    condition2 = remove_operator(plan_ws.Cells(r, 5))
-    
-    Dim rng1 As Range, cel1 As Range
-    Dim rng2 As Range, cel2 As Range
-    
-    If IsNumeric(condition1) Then
-        condition1_col = gen_column_letter(plan_ws.Cells(r, 1), find_main_data)
-        If condition1_col > 0 Then
-            Set rng1 = ws.Range(condition1_col & "2:" & condition1_col & ws.Cells(rows.count, uuid_coln).End(xlUp).row)
-            For Each cel1 In rng1.Cells
-                If Len(cel1.value) <> 0 Then
-                    cel1.value = CSng(cel1.value)
-                End If
-            Next cel1
-        End If
-    End If
-    
-    If IsNumeric(condition2) Then
-        condition2_col = gen_column_letter(plan_ws.Cells(r, 4), find_main_data)
-        If condition2_col > 0 Then
-            Set rng2 = ws.Range(condition2_col & "2:" & condition2_col & ws.Cells(rows.count, uuid_coln).End(xlUp).row)
-            For Each cel2 In rng2.Cells
-                If Len(cel2.value) <> 0 Then
-                    cel2.value = CSng(cel2.value)
-                End If
-            Next cel2
-        End If
-    End If
-    
-    ' add to logbook based on the case:
-    If plan_ws.Cells(r, 3) = "" Then
-        col_n1 = column_number(plan_ws.Cells(r, 1))
-        rng.AutoFilter col_n1, plan_ws.Cells(r, 2)
-        
-        If count_rows > 1 Then
-            ws.Cells(2, col_n1).Select
-            ws.Range(ws.Cells(2, col_n1), Selection.End(xlDown)).Select
-        End If
-        
-    ElseIf plan_ws.Cells(r, 3) = "and" And plan_ws.Cells(r, 1) = plan_ws.Cells(r, 4) Then
-        col_n1 = column_number(plan_ws.Cells(r, 1))
-        rng.AutoFilter col_n1, plan_ws.Cells(r, 2), xlAnd, plan_ws.Cells(r, 5)
-        
-        If count_rows > 1 Then
-            ws.Cells(2, col_n1).Select
-            ws.Range(ws.Cells(2, col_n1), Selection.End(xlDown)).Select
-        End If
-        
-    ElseIf plan_ws.Cells(r, 3) = "or" And plan_ws.Cells(r, 1) = plan_ws.Cells(r, 4) Then
-        col_n1 = column_number(plan_ws.Cells(r, 1))
-        rng.AutoFilter col_n1, plan_ws.Cells(r, 2), xlOr, plan_ws.Cells(r, 5)
-        
-        If count_rows > 1 Then
-            ws.Cells(2, col_n1).Select
-            ws.Range(ws.Cells(2, col_n1), Selection.End(xlDown)).Select
-        End If
-        
-        ' use advancefilter
-    ElseIf plan_ws.Cells(r, 3) = "and" And plan_ws.Cells(r, 1) <> plan_ws.Cells(r, 4) Then
-        col_n1 = column_number(plan_ws.Cells(r, 1))
-        col_n2 = column_number(plan_ws.Cells(r, 4))
-        
-        plan_ws.Range("M1") = plan_ws.Cells(r, 1)
-        plan_ws.Range("M2") = plan_ws.Cells(r, 2)
-        plan_ws.Range("N1") = plan_ws.Cells(r, 4)
-        plan_ws.Range("N2") = plan_ws.Cells(r, 5)
-        
-        Set cr_rng = plan_ws.Range("M1").CurrentRegion
-        rng.AdvancedFilter xlFilterInPlace, cr_rng
-        
-'        If count_rows > 1 Then
-        
-            Set filtered_rng1 = ws.Range(ws.Cells(2, col_n1), ws.Range(ws.Cells(rows.count, col_n1))).End(xlUp)
-            ' Check if r is only 1 cell
-            If filtered_rng1.count = 1 Then
-                filtered_rng1.Select
-            Else
-                Set filtered_rng1 = filtered_rng1.SpecialCells(xlCellTypeVisible)
-                filtered_rng1.Select
-            End If
-            
-            Set filtered_rng2 = ws.Range(ws.Cells(2, col_n2), ws.Range(ws.Cells(rows.count, col_n2))).End(xlUp)
-            ' Check if r is only 1 cell
-            If filtered_rng2.count = 1 Then
-                filtered_rng2.Select
-            Else
-                Set filtered_rng2 = filtered_rng2.SpecialCells(xlCellTypeVisible)
-                filtered_rng2.Select
-            End If
-        
-'            ws.Cells(2, col_n1).Select
-'            ws.Range(ws.Cells(2, col_n1), Selection.End(xlDown)).Select
-'
-'            ws.Cells(2, col_n2).Select
-'            ws.Range(ws.Cells(2, col_n2), Selection.End(xlDown)).Select
-'        End If
-        
-        ' use advancefilter
-    ElseIf plan_ws.Cells(r, 3) = "or" And plan_ws.Cells(r, 1) <> plan_ws.Cells(r, 4) Then
-        col_n1 = column_number(plan_ws.Cells(r, 1))
-        col_n2 = column_number(plan_ws.Cells(r, 4))
-        
-        plan_ws.Range("M1") = plan_ws.Cells(r, 1)
-        plan_ws.Range("M2") = plan_ws.Cells(r, 2)
-        plan_ws.Range("N1") = plan_ws.Cells(r, 4)
-        plan_ws.Range("N3") = plan_ws.Cells(r, 5)
-        
-        Set cr_rng = plan_ws.Range("M1").CurrentRegion
-        rng.AdvancedFilter xlFilterInPlace, cr_rng
-        
-'        If count_rows > 1 Then
-            Set filtered_rng1 = ws.Range(ws.Cells(2, col_n1), ws.Range(ws.Cells(rows.count, col_n1))).End(xlUp)
-            ' Check if r is only 1 cell
-            If filtered_rng1.count = 1 Then
-                filtered_rng1.Select
-            Else
-                Set filtered_rng1 = filtered_rng1.SpecialCells(xlCellTypeVisible)
-                filtered_rng1.Select
-            End If
-            
-            Set filtered_rng2 = ws.Range(ws.Cells(2, col_n2), ws.Range(ws.Cells(rows.count, col_n2))).End(xlUp)
-            ' Check if r is only 1 cell
-            If filtered_rng2.count = 1 Then
-                filtered_rng2.Select
-            Else
-                Set filtered_rng2 = filtered_rng2.SpecialCells(xlCellTypeVisible)
-                filtered_rng2.Select
-            End If
-        
-'            ws.Cells(2, col_n1).Select
-'            ws.Range(ws.Cells(2, col_n1), Selection.End(xlDown)).Select
-'
-'            ws.Cells(2, col_n2).Select
-'            ws.Range(ws.Cells(2, col_n2), Selection.End(xlDown)).Select
-'        End If
-        
-    End If
-    
-    plan_ws.Range("M1") = Null
-    plan_ws.Range("M2") = Null
-    plan_ws.Range("N1") = Null
-    plan_ws.Range("N2") = Null
-    plan_ws.Range("N3") = Null
-    
-    If col_n1 > 0 And col_n2 = 0 Then
-        If col_n1 > 1 Then
-            ActiveWindow.ScrollColumn = col_n1 - 1
-        Else
-            ActiveWindow.ScrollColumn = col_n1
-        End If
-        ActiveWindow.ScrollRow = 1
-    ElseIf col_n2 > 0 Then
-        If col_n2 > 1 Then
-            ActiveWindow.ScrollColumn = col_n2 - 1
-        Else
-           ActiveWindow.ScrollColumn = col_n2
-        End If
-        ActiveWindow.ScrollRow = 1
-    End If
-    
     Application.ScreenUpdating = True
+    Debug.Print "finish autocheck"
     
 End Sub
 
-Sub auto_check()
+Function add_to_log() As Boolean
+
+    Dim log_ws As Worksheet
+    Dim temp_ws As Worksheet
+    Dim new_log As Long
+    Dim last_temp As Long
+    Dim i As Long
+    
+    If Not worksheet_exists("log_book") Then
+        Call create_log_sheet(find_main_data)
+    End If
+    
+    Set log_ws = sheets("log_book")
+    Set temp_ws = sheets("temp_sheet")
+
+    new_log = log_ws.Cells(rows.count, 1).End(xlUp).Row + 1
+    last_temp = temp_ws.Cells(rows.count, 1).End(xlUp).Row
+    
+    If last_temp = 1 Then
+        temp_ws.Cells.Clear
+        add_to_log = False
+        Exit Function
+    End If
+    
+    If temp_ws.Range("C1") = vbNullString Then
+    
+        For i = 2 To last_temp
+            log_ws.Cells(new_log, "A") = temp_ws.Cells(i, "A")
+            log_ws.Cells(new_log, "B") = temp_ws.Cells(1, "B")
+            log_ws.Cells(new_log, "C") = Public_module.ISSUE_TEXT
+            log_ws.Cells(new_log, "D") = temp_ws.Cells(i, "B")
+            new_log = new_log + 1
+        Next
+        
+    Else
+    
+        For i = 2 To last_temp
+            log_ws.Cells(new_log, "A") = temp_ws.Cells(i, "A")
+            log_ws.Cells(new_log, "B") = temp_ws.Cells(1, "B")
+            log_ws.Cells(new_log, "C") = Public_module.ISSUE_TEXT
+            log_ws.Cells(new_log, "D") = temp_ws.Cells(i, "B")
+            new_log = new_log + 1
+        Next
+    
+        For i = 2 To last_temp
+            log_ws.Cells(new_log, "A") = temp_ws.Cells(i, "A")
+            log_ws.Cells(new_log, "B") = temp_ws.Cells(1, "C")
+            log_ws.Cells(new_log, "C") = Public_module.ISSUE_TEXT
+            log_ws.Cells(new_log, "D") = temp_ws.Cells(i, "C")
+            new_log = new_log + 1
+        Next
+        
+    End If
+    
+    temp_ws.Cells.Clear
+    
+    add_to_log = True
+    
+End Function
+
+Sub single_check(p_row As Long)
     On Error Resume Next
     Application.ScreenUpdating = False
     Dim ws As Worksheet
@@ -232,7 +331,7 @@ Sub auto_check()
     Dim rng As Range
     Dim filtered_rng As Range
     Dim cr_rng As Range
-    Dim new_row As Long
+    Dim last_dt As Long
     Dim plan_row As Long
     Dim condition1 As String
     Dim condition2 As String
@@ -242,13 +341,14 @@ Sub auto_check()
     Dim col_n1 As Long
     Dim col_n2 As Long
     Dim uuid_coln As Long
+    Dim z As Long
     
-    If ThisWorkbook.sheets("logical_checks").Range("A1") = "" Then
+    If ThisWorkbook.sheets("xlogical_checks").Range("A1") = "" Then
         MsgBox "There is not any logical check!   ", vbInformation
         Exit Sub
     End If
     
-    Set plan_ws = ThisWorkbook.sheets("logical_checks")
+    Set plan_ws = ThisWorkbook.sheets("xlogical_checks")
     Set ws = sheets(find_main_data)
     
     If (ws.AutoFilterMode And ws.FilterMode) Or ws.FilterMode Then
@@ -266,148 +366,211 @@ Sub auto_check()
     
     Call remove_empty_col
     
-    new_row = ws.Cells(rows.count, uuid_coln).End(xlUp).row
+    last_dt = ws.Cells(rows.count, uuid_coln).End(xlUp).Row
     
-    plan_row = plan_ws.Cells(rows.count, 1).End(xlUp).row
+    plan_row = plan_ws.Cells(rows.count, 1).End(xlUp).Row
     
     ws.Activate
     
-    For i = 1 To plan_row
-        Application.ScreenUpdating = False
-        If (ws.AutoFilterMode And ws.FilterMode) Or ws.FilterMode Then
-            ws.ShowAllData
-        End If
-        
-        Public_module.PATTERN_CHECK_ACTION = True
-        Public_module.ISSUE_TEXT = plan_ws.Cells(i, 6)
-        
-        ' numeric conversion
-        condition1 = remove_operator(plan_ws.Cells(i, 2))
-        condition2 = remove_operator(plan_ws.Cells(i, 5))
-        
-        Dim rng1 As Range, cel1 As Range
-        Dim rng2 As Range, cel2 As Range
-        
-        If IsNumeric(condition1) Then
-            condition1_col = gen_column_letter(plan_ws.Cells(i, 1), find_main_data)
-            If condition1_col > 0 Then
-                Set rng1 = ws.Range(condition1_col & "2:" & condition1_col & ws.Cells(rows.count, uuid_coln).End(xlUp).row)
-                For Each cel1 In rng1.Cells
-                    If Len(cel1.value) <> 0 Then
-                        cel1.value = CSng(cel1.value)
-                    End If
-                Next cel1
-            End If
-        End If
-        
-        If IsNumeric(condition2) Then
-            condition2_col = gen_column_letter(plan_ws.Cells(i, 4), find_main_data)
-            If condition2_col > 0 Then
-                Set rng2 = ws.Range(condition2_col & "2:" & condition2_col & ws.Cells(rows.count, uuid_coln).End(xlUp).row)
-                For Each cel2 In rng2.Cells
-                    If Len(cel2.value) <> 0 Then
-                        cel2.value = CSng(cel2.value)
-                    End If
-                Next cel2
-            End If
-        End If
-        
-        If plan_ws.Cells(i, 3) = "" Then
-            col_n1 = column_number(plan_ws.Cells(i, 1))
-            rng.AutoFilter col_n1, plan_ws.Cells(i, 2)
-            
-            If count_rows > 1 Then
-                ws.Cells(2, col_n1).Select
-                ws.Range(ws.Cells(2, col_n1), Selection.End(xlDown)).Select
-                Call pattern_check(True)
-            End If
-            
-        ElseIf plan_ws.Cells(i, 3) = "and" And plan_ws.Cells(i, 1) = plan_ws.Cells(i, 4) Then
-            col_n1 = column_number(plan_ws.Cells(i, 1))
-            rng.AutoFilter col_n1, plan_ws.Cells(i, 2), xlAnd, plan_ws.Cells(i, 5)
-            
-            If count_rows > 1 Then
-                ws.Cells(2, col_n1).Select
-                ws.Range(ws.Cells(2, col_n1), Selection.End(xlDown)).Select
-                Call pattern_check(True)
-            End If
-            
-        ElseIf plan_ws.Cells(i, 3) = "or" And plan_ws.Cells(i, 1) = plan_ws.Cells(i, 4) Then
-            col_n1 = column_number(plan_ws.Cells(i, 1))
-            rng.AutoFilter col_n1, plan_ws.Cells(i, 2), xlOr, plan_ws.Cells(i, 5)
-            
-            If count_rows > 1 Then
-                ws.Cells(2, col_n1).Select
-                ws.Range(ws.Cells(2, col_n1), Selection.End(xlDown)).Select
-                Call pattern_check(True)
-            End If
-            
-            ' use advancefilter
-        ElseIf plan_ws.Cells(i, 3) = "and" And plan_ws.Cells(i, 1) <> plan_ws.Cells(i, 4) Then
-            col_n1 = column_number(plan_ws.Cells(i, 1))
-            col_n2 = column_number(plan_ws.Cells(i, 4))
-            
-            plan_ws.Range("M1") = plan_ws.Cells(i, 1)
-            plan_ws.Range("M2") = plan_ws.Cells(i, 2)
-            plan_ws.Range("N1") = plan_ws.Cells(i, 4)
-            plan_ws.Range("N2") = plan_ws.Cells(i, 5)
-            
-            Set cr_rng = plan_ws.Range("M1").CurrentRegion
-            rng.AdvancedFilter xlFilterInPlace, cr_rng
-            
-            If count_rows > 1 Then
-                ws.Cells(2, col_n1).Select
-                ws.Range(ws.Cells(2, col_n1), Selection.End(xlDown)).Select
-                Call pattern_check(True)
-                
-                ws.Cells(2, col_n2).Select
-                ws.Range(ws.Cells(2, col_n2), Selection.End(xlDown)).Select
-                Call pattern_check(True)
-            End If
-            
-            ' use advancefilter
-        ElseIf plan_ws.Cells(i, 3) = "or" And plan_ws.Cells(i, 1) <> plan_ws.Cells(i, 4) Then
-            col_n1 = column_number(plan_ws.Cells(i, 1))
-            col_n2 = column_number(plan_ws.Cells(i, 4))
-            
-            plan_ws.Range("M1") = plan_ws.Cells(i, 1)
-            plan_ws.Range("M2") = plan_ws.Cells(i, 2)
-            plan_ws.Range("N1") = plan_ws.Cells(i, 4)
-            plan_ws.Range("N3") = plan_ws.Cells(i, 5)
-            
-            Set cr_rng = plan_ws.Range("M1").CurrentRegion
-            rng.AdvancedFilter xlFilterInPlace, cr_rng
-            
-            If count_rows > 1 Then
-                ws.Cells(2, col_n1).Select
-                ws.Range(ws.Cells(2, col_n1), Selection.End(xlDown)).Select
-                Call pattern_check(True)
-                
-                ws.Cells(2, col_n2).Select
-                ws.Range(ws.Cells(2, col_n2), Selection.End(xlDown)).Select
-                Call pattern_check(True)
-            End If
-            
-        End If
-        
-        plan_ws.Range("M1") = Null
-        plan_ws.Range("M2") = Null
-        plan_ws.Range("N1") = Null
-        plan_ws.Range("N2") = Null
-        plan_ws.Range("N3") = Null
-            
-    Next
-    
+    Application.ScreenUpdating = False
     If (ws.AutoFilterMode And ws.FilterMode) Or ws.FilterMode Then
         ws.ShowAllData
     End If
     
-    Application.ScreenUpdating = True
+    Public_module.PATTERN_CHECK_ACTION = True
+    Public_module.ISSUE_TEXT = plan_ws.Cells(p_row, "H")
     
+    ' numeric conversion
+    condition1 = plan_ws.Cells(p_row, "C")
+    condition2 = plan_ws.Cells(p_row, "G")
+    
+    Dim rng1 As Range, cel1 As Range
+    Dim rng2 As Range, cel2 As Range
+    
+    If IsNumeric(condition1) Then
+        condition1_col = gen_column_letter(plan_ws.Cells(p_row, "A"), find_main_data)
+        If condition1_col <> vbNullString Then
+            Set rng1 = ws.Range(condition1_col & "2:" & condition1_col & last_dt)
+            For Each cel1 In rng1.Cells
+                If Len(cel1.Value) <> 0 And IsNumeric(cel1.Value) Then
+                    cel1.Value = CSng(cel1.Value)
+                End If
+            Next cel1
+        End If
+    End If
+    
+    If IsNumeric(condition2) Then
+        condition2_col = gen_column_letter(plan_ws.Cells(p_row, "E"), find_main_data)
+        If condition2_col <> vbNullString Then
+            Set rng2 = ws.Range(condition2_col & "2:" & condition2_col & last_dt)
+            For Each cel2 In rng2.Cells
+                If Len(cel2.Value) <> 0 And IsNumeric(cel2.Value) Then
+                    cel2.Value = CSng(cel2.Value)
+                End If
+            Next cel2
+        End If
+    End If
+    
+    ' case 1
+    If plan_ws.Cells(p_row, "D") = "" Then
+        col_n1 = gen_column_number(plan_ws.Cells(p_row, "A"), find_main_data)
+        
+        If col_n1 = 0 Then
+            GoTo resumeLoop
+        End If
+        
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C")
+        
+        ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
+        z = ws.AutoFilter.Range.columns(col_n1).SpecialCells(xlCellTypeVisible).Cells.count - 1
+        Debug.Print "Z: " & z
+
+
+    ' case 2
+    ElseIf plan_ws.Cells(p_row, "D") = "and" And plan_ws.Cells(p_row, "A") = plan_ws.Cells(p_row, "E") Then
+        col_n1 = gen_column_number(plan_ws.Cells(p_row, "A"), find_main_data)
+        
+        If col_n1 = 0 Then
+            GoTo resumeLoop
+        End If
+        
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C"), xlAnd, _
+            give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
+            
+            ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
+
+    ' case 3
+    ElseIf plan_ws.Cells(p_row, "D") = "or" And plan_ws.Cells(p_row, "A") = plan_ws.Cells(p_row, "E") Then
+        
+        col_n1 = gen_column_number(plan_ws.Cells(p_row, "A"), find_main_data)
+
+        If col_n1 = 0 Then
+            GoTo resumeLoop
+        End If
+
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        
+'        rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C")
+        
+        rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C"), xlOr, _
+            give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
+            
+        ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
+    
+'        rng.AutoFilter col_n1, give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
+'
+'        ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
+        
+    ' use advancefilter
+    ' case 4
+    ElseIf plan_ws.Cells(p_row, "D") = "and" And plan_ws.Cells(p_row, 1) <> plan_ws.Cells(p_row, 4) Then
+        col_n1 = gen_column_number(plan_ws.Cells(p_row, "A"), find_main_data)
+        col_n2 = gen_column_number(plan_ws.Cells(p_row, "E"), find_main_data)
+        
+        If col_n1 = 0 Or col_n2 = 0 Then
+            GoTo resumeLoop
+        End If
+        
+        plan_ws.Range("M1") = plan_ws.Cells(p_row, "A")
+        plan_ws.Range("M2") = give_operator("B" & p_row) & plan_ws.Cells(p_row, "C")
+        plan_ws.Range("N1") = plan_ws.Cells(p_row, "E")
+        plan_ws.Range("N2") = give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
+        
+        Set cr_rng = plan_ws.Range("M1").CurrentRegion
+        rng.AdvancedFilter xlFilterInPlace, cr_rng
+        
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
+        
+        rng.Sort Key1:=rng.Cells(1, col_n2), Order1:=xlAscending, Header:=xlYes
+        ws.Range(ws.Cells(2, col_n2), ws.Cells(last_dt, col_n2)).SpecialCells(xlCellTypeVisible).Select
+  
+    ' use advancefilter
+    ' case 5
+    ElseIf plan_ws.Cells(p_row, "D") = "or" And plan_ws.Cells(p_row, 1) <> plan_ws.Cells(p_row, 4) Then
+        col_n1 = gen_column_number(plan_ws.Cells(p_row, "A"), find_main_data)
+        col_n2 = gen_column_number(plan_ws.Cells(p_row, "E"), find_main_data)
+        
+        If col_n1 = 0 Or col_n2 = 0 Then
+            GoTo resumeLoop
+        End If
+        
+        plan_ws.Range("M1") = plan_ws.Cells(p_row, "A")
+        plan_ws.Range("M2") = give_operator("B" & p_row) & plan_ws.Cells(p_row, "C")
+        plan_ws.Range("N1") = plan_ws.Cells(p_row, "E")
+        plan_ws.Range("N3") = give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
+        
+        Set cr_rng = plan_ws.Range("M1").CurrentRegion
+        rng.AdvancedFilter xlFilterInPlace, cr_rng
+
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
+
+        rng.Sort Key1:=rng.Cells(1, col_n2), Order1:=xlAscending, Header:=xlYes
+        ws.Range(ws.Cells(2, col_n2), ws.Cells(last_dt, col_n2)).SpecialCells(xlCellTypeVisible).Select
+
+    End If
+
+    plan_ws.Range("M1") = Null
+    plan_ws.Range("M2") = Null
+    plan_ws.Range("N1") = Null
+    plan_ws.Range("N2") = Null
+    plan_ws.Range("N3") = Null
+            
+resumeLoop:
+
+'    Debug.Print col_n1, col_n2
+    ws.Activate
+    ActiveWindow.ScrollRow = 1
+    If col_n1 > 0 And col_n2 = 0 Then
+        If col_n1 > 1 Then
+            ActiveWindow.ScrollColumn = col_n1 - 1
+        Else
+            ActiveWindow.ScrollColumn = col_n1
+        End If
+    ElseIf col_n2 > 0 Then
+        If col_n2 > 1 Then
+            ActiveWindow.ScrollColumn = col_n2 - 1
+        Else
+           ActiveWindow.ScrollColumn = col_n2
+        End If
+    End If
+    
+    Application.ScreenUpdating = True
 End Sub
 
-Function count_rows() As Long
+Private Function give_operator(str As String) As String
+    
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.sheets("xlogical_checks")
+    
+    Select Case ws.Range(str).Value
+        Case "is equal"
+            give_operator = ""
+        Case "is not equal"
+            give_operator = "<>"
+        Case "is empty"
+            give_operator = "="
+        Case "is not empty"
+            give_operator = "<>"
+        Case "is greater than"
+            give_operator = ">"
+        Case "is greater than or equal"
+            give_operator = ">="
+        Case "is less than"
+            give_operator = "<"
+        Case "is less than or equal"
+            give_operator = "<="
+        Case Else
+            give_operator = vbNullString
+    End Select
 
+End Function
+
+Function count_rows() As Long
+    On Error GoTo errHandler
     Dim ws As Worksheet
     Dim uuid_col As Long
     Dim rows_n As Long
@@ -416,32 +579,12 @@ Function count_rows() As Long
     rows_n = ws.AutoFilter.Range.columns(uuid_col).SpecialCells(xlCellTypeVisible).Cells.count
     Debug.Print rows_n
     count_rows = rows_n
+    Exit Function
+    
+errHandler:
+    count_rows = 0
 
 End Function
-
-Sub add_logical_chek()
-    On Error Resume Next
-    Dim main_rng As Range
-    Dim c_rng As Range
-    Dim n As Long
-    Dim c As String
-    Dim q As String
-    
-    q = ThisWorkbook.sheets("logical_checks").Cells(2, 1)
-    
-    n = column_number(q)
-    c = ThisWorkbook.sheets("logical_checks").Cells(2, 2)
-    
-    Set main_rng = sheets("uu").Range("A1").CurrentRegion
-    sheets("uu").Activate
-    
-    If sheets("uu").FilterMode = True Then
-        sheets("uu").ShowAllData
-    End If
-
-    main_rng.AutoFilter n, c
-
-End Sub
 
 Sub import_plan()
     On Error Resume Next
@@ -453,7 +596,7 @@ Sub import_plan()
         Exit Sub
     End If
     
-    Set ws = ThisWorkbook.sheets("logical_checks")
+    Set ws = ThisWorkbook.sheets("xlogical_checks")
     ws.Cells.Clear
     
     With ws.QueryTables.Add(Connection:="TEXT;" & strFile, Destination:=ws.Range("A1"))
@@ -461,42 +604,6 @@ Sub import_plan()
         .TextFileCommaDelimiter = True
         .Refresh
     End With
-End Sub
-
-Sub export_planxx()
-    On Error Resume Next
-    Dim base_path As String
-    Dim path As String
-'
-'    base_path = ActiveWorkbook.path
-    Application.DisplayAlerts = False
-    
-    If ThisWorkbook.sheets("logical_checks").Range("A1") = vbNullString Then
-        MsgBox "The logical check dose not exist!     ", vbInformation
-        End
-    End If
-    
-'    ThisWorkbook.sheets("logical_checks").Copy
-'    ThisWorkbook.sheets ("logical_checks")
-    'FileFilter:="Plan Files (*.plan), *.plan",
-    
-    path = Application.GetSaveAsFilename( _
-           FileFilter:="Plan Files (*.txt), *.txt", _
-           title:="Save the cleaning plan", _
-           InitialFileName:="logical_ckeck")
-            
-    Workbooks.Add
-    With ActiveWorkbook
-        ThisWorkbook.sheets("logical_checks").Copy .sheets(1).Range("A1")
-        .SaveAs path, FileFormat:=xlCurrentPlatformText
-        .Close False
-    End With
-                
-'    ActiveWorkbook.SaveAs Filename:=path, FileFormat:=xlCurrentPlatformText
-'    ActiveWorkbook.Close
-    
-    Application.DisplayAlerts = True
-
 End Sub
 
 Sub export_plan()
@@ -507,15 +614,18 @@ Sub export_plan()
     Dim last_row  As Long
     Dim path As String
     
-    If ThisWorkbook.sheets("logical_checks").Range("A1") = vbNullString Then
+    If ThisWorkbook.sheets("xlogical_checks").Range("A1") = vbNullString Then
         MsgBox "The logical check dose not exist!     ", vbInformation
         Exit Sub
     End If
     Application.DisplayAlerts = False
     
     Set wbSource = ThisWorkbook
-    Set wsSource = ThisWorkbook.sheets("logical_checks")
-    last_row = wsSource.Cells(rows.count, 1).End(xlUp).row
+    Set wsSource = ThisWorkbook.sheets("xlogical_checks")
+    
+    wsSource.columns("M:N").Clear
+    
+    last_row = wsSource.Cells(rows.count, 1).End(xlUp).Row
 
     path = Application.GetSaveAsFilename( _
            FileFilter:="Plan Files (*.plan), *.plan", _
@@ -527,7 +637,7 @@ Sub export_plan()
     Workbooks.Add
     
     With ActiveWorkbook
-        wsSource.Range("A1:F" & last_row).Copy .sheets(1).Range("A1")
+        wsSource.Range("A1:H" & last_row).Copy .sheets(1).Range("A1")
         .SaveAs path, FileFormat:=xlCurrentPlatformText
         .Close True
     End With
@@ -536,21 +646,7 @@ Sub export_plan()
     
 End Sub
 
-Function remove_operator(str As String)
-    On Error Resume Next
-    Dim i As Long
-    Dim char As Variant
-    Dim new_str As String
-    Dim char_set As String
-    If str = vbNullString Then remove_operator = ""
-    new_str = str
-    char_set = ">,<,=, "
-    
-    For Each char In Split(char_set, ",")
-        new_str = Replace(new_str, char, "")
-    Next
-    
-    remove_operator = new_str
-    
-End Function
+
+
+
 

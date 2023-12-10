@@ -398,7 +398,7 @@ Sub add_question_label(question_name As String)
         Set DestSheet = Worksheets("redeem")
 
         'Apply the filter on the source range
-        SourceRange.AutoFilter field:=1, Criteria1:=key_name
+        SourceRange.AutoFilter Field:=1, Criteria1:=key_name
 
         'Copy only the visible cells to the destination sheet
         SourceRange.SpecialCells(xlCellTypeVisible).Copy DestSheet.Range("A1")
