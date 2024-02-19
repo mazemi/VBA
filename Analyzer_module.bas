@@ -1,20 +1,8 @@
 Attribute VB_Name = "Analyzer_module"
 Option Explicit
-Global WITH_ALL As Boolean
 Global WITH_WEIGHT As Boolean
-Global SELECT_MULTIPLE_COLL As Collection
-
-Sub show_keen()
-    sheets("keen").Visible = True
-End Sub
 
 Sub do_analize()
-Dim t1 As Double
-t1 = Timer
-
-Application.ScreenUpdating = False
-Application.DisplayAlerts = False
-
 Dim wb As Workbook
 Set wb = ActiveWorkbook
 Dim result_sheet As Worksheet
@@ -41,11 +29,10 @@ Dim str_info As String
 Dim txt As String
 Dim last_row_result As Long
 
-WITH_ALL = False
+' WITH_ALL = False
 WITH_WEIGHT = False
 
 analysis_form.TextInfo.Value = "Starting ... "
-Debug.Print "new analysis0: " & Timer - t1
 Application.Wait (Now + 0.00001)
 
 Call remove_NA
@@ -58,19 +45,19 @@ str_info = vbLf & analysis_form.TextInfo.Value
 Set main_ws = sheets(find_main_data)
 Call remove_empty_col
 
-With sheets("dissagregation_setting")
-    last_dis = .Cells(rows.count, 1).End(xlUp).Row
+With sheets("disaggregation_setting")
+    last_dis = .Cells(Rows.count, 1).End(xlUp).row
     dis_arr = .Range("A2:B" & last_dis)
 End With
 
-last_row_main_data = main_ws.Cells(rows.count, uuid_coln).End(xlUp).Row
+last_row_main_data = main_ws.Cells(Rows.count, uuid_coln).End(xlUp).row
 data_rows = CStr(2) & ":" & CStr(last_row_main_data)
-last_col = main_ws.Cells(1, columns.count).End(xlToLeft).Column
+last_col = main_ws.Cells(1, Columns.count).End(xlToLeft).Column
 last_col_letter = number_to_letter(last_col, main_ws)
 
 For i = 1 To UBound(dis_arr, 1)
     If dis_arr(i, 1) <> "ALL" Then
-        WITH_ALL = True
+        ' WITH_ALL = True
         dis_collection.Add dis_arr(i, 1)
     End If
 
@@ -89,40 +76,38 @@ If WITH_WEIGHT Then
 End If
 
 With sheets("analysis_list")
-    last_var = .Cells(rows.count, 1).End(xlUp).Row
+    last_var = .Cells(Rows.count, 1).End(xlUp).row
     var_arr = .Range("A2:B" & last_var)
 End With
-
-Debug.Print "all and weight: " & WITH_ALL, WITH_WEIGHT
 
 If worksheet_exists("result") Then
     sheets("result").Delete
 End If
 
-Call check_result_sheet(main_ws.name)
+Call check_result_sheet("analysis_list")
 Set result_sheet = wb.sheets("result")
 
 If Not worksheet_exists("keen") Then
-    Call create_sheet(main_ws.name, "keen")
-        sheets("keen").Visible = xlVeryHidden
+    Call create_sheet(main_ws.Name, "keen")
+    sheets("keen").Visible = xlVeryHidden
 End If
 
 Set keen_ws = sheets("keen")
 keen_ws.Cells.Clear
 
 If WITH_WEIGHT Then
-    keen_ws.columns("C:M").NumberFormat = "@"
+    keen_ws.Columns("C:M").NumberFormat = "@"
 Else
-    keen_ws.columns("B:M").NumberFormat = "@"
+    keen_ws.Columns("B:M").NumberFormat = "@"
 End If
 
 If Not worksheet_exists("temp_sheet") Then
-    Call create_sheet(main_ws.name, "temp_sheet")
-     sheets("temp_sheet").Visible = xlVeryHidden
+    Call create_sheet(main_ws.Name, "temp_sheet")
+'     sheets("temp_sheet").Visible = xlVeryHidden
 End If
 
 sheets("temp_sheet").Cells.Clear
-sheets("temp_sheet").rows(1).Value = main_ws.rows(1).Value
+sheets("temp_sheet").Rows(1).Value = main_ws.Rows(1).Value
 
 ' keen header:
 If WITH_WEIGHT Then
@@ -149,8 +134,6 @@ Set cr_rng = sheets("temp_sheet").Range("A1:" & last_col_letter & 2)
 ' main loop:
 For i = 1 To UBound(var_arr, 1)
       DoEvents
-'      Debug.Print "new analysis: " & Timer - t1, var_arr(i, 1)
-
      ' show progress on the analysis user form
      If Len(str_info) > 2000 Then
          analysis_form.TextInfo.Value = left(analysis_form.TextInfo.Value, 1000)
@@ -164,11 +147,10 @@ For i = 1 To UBound(var_arr, 1)
             
     filtered_arr = Filter(header_arr, var_arr(i, 1), True, vbTextCompare)
     If UBound(filtered_arr) = -1 Then
-'        Debug.Print "skipped: (not exist in the data)" & var_arr(i, 1)
         GoTo NextIteration
     End If
     
-    sheets("temp_sheet").rows(2).Clear
+    sheets("temp_sheet").Rows(2).Clear
     var_col_letter = gen_column_letter(CStr(var_arr(i, 1)), "temp_sheet")
     
     If var_col_letter = "" Then
@@ -179,14 +161,13 @@ For i = 1 To UBound(var_arr, 1)
     sheets("temp_sheet").Range(var_col_letter & 2) = "<>"
     
     keen_ws.Range("A1") = var_arr(i, 1)
-    keen_ws.rows(data_rows).Clear
+    keen_ws.Rows(data_rows).Clear
     
     On Error GoTo criticalErrHandler
     main_rng.AdvancedFilter xlFilterCopy, cr_rng, keen_ws.Range("A1").CurrentRegion
     On Error GoTo 0
     
     If IsEmpty(keen_ws.Range("A2")) Then
-'        Debug.Print "skipped: (no data)" & var_arr(i, 1)
         GoTo NextIteration
     End If
     
@@ -210,13 +191,16 @@ For i = 1 To UBound(var_arr, 1)
 NextIteration:
 Next i
 
-last_row_result = result_sheet.Cells(rows.count, 1).End(xlUp).Row
+last_row_result = result_sheet.Cells(Rows.count, 1).End(xlUp).row
+
+If sheets("disaggregation_setting").Range("F1") Then
+    Call delete_un_selected_choices
+End If
 
 If last_row_result > 2 Then
     Call make_header_order
 End If
 
-Debug.Print "new analysis: " & Timer - t1
 wb.Save
 Exit Sub
 
@@ -224,7 +208,6 @@ criticalErrHandler:
 Application.ScreenUpdating = True
 Application.DisplayAlerts = True
 
-Debug.Print "critical error"
 End
 
 End Sub
@@ -252,18 +235,17 @@ Dim unique_arr As Variant
 Dim v As Variant
 Dim k As Long
 
-sheets("dissagregation_setting").Visible = True
 Set ws = sheets("keen")
 Set result_sheet = sheets("result")
-last_col = ws.Cells(1, columns.count).End(xlToLeft).Column
+last_col = ws.Cells(1, Columns.count).End(xlToLeft).Column
 last_col_letter = number_to_letter(last_col, ws)
 new_col_letter = number_to_letter(last_col + 1, ws)
-last_row = ws.Cells(ws.rows.count, "A").End(xlUp).Row
+last_row = ws.Cells(ws.Rows.count, "A").End(xlUp).row
 
-ws.columns("C:M").NumberFormat = "@"
+ws.Columns("C:M").NumberFormat = "@"
 
-With sheets("dissagregation_setting")
-    last_dis = .Cells(rows.count, 1).End(xlUp).Row
+With sheets("disaggregation_setting")
+    last_dis = .Cells(Rows.count, 1).End(xlUp).row
     dis_arr2 = .Range("A2:C" & last_dis)
 End With
 
@@ -283,7 +265,7 @@ For i = 1 To UBound(dis_arr2, 1)
             weight_arr(j - 1) = arr(j, 2)
         Next j
 
-        n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+        n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
         result_sheet.Cells(n, 1) = n - 1
         result_sheet.Cells(n, 2) = "ALL"
         result_sheet.Cells(n, 3) = "ALL"
@@ -295,7 +277,7 @@ For i = 1 To UBound(dis_arr2, 1)
         result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.sum(simple_arr) / WorksheetFunction.sum(weight_arr), 1)
         result_sheet.Cells(n, 13) = "w"
         
-        n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+        n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
         result_sheet.Cells(n, 1) = n - 1
         result_sheet.Cells(n, 2) = "ALL"
         result_sheet.Cells(n, 3) = "ALL"
@@ -312,7 +294,7 @@ For i = 1 To UBound(dis_arr2, 1)
             simple_arr(j - 1) = arr(j, 1)
         Next j
         
-        n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+        n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
         result_sheet.Cells(n, 1) = n - 1
         result_sheet.Cells(n, 2) = "ALL"
         result_sheet.Cells(n, 3) = "ALL"
@@ -323,7 +305,7 @@ For i = 1 To UBound(dis_arr2, 1)
         result_sheet.Cells(n, 8) = "average"
         result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.Average(simple_arr), 1)
 
-        n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+        n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
         result_sheet.Cells(n, 1) = n - 1
         result_sheet.Cells(n, 2) = "ALL"
         result_sheet.Cells(n, 3) = "ALL"
@@ -361,7 +343,7 @@ For i = 1 To UBound(dis_arr2, 1)
                 End If
             Next j
             
-            n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+            n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
             result_sheet.Cells(n, 1) = n - 1
             result_sheet.Cells(n, 2) = dis_arr2(i, 1)
             result_sheet.Cells(n, 3) = v
@@ -373,7 +355,7 @@ For i = 1 To UBound(dis_arr2, 1)
             result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.sum(simple_arr) / WorksheetFunction.sum(weight_arr), 1)
             result_sheet.Cells(n, 13) = "w"
             
-            n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+            n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
             result_sheet.Cells(n, 1) = n - 1
             result_sheet.Cells(n, 2) = dis_arr2(i, 1)
             result_sheet.Cells(n, 3) = v
@@ -408,7 +390,7 @@ For i = 1 To UBound(dis_arr2, 1)
                 End If
             Next j
             
-            n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+            n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
             result_sheet.Cells(n, 1) = n - 1
             result_sheet.Cells(n, 2) = dis_arr2(i, 1)
             result_sheet.Cells(n, 3) = v
@@ -419,7 +401,7 @@ For i = 1 To UBound(dis_arr2, 1)
             result_sheet.Cells(n, 8) = "average"
             result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.Average(simple_arr), 1)
                 
-            n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+            n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
             result_sheet.Cells(n, 1) = n - 1
             result_sheet.Cells(n, 2) = dis_arr2(i, 1)
             result_sheet.Cells(n, 3) = v
@@ -480,26 +462,24 @@ Dim all_options As Variant
 Dim xsc_arr As Variant
 Dim main_var As String
 
-
 Const Mkr As String = "!"
 Const Del As String = ","
             
-sheets("dissagregation_setting").Visible = True
 Set ws = sheets("keen")
 Set result_sheet = sheets("result")
 Set xsc_sheet = ThisWorkbook.sheets("xsurvey_choices")
-last_col = ws.Cells(1, columns.count).End(xlToLeft).Column
+last_col = ws.Cells(1, Columns.count).End(xlToLeft).Column
 last_col_letter = number_to_letter(last_col, ws)
 new_col_letter = number_to_letter(last_col + 1, ws)
-last_row = ws.Cells(ws.rows.count, "A").End(xlUp).Row
+last_row = ws.Cells(ws.Rows.count, "A").End(xlUp).row
 
-ws.columns("C:M").NumberFormat = "@"
+ws.Columns("C:M").NumberFormat = "@"
 
 unique_data_arr = extract_all_options()
 small_unique_arr = extract_all_options()
 
-With sheets("dissagregation_setting")
-    last_dis = .Cells(rows.count, 1).End(xlUp).Row
+With sheets("disaggregation_setting")
+    last_dis = .Cells(Rows.count, 1).End(xlUp).row
     dis_arr2 = .Range("A2:C" & last_dis)
 End With
 
@@ -529,7 +509,7 @@ For i = 1 To UBound(dis_arr2, 1)
             Next j
         
 '            Debug.Print v, data_count, sum_weight, sum_weight_in_var, UBound(arr, 1) - 1
-            n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+            n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
             result_sheet.Cells(n, 1) = n - 1
             result_sheet.Cells(n, 2) = "ALL"
             result_sheet.Cells(n, 3) = "ALL"
@@ -558,7 +538,7 @@ For i = 1 To UBound(dis_arr2, 1)
         For Each v In unique_data_arr
             data_count = count_in_array(data_arr, v)
 '            Debug.Print v, data_count, UBound(arr, 1) - 1
-            n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+            n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
             result_sheet.Cells(n, 1) = n - 1
             result_sheet.Cells(n, 2) = "ALL"
             result_sheet.Cells(n, 3) = "ALL"
@@ -620,7 +600,7 @@ For i = 1 To UBound(dis_arr2, 1)
             
                 choice_count = UBound(Filter(temp_arr, Mkr & CStr(p) & Mkr, True, 1)) + 1
 '                Debug.Print p, choice_count, " ", sum_weight_in_var
-                n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+                n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
                 result_sheet.Cells(n, 1) = n - 1
                 result_sheet.Cells(n, 2) = dis_arr2(i, 1)
                 result_sheet.Cells(n, 3) = v
@@ -675,7 +655,7 @@ For i = 1 To UBound(dis_arr2, 1)
             For Each p In small_unique_arr
                 choice_count = UBound(Filter(temp_arr, Mkr & CStr(p) & Mkr, True, 1)) + 1
 '                Debug.Print p, choice_count
-                n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+                n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
                 result_sheet.Cells(n, 1) = n - 1
                 result_sheet.Cells(n, 2) = dis_arr2(i, 1)
                 result_sheet.Cells(n, 3) = v
@@ -707,7 +687,7 @@ End Sub
 
 
 Sub calculate_nominal_multipe()
-'On Error GoTo ErrorHandler
+On Error GoTo ErrorHandler
 
 Dim ws As Worksheet
 Dim ws2 As Worksheet
@@ -746,31 +726,28 @@ Dim keen2_rng As Range
 Const Mkr As String = "!"
 Const Del As String = ","
             
-sheets("dissagregation_setting").Visible = True
 Set ws = sheets("keen")
 Set ws2 = sheets("keen2")
 Set result_sheet = sheets("result")
 
-last_col = ws.Cells(1, columns.count).End(xlToLeft).Column
+last_col = ws.Cells(1, Columns.count).End(xlToLeft).Column
 last_col_letter = number_to_letter(last_col, ws)
 new_col_letter = number_to_letter(last_col + 1, ws)
-last_row = ws.Cells(ws.rows.count, "A").End(xlUp).Row
+last_row = ws.Cells(ws.Rows.count, "A").End(xlUp).row
 
-ws.columns("C:M").NumberFormat = "@"
+ws.Columns("C:M").NumberFormat = "@"
 
 unique_data_arr = extract_all_options()
 small_unique_arr = extract_all_options()
 
-With sheets("dissagregation_setting")
-    last_dis = .Cells(rows.count, 1).End(xlUp).Row
+With sheets("disaggregation_setting")
+    last_dis = .Cells(Rows.count, 1).End(xlUp).row
     dis_arr2 = .Range("A2:C" & last_dis)
 End With
 
 arr = ws.Range("A1").CurrentRegion
 arr2 = ws2.Range("A1").CurrentRegion
 Set keen2_rng = ws2.Range("A1").CurrentRegion
-
-'Debug.Print keen2_rng.rows.count
 
 For i = 1 To UBound(dis_arr2, 1)
     Erase weight_arr
@@ -797,14 +774,14 @@ For i = 1 To UBound(dis_arr2, 1)
             Next j
         
 '            Debug.Print v, data_count, sum_weight, sum_weight_in_var, UBound(arr, 1) - 1
-            n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+            n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
             result_sheet.Cells(n, 1) = n - 1
             result_sheet.Cells(n, 2) = "ALL"
             result_sheet.Cells(n, 3) = "ALL"
             result_sheet.Cells(n, 4) = "ALL"
             result_sheet.Cells(n, 5) = arr(1, 1)
             result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-            result_sheet.Cells(n, 7) = keen2_rng.rows.count - 1
+            result_sheet.Cells(n, 7) = keen2_rng.Rows.count - 1
             result_sheet.Cells(n, 8) = "percentage"
             result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(sum_weight_in_var / sum_weight * 100, 1)
             result_sheet.Cells(n, 10) = data_count
@@ -826,16 +803,16 @@ For i = 1 To UBound(dis_arr2, 1)
         For Each v In unique_data_arr
             data_count = count_in_array(data_arr, v)
 '            Debug.Print v, data_count, UBound(arr, 1) - 1
-            n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+            n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
             result_sheet.Cells(n, 1) = n - 1
             result_sheet.Cells(n, 2) = "ALL"
             result_sheet.Cells(n, 3) = "ALL"
             result_sheet.Cells(n, 4) = "ALL"
             result_sheet.Cells(n, 5) = arr(1, 1)
             result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-            result_sheet.Cells(n, 7) = keen2_rng.rows.count - 1
+            result_sheet.Cells(n, 7) = keen2_rng.Rows.count - 1
             result_sheet.Cells(n, 8) = "percentage"
-            result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(data_count / (keen2_rng.rows.count - 1) * 100, 1)
+            result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(data_count / (keen2_rng.Rows.count - 1) * 100, 1)
             result_sheet.Cells(n, 10) = data_count
             result_sheet.Cells(n, 11) = v
             result_sheet.Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(v))
@@ -880,7 +857,7 @@ For i = 1 To UBound(dis_arr2, 1)
             'Count the items (Surrounded by markers) directly
             sum_weight = sum_weight_when(arr2, CStr(v), col_n)
             
-            dis_value_count2 = Application.WorksheetFunction.CountIf(keen2_rng.columns(col_n), v)
+            dis_value_count2 = Application.WorksheetFunction.CountIf(keen2_rng.Columns(col_n), v)
 '            Debug.Print dis_value_count2
             For Each p In small_unique_arr
                 
@@ -893,7 +870,7 @@ For i = 1 To UBound(dis_arr2, 1)
             
                 choice_count = UBound(Filter(temp_arr, Mkr & CStr(p) & Mkr, True, 1)) + 1
 '                Debug.Print p, choice_count, " ", sum_weight_in_var
-                n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+                n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
                 result_sheet.Cells(n, 1) = n - 1
                 result_sheet.Cells(n, 2) = dis_arr2(i, 1)
                 result_sheet.Cells(n, 3) = v
@@ -929,7 +906,7 @@ For i = 1 To UBound(dis_arr2, 1)
         
         For Each v In unique_arr
             dis_value_count = count_in_array(disagregation_arr, v)
-            dis_value_count2 = Application.WorksheetFunction.CountIf(keen2_rng.columns(col_n), v)
+            dis_value_count2 = Application.WorksheetFunction.CountIf(keen2_rng.Columns(col_n), v)
 '            Debug.Print v, dis_value_count
 
             Erase small_arr
@@ -948,7 +925,7 @@ For i = 1 To UBound(dis_arr2, 1)
             For Each p In small_unique_arr
                 choice_count = UBound(Filter(temp_arr, Mkr & CStr(p) & Mkr, True, 1)) + 1
 '                Debug.Print p, choice_count
-                n = result_sheet.Cells(rows.count, 1).End(xlUp).Row + 1
+                n = result_sheet.Cells(Rows.count, 1).End(xlUp).row + 1
                 result_sheet.Cells(n, 1) = n - 1
                 result_sheet.Cells(n, 2) = dis_arr2(i, 1)
                 result_sheet.Cells(n, 3) = v
@@ -1014,9 +991,6 @@ Sub count_unique()
         End If
     Next i
     
-    For Each v In dict.Keys
-'        Debug.Print v & " " & dict.item(v)
-    Next v
 End Sub
 
 Function extract_all_options() As Variant
@@ -1039,8 +1013,6 @@ Function extract_all_options() As Variant
         End If
     Next i
     
-'    Debug.Print "count dict: " & dict.count
-    
     If dict.count > 1 Then
         extract_all_options = dict.Keys()
     Else
@@ -1050,12 +1022,6 @@ Function extract_all_options() As Variant
         Next i
         extract_all_options = dict.Keys()
     End If
-     
-'    For Each v In dict.Keys
-'        Debug.Print v & " " & dict.item(v)
-'    Next v
-'
-'    Debug.Print main_var, dict.count
     
 End Function
 
@@ -1071,11 +1037,11 @@ Sub unify_data()
     Dim last_dis As Long
     
     Set ws = sheets("keen")
-    ws.columns("O:AZ").Clear
-    ws.columns("A:AZ").NumberFormat = "@"
-    last_col = ws.Cells(1, columns.count).End(xlToLeft).Column
+    ws.Columns("O:AZ").Clear
+    ws.Columns("A:AZ").NumberFormat = "@"
+    last_col = ws.Cells(1, Columns.count).End(xlToLeft).Column
     last_col_letter = number_to_letter(last_col, ws)
-    last_row = ws.Cells(ws.rows.count, "A").End(xlUp).Row
+    last_row = ws.Cells(ws.Rows.count, "A").End(xlUp).row
     
     For i = 1 To last_row
         arr = Split(ws.Cells(i, 1), " ")
@@ -1095,8 +1061,7 @@ Sub unify_data()
         Next j
     Next i
     
-    Set SELECT_MULTIPLE_COLL = New Collection
-   
+    ' Set SELECT_MULTIPLE_COLL = New Collection
     Dim dis_arr As Variant
     Dim data_arr As Variant
     Dim total_sum As Single
@@ -1115,17 +1080,17 @@ Sub unify_data()
     keen2_ws.Cells.Clear
     
     If WITH_WEIGHT Then
-        keen2_ws.columns("A:A").NumberFormat = "@"
-        keen2_ws.columns("B:B").NumberFormat = "0.000"
-        keen2_ws.columns("C:Z").NumberFormat = "@"
+        keen2_ws.Columns("A:A").NumberFormat = "@"
+        keen2_ws.Columns("B:B").NumberFormat = "0.000"
+        keen2_ws.Columns("C:Z").NumberFormat = "@"
     Else
-        keen2_ws.columns("A:Z").NumberFormat = "@"
+        keen2_ws.Columns("A:Z").NumberFormat = "@"
     End If
     
     ws.Range("A1").CurrentRegion.Copy
     keen2_ws.Range("A1").PasteSpecial xlPasteValues
 
-    ws.columns("A:N").Delete
+    ws.Columns("A:N").Delete
 End Sub
 
 Function sum_weight_overall(arr As Variant) As Double
@@ -1144,7 +1109,6 @@ Function sum_weight_when(arr As Variant, criteria As String, col_index As Long) 
     sum = 0
     For i = LBound(arr, 1) + 1 To UBound(arr, 1)
         If arr(i, col_index) = criteria Then
-'            Debug.Print arr(i, col_index)
             sum = sum + arr(i, 2)
         End If
     Next i
@@ -1152,7 +1116,6 @@ Function sum_weight_when(arr As Variant, criteria As String, col_index As Long) 
 End Function
 
 Sub check_result_sheet(sheet_name As String)
-    ' check if keen sheet exist
     Dim wb As Workbook
     Set wb = ActiveWorkbook
     
@@ -1174,25 +1137,25 @@ Sub check_result_sheet(sheet_name As String)
         wb.sheets("result").Cells(1, 14) = "hkey"
         wb.sheets("result").Cells(1, 15) = "hkey order"
         
-        wb.sheets("result").columns(1).ColumnWidth = 6
-        wb.sheets("result").columns(2).ColumnWidth = 15
-        wb.sheets("result").columns(3).ColumnWidth = 18
-        wb.sheets("result").columns(4).ColumnWidth = 25
-        wb.sheets("result").columns(5).ColumnWidth = 15
-        wb.sheets("result").columns(6).ColumnWidth = 45
-        wb.sheets("result").columns(7).ColumnWidth = 15
-        wb.sheets("result").columns(8).ColumnWidth = 15
-        wb.sheets("result").columns(9).ColumnWidth = 20
-        wb.sheets("result").columns(10).ColumnWidth = 10
-        wb.sheets("result").columns(11).ColumnWidth = 15
-        wb.sheets("result").columns(12).ColumnWidth = 45
-        wb.sheets("result").columns(13).ColumnWidth = 7
-        wb.sheets("result").columns(14).ColumnWidth = 45
-        wb.sheets("result").columns(15).ColumnWidth = 15
+        wb.sheets("result").Columns(1).ColumnWidth = 6
+        wb.sheets("result").Columns(2).ColumnWidth = 15
+        wb.sheets("result").Columns(3).ColumnWidth = 18
+        wb.sheets("result").Columns(4).ColumnWidth = 25
+        wb.sheets("result").Columns(5).ColumnWidth = 15
+        wb.sheets("result").Columns(6).ColumnWidth = 45
+        wb.sheets("result").Columns(7).ColumnWidth = 15
+        wb.sheets("result").Columns(8).ColumnWidth = 15
+        wb.sheets("result").Columns(9).ColumnWidth = 20
+        wb.sheets("result").Columns(10).ColumnWidth = 10
+        wb.sheets("result").Columns(11).ColumnWidth = 15
+        wb.sheets("result").Columns(12).ColumnWidth = 45
+        wb.sheets("result").Columns(13).ColumnWidth = 7
+        wb.sheets("result").Columns(14).ColumnWidth = 45
+        wb.sheets("result").Columns(15).ColumnWidth = 15
     End If
     
-    wb.sheets("result").columns("B:F").NumberFormat = "@"
-    wb.sheets("result").columns("K:M").NumberFormat = "@"
+    wb.sheets("result").Columns("B:F").NumberFormat = "@"
+    wb.sheets("result").Columns("K:M").NumberFormat = "@"
     wb.sheets("result").Visible = False
 End Sub
 
@@ -1220,9 +1183,6 @@ End Function
 
 Sub make_header_order()
 
-'Dim t1 As Double
-'t1 = Timer
-
     Dim rng As Range
     Application.ScreenUpdating = False
     Dim res_ws As Worksheet
@@ -1231,32 +1191,151 @@ Sub make_header_order()
     Dim last_header As Long
     
     Set res_ws = sheets("result")
-    last_result = res_ws.Cells(res_ws.rows.count, "A").End(xlUp).Row
+    last_result = res_ws.Cells(res_ws.Rows.count, "A").End(xlUp).row
     
     res_ws.Activate
     res_ws.Range("N2:N" & last_result).Formula = "=E2&K2&H2"
-    res_ws.columns("N:N").Copy
-    res_ws.columns("N:N").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+    res_ws.Columns("N:N").Copy
+    res_ws.Columns("N:N").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
             
     Set ws = sheets("temp_sheet")
     ws.Cells.Clear
     
     ws.Range("A1:A" & last_result).Value2 = res_ws.Range("N1:N" & last_result).Value2
-    ws.Range("A1").CurrentRegion.RemoveDuplicates columns:=1, Header:=xlYes
+    ws.Range("A1").CurrentRegion.RemoveDuplicates Columns:=1, Header:=xlYes
     
-    last_header = ws.Cells(ws.rows.count, "A").End(xlUp).Row
+    last_header = ws.Cells(ws.Rows.count, "A").End(xlUp).row
      
     ws.Range("B2") = "1"
     ws.Range("B2").AutoFill Destination:=ws.Range("B2:B" & last_header), Type:=xlFillSeries
     
-    ws.columns("B:B").Copy
-    ws.columns("B:B").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+    ws.Columns("B:B").Copy
+    ws.Columns("B:B").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
          
     res_ws.Range("O2:O" & last_result).Formula = "=VLOOKUP(result!N2,temp_sheet!A:B,2,)"
     
-    res_ws.columns("O:O").Copy
-    res_ws.columns("O:O").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+    res_ws.Columns("O:O").Copy
+    res_ws.Columns("O:O").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
     
-' Debug.Print Timer - t1
 End Sub
+
+Sub delete_un_selected_choices()
+    Application.ScreenUpdating = False
+    
+    Dim t As Double
+    t = Timer
+    Dim ws As Worksheet
+    Dim dis_ws As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+    Dim var_counter As Long
+    Dim rng As Range
+    Dim var_rng As Range
+    Dim choice_rng As Range
+    Dim cell As Range
+    Dim var_collection As New Collection
+    Dim v As Variant
+    Dim var_list As String
+    
+    Set ws = sheets("result")
+    Set dis_ws = sheets("disaggregation_setting")
+    Set rng = ws.Range("A1").CurrentRegion
+    
+    dis_ws.Columns("K:Q").Clear
+    
+    dis_ws.Range("K1") = "measurement type"
+    dis_ws.Range("L1") = "measurement Value"
+    dis_ws.Range("K2") = "percentage"
+    dis_ws.Range("L2") = 0
+    dis_ws.Range("P1") = "variable"
+    
+    rng.AdvancedFilter xlFilterCopy, dis_ws.Range("K1:L2"), dis_ws.Range("P1").CurrentRegion
+    
+    Set var_rng = dis_ws.Range("P1").CurrentRegion
+    Set choice_rng = sheets("xsurvey_choices").Range("B:B")
+    
+    If IsEmpty(dis_ws.Range("P2")) Then
+        Debug.Print "exit function"
+        Exit Sub
+    End If
+    
+    var_rng.RemoveDuplicates Columns:=1, Header:=xlYes
+    
+    Set var_rng = dis_ws.Range("P1").CurrentRegion
+    var_counter = 0
+    For Each cell In var_rng
+       dis_ws.Cells(cell.row, "Q") = Application.WorksheetFunction.CountIf(choice_rng, cell)
+       If dis_ws.Cells(cell.row, "Q") > 10 Then
+            var_counter = var_counter + 1
+       End If
+    Next cell
+    
+    Debug.Print var_counter
+    
+    Dim var_arr() As String
+    Dim j As Integer
+    j = 1
+
+    ReDim var_arr(1 To var_counter)
+    
+    For Each cell In var_rng
+       If dis_ws.Cells(cell.row, "Q") > 10 Then
+            var_arr(j) = cell
+            j = j + 1
+       End If
+    Next cell
+    
+    Call delete_zero_values(var_arr)
+    
+    dis_ws.Columns("K:Q").Clear
+    
+    Debug.Print "removed zeros:", Timer - t
+End Sub
+
+Sub delete_zero_values(cr() As String)
+
+    Dim ws As Worksheet
+    Dim lastRow As Long
+
+    Set ws = ThisWorkbook.sheets("result")
+    lastRow = ws.Cells(ws.Rows.count, "A").End(xlUp).row
+    
+    ws.AutoFilterMode = False
+    
+    With ws.Range("A1").CurrentRegion
+        .AutoFilter Field:=9, Criteria1:="0"
+        .AutoFilter Field:=5, Criteria1:=cr, Operator:=xlFilterValues
+    End With
+    
+    Dim rngFiltered As Range
+    Dim rngToDelete As Range
+    Dim firstRow As Range
+   
+    If Not ws.AutoFilterMode Then
+        Debug.Print "No filter applied."
+        Exit Sub
+    End If
+    
+    On Error Resume Next
+    Set rngFiltered = ws.AutoFilter.Range.SpecialCells(xlCellTypeVisible)
+    On Error GoTo 0
+    
+    If rngFiltered Is Nothing Then
+        Debug.Print "No visible rows after filtering."
+        Exit Sub
+    End If
+    
+    Set firstRow = ws.Rows(1)
+    Set rngToDelete = Intersect(ws.UsedRange.Offset(1), rngFiltered)
+    
+    If Not rngToDelete Is Nothing Then
+        rngToDelete.EntireRow.Delete
+    Else
+         Debug.Print "No rows to delete."
+    End If
+   
+    ws.AutoFilterMode = False
+End Sub
+
+
 

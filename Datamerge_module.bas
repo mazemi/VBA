@@ -2,19 +2,16 @@ Attribute VB_Name = "Datamerge_module"
 Option Explicit
 
 Sub generate_datamerge()
-    ' On Error Resume Next
 
     Dim last_row_result  As Long
     Dim str_info As String
     Dim txt As String
-    Dim t As Double
     Dim ws As Worksheet
     Dim rng As Range
     
-    t = Timer
     Application.ScreenUpdating = False
        
-    last_row_result = sheets("result").Cells(rows.count, 1).End(xlUp).Row
+    last_row_result = sheets("result").Cells(Rows.count, 1).End(xlUp).row
     
     If last_row_result < 2 Then
         End
@@ -32,78 +29,80 @@ Sub generate_datamerge()
     
     Set rng = ws.Range("A1").CurrentRegion
     rng.Sort Key1:=ws.Range("A1"), Order1:=xlAscending, Header:=xlYes
-    
-'    Debug.Print "start:", Timer - t
 
     Call make_dis_level
-    
-'    Debug.Print "make_dis_level", Timer - t
-    
     Call make_header
-    
-'    Debug.Print "make_header", Timer - t
-    
+    Call lookup
     DoEvents
     str_info = vbLf & analysis_form.TextInfo.Value
     txt = "Formatting Datamerge... " & str_info
     analysis_form.TextInfo.Value = txt
     analysis_form.Repaint
     
-    Call lookup
-'    Debug.Print "lookup", Timer - t
-    
     Call add_label_to_datamerge
-'    Debug.Print "add_label_to_datamerge", Timer - t
-    
     Call populate_indicators
-'    Debug.Print "populate_indicators", Timer - t
+    Call make_dm_backend
     
     sheets("datamerge").Activate
     sheets("datamerge").Range("D5").Select
     ActiveWindow.FreezePanes = True
     
-    Application.ScreenUpdating = True
-    
     str_info = vbLf & analysis_form.TextInfo.Value
     txt = "Finalising... " & str_info
     analysis_form.TextInfo.Value = txt
     sheets("datamerge").Range("A1").Select
-
-    Debug.Print "finalising: ", Timer - t
+    
 End Sub
 
 Sub make_dis_level()
-    Dim t As Double
-    t = Timer
+
     Dim res_ws As Worksheet
     Dim dm_ws As Worksheet
     Dim dt_ws As Worksheet
+    Dim dis_ws As Worksheet
     Dim last_row_dt As Long
+    Dim tmp_collection As New Collection
     Dim dis_collection As New Collection
     Dim uuid_col As Long
     Dim i As Long
     Dim j As Long
+    Dim k As Long
     Dim q_col As String
     Dim c As Long
     Dim dt As String
     Dim rng As Range
     Dim last_row As Long
     Dim arr As Variant
-
+    Dim dis_rng As Range
+    Dim v As Variant
+    Dim cel As Range
+    
     Set res_ws = sheets("result")
     Set dt_ws = sheets(find_main_data)
     Set dm_ws = sheets("datamerge")
+    Set dis_ws = sheets("disaggregation_setting")
+    Set dis_rng = dis_ws.Range("A2:A" & dis_ws.Cells(dis_ws.Rows.count, "A").End(xlUp).row)
     dm_ws.Cells.RowHeight = 14.2
-  
-    res_ws.columns("B:D").Copy Destination:=dm_ws.columns("A:C")
+    res_ws.Columns("B:D").Copy Destination:=dm_ws.Columns("A:C")
     Application.CutCopyMode = False
     
-    dm_ws.Range("A1").CurrentRegion.RemoveDuplicates columns:=Array(1, 2, 3), Header:=xlYes
-    last_row = dm_ws.Cells(rows.count, "A").End(xlUp).Row
+    dm_ws.Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2, 3), Header:=xlYes
+    last_row = dm_ws.Cells(Rows.count, "A").End(xlUp).row
     
-    Set dis_collection = unique_values(dm_ws.Range("A2:A" & last_row))
+    Set tmp_collection = unique_values(dm_ws.Range("A2:A" & last_row))
+    
+    For Each cel In dis_rng
+        For Each v In tmp_collection
+            If cel = v Then
+                dis_collection.Add v
+            End If
+        Next v
+    Next cel
+    
+    
     uuid_col = gen_column_number("_uuid", find_main_data)
-    last_row_dt = dt_ws.Cells(rows.count, uuid_col).End(xlUp).Row
+    
+    last_row_dt = dt_ws.Cells(Rows.count, uuid_col).End(xlUp).row
     dt = find_main_data
 
     If dm_ws.Range("A3") = vbNullString Then
@@ -138,9 +137,9 @@ Sub make_dis_level()
     rng.Sort Key1:=dm_ws.Range("F2:F" & last_row), Order1:=xlAscending, Header:=xlYes
     rng.Sort Key1:=dm_ws.Range("E2:E" & last_row), Order1:=xlAscending, Header:=xlYes
     
-    dm_ws.columns("E:F").Delete
+    dm_ws.Columns("E:F").Delete
     dm_ws.Range("D1") = "count"
-    dm_ws.rows("1:3").Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+    dm_ws.Rows("1:3").Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
 End Sub
 
 Sub make_header()
@@ -157,7 +156,7 @@ Sub make_header()
     Dim j As Long
     
     Set analys_ws = sheets("analysis_list")
-    last_indicator = analys_ws.Cells(analys_ws.rows.count, 1).End(xlUp).Row
+    last_indicator = analys_ws.Cells(analys_ws.Rows.count, 1).End(xlUp).row
     
     Set res_ws = sheets("result")
     Set dm_ws = sheets("datamerge")
@@ -173,21 +172,21 @@ Sub make_header()
     Set rng = res_ws.Range("A1").CurrentRegion
     rng.Sort Key1:=res_ws.Range("A1"), Order1:=xlAscending, Header:=xlYes
     
-    ws.columns("A:B").NumberFormat = "@"
+    ws.Columns("A:B").NumberFormat = "@"
     res_ws.Range("E:E,H:H,K:K").Copy Destination:=ws.Cells(1, "A")
 
-    ws.Range("A1").CurrentRegion.RemoveDuplicates columns:=Array(1, 2, 3), Header:=xlYes
+    ws.Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2, 3), Header:=xlYes
     
-    last_row = ws.Cells(rows.count, 1).End(xlUp).Row
+    last_row = ws.Cells(Rows.count, 1).End(xlUp).row
     ws.Range("D2:D" & last_row).Formula = "=IF(C2="""",A2& ""-value-"" &A2,A2& ""-value-"" &C2)"
     
-    ws.columns("D:D").Copy
-    ws.columns("D:D").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+    ws.Columns("D:D").Copy
+    ws.Columns("D:D").PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
         :=False, Transpose:=False
     
-    ws.columns("C:C").Delete
+    ws.Columns("C:C").Delete
     
-    last_header = ws.Cells(rows.count, "A").End(xlUp).Row
+    last_header = ws.Cells(Rows.count, "A").End(xlUp).row
     
     ws.Range("B2:C" & last_header).Copy
     dm_ws.Range("E3").PasteSpecial Paste:=xlPasteAll, Operation:=xlNone, SkipBlanks:=False, Transpose:=True
@@ -197,8 +196,6 @@ End Sub
 Sub lookup()
     On Error GoTo 0
     Application.ScreenUpdating = False
-    Dim t As Double
-    t = Timer
 
     Dim res_ws As Worksheet
     Dim dm_ws As Worksheet
@@ -222,14 +219,13 @@ Sub lookup()
     Set rng = res_ws.Range("A1").CurrentRegion
     temp_ws.Cells.Clear
     
-    last_row_res = res_ws.Cells(rows.count, 1).End(xlUp).Row
-    last_row_dm = dm_ws.Cells(rows.count, 1).End(xlUp).Row
-    last_col = dm_ws.Cells(3, dm_ws.columns.count).End(xlToLeft).Column
+    last_row_res = res_ws.Cells(Rows.count, 1).End(xlUp).row
+    last_row_dm = dm_ws.Cells(Rows.count, 1).End(xlUp).row
+    last_col = dm_ws.Cells(3, dm_ws.Columns.count).End(xlToLeft).Column
     
     dis_arr = dm_ws.Range("A5:B" & last_row_dm)
     
     For i = 1 To UBound(dis_arr, 1)
-
         temp_ws.Cells.Clear
         temp_ws.Range("A1") = "measurement value"
         temp_ws.Range("B1") = "hkey order"
@@ -239,16 +235,16 @@ Sub lookup()
         temp_ws.Range("E2") = "'=" & dis_arr(i, 2)
         
         rng.AdvancedFilter xlFilterCopy, temp_ws.Range("D1").CurrentRegion, temp_ws.Range("A1:B1")
-        last_row_temp = temp_ws.Cells(rows.count, "A").End(xlUp).Row
+        last_row_temp = temp_ws.Cells(Rows.count, "A").End(xlUp).row
             
         arr = temp_ws.Range("A2:B" & last_row_temp)
         For j = 1 To UBound(arr, 1)
             dm_ws.Cells(i + 4, arr(j, 2) + 4) = arr(j, 1)
         Next j
     Next i
-       
-    dm_ws.columns("B:B").Delete
-'    Debug.Print "finish : " & Timer - t
+    
+    dm_ws.Columns("B:B").Delete
+    res_ws.Columns("N:O").Delete
     
 End Sub
 
@@ -275,14 +271,14 @@ Sub add_label_to_datamerge()
     Set sc_ws = ThisWorkbook.sheets("xsurvey_choices")
     Set survey_ws = ThisWorkbook.sheets("xsurvey")
     
-    last_row_survey_choice = sc_ws.Cells(sc_ws.rows.count, 1).End(xlUp).Row
-    last_row_survey = survey_ws.Cells(survey_ws.rows.count, 1).End(xlUp).Row
+    last_row_survey_choice = sc_ws.Cells(sc_ws.Rows.count, 1).End(xlUp).row
+    last_row_survey = survey_ws.Cells(survey_ws.Rows.count, 1).End(xlUp).row
       
     dm_ws.Range("A1:A4").Merge
     dm_ws.Range("B1:B4").Merge
     dm_ws.Range("C1:C4").Merge
     
-    last_col = dm_ws.Cells(3, columns.count).End(xlToLeft).Column
+    last_col = dm_ws.Cells(3, Columns.count).End(xlToLeft).Column
     
     sc_arr = sc_ws.Range("A1").CurrentRegion
     
@@ -319,47 +315,27 @@ resume_loop:
 End Sub
 
 Public Sub populate_indicators()
-
     Dim ws As Worksheet
     Dim indi_ws As Worksheet
     Dim last_col As Long
-    
-    Set ws = sheets("datamerge")
+    Set ws = sheets("result")
     
     If Not worksheet_exists("indi_list") Then
-        Call create_sheet(sheets(1).name, "indi_list")
+        Call create_sheet(sheets(1).Name, "indi_list")
         sheets("indi_list").Visible = xlVeryHidden
     End If
     
     Set indi_ws = sheets("indi_list")
     indi_ws.Cells.Clear
+    indi_ws.Columns("A:B").Value = ws.Columns("E:F").Value
     
-    last_col = ws.Cells(1, ws.columns.count).End(xlToLeft).Column
-
-    ws.Range(ws.Cells(1, 4), ws.Cells(1, last_col)).Copy
-    indi_ws.Range("A1").PasteSpecial Paste:=xlPasteAll, Operation:=xlNone, SkipBlanks:=True, Transpose:=True
-        
-    Call delete_blanks
+    indi_ws.Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2), Header:=xlYes
     
-End Sub
-
-Sub delete_blanks()
-    On Error GoTo 0
-    Dim rng As Range
-    Dim str_delete As String
-    Dim last_row As Long
-    Dim last_indi As Long
-    Dim last_measurement As Long
-    Dim rows As Long, i As Long
+    indi_ws.Columns("G").Value = ws.Columns("B").Value
+    indi_ws.Range("G1").CurrentRegion.RemoveDuplicates Columns:=1, Header:=xlYes
     
-    last_row = sheets("indi_list").Range("A" & sheets("indi_list").rows.count).End(xlUp).Row
-    Set rng = sheets("indi_list").Range("A1:A" & last_row)
-
-    Set rng = sheets("indi_list").Range("A1:A" & last_row)
-    rows = rng.rows.count
-    For i = rows To 1 Step (-1)
-        If WorksheetFunction.CountA(rng.rows(i)) = 0 Then rng.rows(i).Delete
-    Next
+    indi_ws.Rows("1:1").Delete Shift:=xlUp
+    
 End Sub
 
 Function find_question_label(question As String) As String
@@ -369,7 +345,7 @@ Function find_question_label(question As String) As String
     
     Set s_ws = ThisWorkbook.sheets("xsurvey")
     
-    last_row_survey = s_ws.Cells(s_ws.rows.count, 1).End(xlUp).Row
+    last_row_survey = s_ws.Cells(s_ws.Rows.count, 1).End(xlUp).row
     
     For i = 2 To last_row_survey
         If s_ws.Cells(i, "B").Value = question Then
@@ -392,8 +368,8 @@ Function choice_order(question As String, choice As String) As Long
     Dim i As Long
     
     If Not worksheet_exists("keen") Then
-        Call create_sheet(sheets(1).name, "keen")
-'         sheets("keen").Visible = xlVeryHidden
+        Call create_sheet(sheets(1).Name, "keen")
+        sheets("keen").Visible = xlVeryHidden
     End If
     
     Set ws = ThisWorkbook.sheets("xsurvey_choices")
@@ -413,7 +389,7 @@ Function choice_order(question As String, choice As String) As Long
     
     Set choice_rng = keen_ws.Range("A1").CurrentRegion
 
-    last_row = keen_ws.Cells(rows.count, "A").End(xlUp).Row
+    last_row = keen_ws.Cells(Rows.count, "A").End(xlUp).row
     arr = keen_ws.Range("A2:A" & last_row)
     
     For i = 1 To UBound(arr, 1)
@@ -434,7 +410,7 @@ Sub merge_first_row()
     Dim i As Long
     
     Set ws = sheets("datamerge")
-    LastCol = ws.Cells(1, ws.columns.count).End(xlToLeft).Column
+    LastCol = ws.Cells(1, ws.Columns.count).End(xlToLeft).Column
     Application.DisplayAlerts = False
     
     'loop through the columns in the first row
@@ -451,7 +427,7 @@ Sub merge_first_row()
             i = i + 1
         Loop
         
-        If rng.columns.count > 1 Then
+        If rng.Columns.count > 1 Then
             rng.Merge
             rng.HorizontalAlignment = xlCenter
         End If
@@ -477,30 +453,30 @@ Sub styler()
     rng.Borders(xlDiagonalUp).LineStyle = xlNone
     With rng.Borders(xlEdgeLeft)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
     With rng.Borders(xlEdgeTop)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
     With rng.Borders(xlEdgeBottom)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
     With rng.Borders(xlEdgeRight)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
     With rng.Borders(xlInsideVertical)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
     With rng.Borders(xlInsideHorizontal)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
     
-    Set header_rng = sheets("datamerge").rows("1:2")
+    Set header_rng = sheets("datamerge").Rows("1:2")
 
     With header_rng
         .HorizontalAlignment = xlCenter
@@ -515,21 +491,37 @@ Sub styler()
     rng2.VerticalAlignment = xlCenter
     rng2.ReadingOrder = xlContext
 
-    Set rng3 = sheets("datamerge").rows("3:3")
+    Set rng3 = sheets("datamerge").Rows("3:3")
     rng3.HorizontalAlignment = xlCenter
     rng3.ReadingOrder = xlContext
     rng3.VerticalAlignment = xlCenter
     
-    sheets("datamerge").rows(1).RowHeight = 43
-    sheets("datamerge").rows(2).RowHeight = 32
-    last_col = sheets("datamerge").Cells(3, columns.count).End(xlToLeft).Column
+    sheets("datamerge").Rows(1).RowHeight = 43
+    sheets("datamerge").Rows(2).RowHeight = 32
+    last_col = sheets("datamerge").Cells(3, Columns.count).End(xlToLeft).Column
     last_col_letter = number_to_letter(last_col, sheets("datamerge"))
-    sheets("datamerge").columns("A:A").ColumnWidth = 12
-    sheets("datamerge").columns("B:B").ColumnWidth = 20
-    sheets("datamerge").columns("C:C").ColumnWidth = 6
-    sheets("datamerge").columns("D:" & last_col_letter).ColumnWidth = 14
+    sheets("datamerge").Columns("A:A").ColumnWidth = 12
+    sheets("datamerge").Columns("B:B").ColumnWidth = 20
+    sheets("datamerge").Columns("C:C").ColumnWidth = 6
+    sheets("datamerge").Columns("D:" & last_col_letter).ColumnWidth = 14
     sheets("datamerge").Range("A1:" & last_col_letter & "4").Interior.Color = RGB(230, 230, 230)
     sheets("datamerge").Range("A1").CurrentRegion.Font.Size = 9
     
 End Sub
 
+Sub make_dm_backend()
+    
+    If worksheet_exists("dm_backend") Then
+        sheets("dm_backend").Visible = xlSheetHidden
+        Application.DisplayAlerts = False
+        sheets("dm_backend").Delete
+        Application.DisplayAlerts = True
+    End If
+    
+    sheets("datamerge").Select
+    sheets("datamerge").Copy Before:=sheets(1)
+    ActiveSheet.Name = "dm_backend"
+'    sheets("dm_backend").Visible = xlVeryHidden
+
+    
+End Sub
