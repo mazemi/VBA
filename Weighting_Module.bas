@@ -13,32 +13,32 @@ Sub generate_strata()
     Set main_ws = sheets(Public_module.DATA_SHEET)
     
     If Not worksheet_exists("temp_sheet") Then
-        Call create_sheet(main_ws.name, "temp_sheet")
+        Call create_sheet(main_ws.Name, "temp_sheet")
     End If
     
     sheets("temp_sheet").Cells.Clear
 
     main_strata_col_number = gen_column_number(Public_module.DATA_STRATA, Public_module.DATA_SHEET)
-    sheets(Public_module.DATA_SHEET).columns(main_strata_col_number).Copy Destination:=sheets("temp_sheet").columns(1)
-    sheets("temp_sheet").columns(1).RemoveDuplicates columns:=1, Header:=xlNo
+    sheets(Public_module.DATA_SHEET).Columns(main_strata_col_number).Copy Destination:=sheets("temp_sheet").Columns(1)
+    sheets("temp_sheet").Columns(1).RemoveDuplicates Columns:=1, Header:=xlNo
 
     samp_strata_col_number = gen_column_number(Public_module.SAMPLE_STRATA, Public_module.SAMPLE_SHEET)
-    sheets(Public_module.SAMPLE_SHEET).columns(samp_strata_col_number).Copy Destination:=sheets("temp_sheet").columns(2)
-    sheets("temp_sheet").columns(2).RemoveDuplicates columns:=1, Header:=xlNo
+    sheets(Public_module.SAMPLE_SHEET).Columns(samp_strata_col_number).Copy Destination:=sheets("temp_sheet").Columns(2)
+    sheets("temp_sheet").Columns(2).RemoveDuplicates Columns:=1, Header:=xlNo
     
-    last_main_strata = sheets("temp_sheet").Cells(rows.count, 1).End(xlUp).Row
-    last_smp_strata = sheets("temp_sheet").Cells(rows.count, 2).End(xlUp).Row
+    last_main_strata = sheets("temp_sheet").Cells(Rows.count, 1).End(xlUp).Row
+    last_smp_strata = sheets("temp_sheet").Cells(Rows.count, 2).End(xlUp).Row
     
     sheets("temp_sheet").Range("C2:C" & last_main_strata).Formula = "=A2 & ""A"""
     sheets("temp_sheet").Range("D2:D" & last_smp_strata).Formula = "=B2 & ""A"""
     
-    sheets("temp_sheet").columns("C:D").Select
+    sheets("temp_sheet").Columns("C:D").Select
     Selection.Copy
     Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
         :=False, Transpose:=False
 
     Application.CutCopyMode = False
-    sheets("temp_sheet").columns("A:B").Delete Shift:=xlToLeft
+    sheets("temp_sheet").Columns("A:B").Delete Shift:=xlToLeft
     
 End Sub
 
@@ -57,8 +57,8 @@ Sub unmatched_strata()
     msg_title = "The following strata dose not exist in the sampling frame." & vbCrLf & _
                 "Please check the data and sampling framework for below codes:" & vbCrLf
     
-    last_main_strata = sheets("temp_sheet").Cells(rows.count, 1).End(xlUp).Row
-    last_smp_strata = sheets("temp_sheet").Cells(rows.count, 2).End(xlUp).Row
+    last_main_strata = sheets("temp_sheet").Cells(Rows.count, 1).End(xlUp).Row
+    last_smp_strata = sheets("temp_sheet").Cells(Rows.count, 2).End(xlUp).Row
 
     main_strata = sheets("temp_sheet").Range("A2:A" & last_main_strata).Value2
     smp_strata = sheets("temp_sheet").Range("B2:B" & last_smp_strata).Value2
@@ -145,16 +145,16 @@ Sub calculate_weight()
     sample_population_number = Public_module.letter_to_number(population_col, samp_ws)
        
     ' last column in sampling sheet
-    new_col_number = samp_ws.Cells(1, columns.count).End(xlToLeft).Column + 1
+    new_col_number = samp_ws.Cells(1, Columns.count).End(xlToLeft).Column + 1
     
     ' last column in main sheet
-    new_col_number_dt = dt_ws.Cells(1, columns.count).End(xlToLeft).Column + 1
+    new_col_number_dt = dt_ws.Cells(1, Columns.count).End(xlToLeft).Column + 1
     new_col_dt = Split(dt_ws.Cells(, new_col_number_dt).Address, "$")(1)
     
     ' last rows
-    last_row = samp_ws.Cells(rows.count, 1).End(xlUp).Row
+    last_row = samp_ws.Cells(Rows.count, 1).End(xlUp).Row
 '    last_row = samp_ws.UsedRange.rows(samp_ws.UsedRange.rows.count).row
-    last_row_dt = dt_ws.UsedRange.rows(dt_ws.UsedRange.rows.count).Row
+    last_row_dt = dt_ws.UsedRange.Rows(dt_ws.UsedRange.Rows.count).Row
     
     'new codes:
     ' ********** in the sampling sheet
@@ -173,12 +173,12 @@ Sub calculate_weight()
     ' add number of surveyed
     samp_ws.Cells(1, new_col_number + 1) = "surveyed"
     For row_number = 2 To last_row
-        samp_ws.Cells(row_number, new_col_number + 1) = Application.WorksheetFunction.CountIf(dt_ws.columns(new_col_number_dt), _
+        samp_ws.Cells(row_number, new_col_number + 1) = Application.WorksheetFunction.CountIf(dt_ws.Columns(new_col_number_dt), _
             samp_ws.Cells(row_number, new_col_number))
     Next row_number
     
-    total_population = WorksheetFunction.sum(samp_ws.columns(sample_population_number))
-    total_survey = WorksheetFunction.sum(samp_ws.columns(new_col_number + 1))
+    total_population = WorksheetFunction.sum(samp_ws.Columns(sample_population_number))
+    total_survey = WorksheetFunction.sum(samp_ws.Columns(new_col_number + 1))
      
      ' add weight0 and sum_weight0
     Dim w0 As Double
@@ -197,7 +197,7 @@ Sub calculate_weight()
          
     Next row_number
     
-    total_weight0 = WorksheetFunction.sum(samp_ws.columns(new_col_number + 3))
+    total_weight0 = WorksheetFunction.sum(samp_ws.Columns(new_col_number + 3))
     
     Dim correction_coefficient As Double
     correction_coefficient = total_survey / total_weight0
@@ -216,14 +216,14 @@ Sub calculate_weight()
     befor_weight_col = Split(samp_ws.Cells(, new_col_number + 3).Address, "$")(1)
     
     ' last column in the data sheet
-    weight_col_number = dt_ws.Cells(1, columns.count).End(xlToLeft).Column + 1
+    weight_col_number = dt_ws.Cells(1, Columns.count).End(xlToLeft).Column + 1
     weight_col = Split(dt_ws.Cells(, weight_col_number).Address, "$")(1)
     
-    dt_ws.Cells(1, weight_col_number).Value = "weight"
+    dt_ws.Cells(1, weight_col_number).value = "weight"
     Dim target_rng As Range
     
     ' columns("E:H")
-    Set target_rng = samp_ws.columns(new_col & ":" & last_col)
+    Set target_rng = samp_ws.Columns(new_col & ":" & last_col)
     Dim i As Variant
     
     For row_number = 2 To last_row_dt
@@ -232,8 +232,8 @@ Sub calculate_weight()
     Next
     
     ' delete temperory columns
-    samp_ws.columns(new_col & ":" & befor_weight_col).Delete Shift:=xlToLeft
-    dt_ws.columns(new_col_dt & ":" & new_col_dt).Delete Shift:=xlToLeft
+    samp_ws.Columns(new_col & ":" & befor_weight_col).Delete Shift:=xlToLeft
+    dt_ws.Columns(new_col_dt & ":" & new_col_dt).Delete Shift:=xlToLeft
 
     MsgBox "The weight has been added.           ", vbInformation
 

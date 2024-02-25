@@ -7,7 +7,7 @@ Private Sub csv_import(path As String)
     Set ws = CURRENT_WORK_BOOK.sheets("temp_sheet")
 
     With ws.QueryTables.Add(Connection:="TEXT;" & path, Destination:=ws.Range("A1"))
-        .name = "qt"
+        .Name = "qt"
         .TextFileParseType = xlDelimited
         .TextFileCommaDelimiter = True
         .Refresh
@@ -18,7 +18,6 @@ Private Sub csv_import(path As String)
         cn.Delete
     Next cn
     
-'    For Each qt In ActiveSheet.QueryTables
     For Each qt In ws.QueryTables
         Set qt = Nothing
         qt.Delete
@@ -47,11 +46,11 @@ Private Function add_calculation()
 
     CURRENT_WORK_BOOK.sheets("temp_sheet").Range("E2").FormulaR1C1 = "=(RC[-1]-RC[-2])/1000"
     
-    lRow = CURRENT_WORK_BOOK.sheets("temp_sheet").Cells(rows.count, 1).End(xlUp).Row
+    lRow = CURRENT_WORK_BOOK.sheets("temp_sheet").Cells(Rows.count, 1).End(xlUp).Row
 
     CURRENT_WORK_BOOK.sheets("temp_sheet").Range("E2").AutoFill Destination:=CURRENT_WORK_BOOK.sheets("temp_sheet").Range("E2:E" & CStr(lRow))
     
-    add_calculation = Application.sum(CURRENT_WORK_BOOK.sheets("temp_sheet").columns("E:E")) / 60
+    add_calculation = Application.sum(CURRENT_WORK_BOOK.sheets("temp_sheet").Columns("E:E")) / 60
     
 End Function
 
@@ -63,15 +62,14 @@ Private Sub clear_sheet()
 End Sub
 
 Sub check_uuid()
-    On Error GoTo errHandler:
-    col = WorksheetFunction.Match("_uuid", sheets(ActiveSheet.name).rows(1), 0)
+    On Error GoTo errhandler:
+    col = WorksheetFunction.Match("_uuid", sheets(ActiveSheet.Name).Rows(1), 0)
     Exit Sub
 
-errHandler:
+errhandler:
     MsgBox "_uuid column dose not exist.     ", vbInformation
     End
 End Sub
-
 Function is_divisible(X As Long, d As Long) As Boolean
     On Error Resume Next
     If (X Mod d) = 0 Then
@@ -81,12 +79,13 @@ Function is_divisible(X As Long, d As Long) As Boolean
     End If
 End Function
 
+
 Sub partial_time_check(start_point As Long, end_point As Long)
     On Error Resume Next
     Dim ws As Worksheet
-    counter = 0
+    Counter = 0
 
-    On Error GoTo errHandler:
+    On Error GoTo errhandler:
     Call check_uuid
     progress_form.LabelTitle.Caption = "Time Checking till: " & end_point
     progress_form.Show
@@ -108,7 +107,7 @@ Sub partial_time_check(start_point As Long, end_point As Long)
     duration_col_number = column_number("duration")
     
     If column_number("duration") = 0 Then
-        new_col = ws.Cells(1, columns.count).End(xlToLeft).Column + 1
+        new_col = ws.Cells(1, Columns.count).End(xlToLeft).Column + 1
     Else
         new_col = column_number("duration")
     End If
@@ -116,7 +115,7 @@ Sub partial_time_check(start_point As Long, end_point As Long)
     new_col_letter = Split(ws.Cells(1, new_col).Address, "$")(1)
         
     If Not worksheet_exists("temp_sheet") Then
-        Call create_sheet(ws.name, "temp_sheet")
+        Call create_sheet(ws.Name, "temp_sheet")
         sheets("temp_sheet").Visible = False
     End If
     
@@ -134,11 +133,11 @@ Sub partial_time_check(start_point As Long, end_point As Long)
     percentage_value = Round(record_count / 100, 1)
     progress_value = record_count / 270
     
-    ws.Range(new_col_letter & 1).Value = "duration"
-    ws.Range(new_col_letter & 1).Offset(, 1).Value = "duration_remark"
+    ws.Range(new_col_letter & 1).value = "duration"
+    ws.Range(new_col_letter & 1).Offset(, 1).value = "duration_remark"
     
-    ws.columns(new_col).ColumnWidth = 10
-    ws.columns(new_col + 1).ColumnWidth = 18
+    ws.Columns(new_col).ColumnWidth = 10
+    ws.Columns(new_col + 1).ColumnWidth = 18
     
     For Each iCell In ws.Range(uuid_col & start_point & ":" & uuid_col & end_point).Cells
         If Round((iCell.Row - start_point) / percentage_value, 0) < 100 Then
@@ -155,10 +154,10 @@ Sub partial_time_check(start_point As Long, end_point As Long)
         
         If Duration = -1 Then
             Duration = DateDiff("s", ws.Cells(iCell.Row, start_col_number), ws.Cells(iCell.Row, end_col_number)) / 60
-            ws.Range(new_col_letter & CStr(iCell.Row)).Offset(, 1).Value = "no audit file"
+            ws.Range(new_col_letter & CStr(iCell.Row)).Offset(, 1).value = "no audit file"
         End If
         
-        ws.Range(new_col_letter & CStr(iCell.Row)).Value = Round(Duration, 1)
+        ws.Range(new_col_letter & CStr(iCell.Row)).value = Round(Duration, 1)
         Call clear_sheet
 
     Next iCell
@@ -176,7 +175,7 @@ Sub partial_time_check(start_point As Long, end_point As Long)
     
     Exit Sub
     
-errHandler:
+errhandler:
 
     If worksheet_exists("temp_sheet") Then
         Application.DisplayAlerts = False
@@ -196,7 +195,7 @@ Sub time_check()
     sheets(find_main_data).Select
     uuid_col = column_letter("_uuid")
     uuid_col_number = column_number("_uuid")
-    record_count = sheets(find_main_data).Cells(rows.count, uuid_col_number).End(xlUp).Row
+    record_count = sheets(find_main_data).Cells(Rows.count, uuid_col_number).End(xlUp).Row
     
     If record_count < 1010 Then
         Call partial_time_check(2, record_count)

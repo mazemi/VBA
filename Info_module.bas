@@ -1,10 +1,10 @@
 Attribute VB_Name = "Info_module"
-Public Const VERSION As String = "2.0 alpha"
+Public Const VERSION As String = "2.1"
 
 ' *********************************************************
-' Date: 3 Dec 2023
-' median added
-' improved analysis
-' improvement in the tool integration with English label
+' Date: 25 Feb 2024
+' improved datamerge by removing non-seleted options.
+' improved charts for overall level.
+' added custom chart for all disaggregation levels.
 ' *********************************************************
 

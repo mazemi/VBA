@@ -1,4 +1,5 @@
 Attribute VB_Name = "Tab_module"
+
 'Callback for KOBOSetting onAction
 Sub KOBOSetting(control As IRibbonControl)
     On Error Resume Next
@@ -41,10 +42,7 @@ Sub CancelDo(control As IRibbonControl)
     End
     
     Application.DisplayAlerts = True
-    
     Application.ScreenUpdating = True
-    
-'    Application.Calculation = xlAutomatic
      
 End Sub
 
@@ -169,9 +167,15 @@ Sub RunAnalysis(control As IRibbonControl)
 End Sub
 
 'Callback for AllFigures onAction
-Sub AllFigures(control As IRibbonControl)
+Sub Figures(control As IRibbonControl)
     On Error Resume Next
     Call all_result_data
+End Sub
+
+'Callback for SingleChart onAction
+Sub SingleChart(control As IRibbonControl)
+    On Error Resume Next
+    single_chart_form.Show
 End Sub
 
 'Callback for FindIndicator onAction
@@ -179,3 +183,5 @@ Sub FindIndicator(control As IRibbonControl)
     On Error Resume Next
     find_form.Show
 End Sub
+
+

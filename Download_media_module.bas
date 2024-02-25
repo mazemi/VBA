@@ -1,13 +1,12 @@
 Attribute VB_Name = "Download_media_module"
 Sub download_audit()
-    On Error GoTo errHandler:
+    On Error GoTo errhandler:
     Dim FileUrl As String
     Dim audit_url As String
     Dim objXmlHttpReq As Object
     Dim objStream As Object
     
     Dim ws As Worksheet
-    
     Set ws = sheets(find_main_data)
     
     audit_url = ""
@@ -26,7 +25,7 @@ Sub download_audit()
     End If
     
     uuid_col_number = column_number("_uuid")
-    record_count = ws.Cells(ws.rows.count, uuid_col_number).End(xlUp).Row
+    record_count = ws.Cells(ws.Rows.count, uuid_col_number).End(xlUp).Row
     base_path = ActiveWorkbook.path
     If Dir(base_path & "\audit", vbDirectory) = "" Then
         MkDir base_path & "\audit"
@@ -96,7 +95,7 @@ NextIteration:
     MsgBox "Audit files downloaded!            ", vbInformation
     Exit Sub
 
-errHandler:
+errhandler:
         MsgBox "There is an issue, please check your KOBO account and audit URL!      ", vbCritical
         Application.StatusBar = False
          Set objXmlHttpReq = Nothing

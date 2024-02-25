@@ -1,7 +1,6 @@
 Attribute VB_Name = "Public_module"
 Global ISSUE_TEXT As String
 Global PATTERN_CHECK_ACTION As Boolean
-Global ROW_ARRAY() As Long
 Global DATA_SHEET As String
 Global PLAN_NUMBER As Long
 Global SAMPLE_SHEET As String
@@ -11,7 +10,7 @@ Global SAMPLE_POPULATION As String
 Global CANCEL_PROCESS As Boolean
 Global CURRENT_WORK_BOOK As Workbook
 Global CHART_COUNT As Long
-Global SPIN As Boolean
+Global NUMERIC_CHART As Boolean
 
 Public Function number_to_letter(col_num As Long, input_ws As Worksheet) As String
     On Error Resume Next
@@ -35,7 +34,7 @@ Public Function column_number(column_value As String) As Long
     Dim colNum As Long
     Dim worksheetName As String
     
-    worksheetName = ActiveSheet.name
+    worksheetName = ActiveSheet.Name
     
     colNum = Application.Match(column_value, ActiveWorkbook.sheets(worksheetName).Range("1:1"), 0)
     
@@ -51,7 +50,7 @@ Public Function column_letter(column_value As String) As String
     On Error Resume Next
     Dim colNum As Long
     Dim vArr
-    worksheetName = ActiveSheet.name
+    worksheetName = ActiveSheet.Name
 
     colNum = Application.Match(column_value, ActiveWorkbook.sheets(worksheetName).Range("1:1"), 0)
     
@@ -138,7 +137,7 @@ End Function
 
 Public Sub create_sheet(sheet_name_base As String, new_sheet_name As String)
     On Error Resume Next
-    sheets.Add(after:=sheets(sheet_name_base)).name = new_sheet_name
+    sheets.Add(after:=sheets(sheet_name_base)).Name = new_sheet_name
 End Sub
 
 Function unmatched_elements(array1 As Variant, array2 As Variant, check_both As Boolean) As Collection
@@ -222,7 +221,7 @@ Function sheet_list() As Collection
     Dim ws As Worksheet
     For Each ws In ActiveWorkbook.Worksheets
         ' add the worksheet name to the collection
-        sheets.Add ws.name
+        sheets.Add ws.Name
     Next ws
     Set sheet_list = sheets
 End Function
@@ -234,7 +233,7 @@ Function unique_values(rng As Range) As Collection
     
     Set d = CreateObject("scripting.dictionary")
     For Each c In rng
-        Tmp = Trim(c.Value)
+        Tmp = Trim(c.value)
         If Len(Tmp) > 0 Then d(Tmp) = d(Tmp) + 1
     Next c
 
@@ -311,20 +310,21 @@ Sub remove_empty_col()
     
     Set dt_ws = sheets(find_main_data)
     
-    last_col = dt_ws.Cells(1, columns.count).End(xlToLeft).Column
+    last_col = dt_ws.Cells(1, Columns.count).End(xlToLeft).Column
     
     For i = 1 To last_col
-        If WorksheetFunction.CountA(dt_ws.columns(i)) = 0 Then
+        If WorksheetFunction.CountA(dt_ws.Columns(i)) = 0 Then
             colle.Add i
         End If
     Next
 
     For j = colle.count To 1 Step -1
-        dt_ws.columns(colle.item(j)).Delete
+        dt_ws.Columns(colle.item(j)).Delete
     Next j
 End Sub
 
 Sub no_value_col()
+    On Error Resume Next
     Dim dt_ws As Worksheet
     Dim i As Long
     Dim last_col As Long
@@ -334,10 +334,10 @@ Sub no_value_col()
     
     Set dt_ws = sheets(find_main_data)
     
-    last_col = dt_ws.Cells(1, columns.count).End(xlToLeft).Column
+    last_col = dt_ws.Cells(1, Columns.count).End(xlToLeft).Column
     
     For i = 1 To last_col
-        If WorksheetFunction.CountA(dt_ws.columns(i)) = 1 Or WorksheetFunction.CountA(dt_ws.columns(i)) = 0 Then
+        If WorksheetFunction.CountA(dt_ws.Columns(i)) = 1 Or WorksheetFunction.CountA(dt_ws.Columns(i)) = 0 Then
             colle.Add i
         End If
     Next
@@ -355,7 +355,7 @@ Sub no_value_col()
         For j = 1 To colle.count
 
             ' Debug.Print number_to_letter(colle.item(j), dt_ws), dt_ws.Cells(1, colle.item(j))
-             Debug.Print dt_ws.Cells(1, colle.item(j))
+            ' Debug.Print dt_ws.Cells(1, colle.item(j))
             sheets("temp_sheet").Range("A" & j + 1) = number_to_letter(colle.item(j), dt_ws)
             sheets("temp_sheet").Range("B" & j + 1) = dt_ws.Cells(1, colle.item(j))
 
@@ -369,7 +369,7 @@ Sub no_value_col()
         
         Set rng = sheets("temp_sheet").Range("A1").CurrentRegion
         empty_col_form.ListBoxEmptyCols.RowSource = _
-            rng.Parent.name & "!" & rng.Resize(rng.rows.count - 1).Offset(1).Address
+            rng.Parent.Name & "!" & rng.Resize(rng.Rows.count - 1).Offset(1).Address
         empty_col_form.Show
     
     Else
@@ -386,14 +386,14 @@ Function no_value(question As String) As Boolean
 
     Set dt_ws = sheets(find_main_data)
     
-    question_col = gen_column_number(question, dt_ws.name)
+    question_col = gen_column_number(question, dt_ws.Name)
     
     If question_col = 0 Then
         no_value = True
         Exit Function
     End If
     
-    If WorksheetFunction.CountA(dt_ws.columns(question_col)) = 1 Then
+    If WorksheetFunction.CountA(dt_ws.Columns(question_col)) = 1 Then
         no_value = True
     Else
         no_value = False
@@ -413,12 +413,12 @@ End Sub
 
 ' return the label of main measurement
 Function var_label(var As String) As String
-    On Error GoTo errHandler
+    On Error GoTo errhandler
     
     Dim last_row_survey As Long
     Dim v_label As String
     
-    last_row_survey = ThisWorkbook.Worksheets("xsurvey").Cells(rows.count, 1).End(xlUp).Row
+    last_row_survey = ThisWorkbook.Worksheets("xsurvey").Cells(Rows.count, 1).End(xlUp).Row
     v_label = WorksheetFunction.Index(ThisWorkbook.sheets("xsurvey").Range("C2:C" & last_row_survey), _
             WorksheetFunction.Match(var, ThisWorkbook.sheets("xsurvey").Range("B2:B" & last_row_survey), 0))
                 
@@ -430,7 +430,7 @@ Function var_label(var As String) As String
     End If
     Exit Function
                 
-errHandler:
+errhandler:
     var_label = var
     
 End Function
@@ -438,7 +438,7 @@ End Function
 ' return the label of choice, if not not found return the original choice value
 Function choice_label(question As String, choice As String) As String
 
-    On Error GoTo errHandler
+    On Error GoTo errhandler
     
     Dim ws_sc As Worksheet
     Set ws_sc = ThisWorkbook.sheets("xsurvey_choices")
@@ -446,13 +446,13 @@ Function choice_label(question As String, choice As String) As String
     Dim question_choice As String
     question_choice = question & choice
     
-    last_row_xsurvey_choices = ws_sc.Cells(rows.count, 1).End(xlUp).Row
+    last_row_xsurvey_choices = ws_sc.Cells(Rows.count, 1).End(xlUp).Row
     choice_label = WorksheetFunction.Index(ws_sc.Range("E2:E" & last_row_xsurvey_choices), _
                         WorksheetFunction.Match(question_choice, ws_sc.Range("F2:F" & last_row_xsurvey_choices), 0))
 
     Exit Function
 
-errHandler:
+errhandler:
     choice_label = choice
 
 End Function
@@ -469,7 +469,7 @@ Sub extract_choice(str As String)
     End If
     
     Set ws = ThisWorkbook.sheets("xsurvey_choices")
-    ws.columns("H:K").Clear
+    ws.Columns("H:K").Clear
     Set rng = ws.Range("A1").CurrentRegion
     
     ws.Cells(1, "H") = "question"
@@ -490,6 +490,137 @@ Sub remove_NA()
 
 End Sub
 
+Sub remove_tmp()
+    Application.DisplayAlerts = False
+    Application.ScreenUpdating = False
+    Application.StatusBar = False
+    
+    If worksheet_exists("keen") Then
+        sheets("keen").Visible = xlSheetHidden
+        sheets("keen").Delete
+    End If
+    
+    If worksheet_exists("keen2") Then
+        sheets("keen2").Visible = xlSheetHidden
+        sheets("keen2").Delete
+    End If
+    
+    If worksheet_exists("temp_sheet") Then
+        sheets("temp_sheet").Visible = xlSheetHidden
+        sheets("temp_sheet").Delete
+    End If
+    
+    If worksheet_exists("redeem") Then
+        sheets("redeem").Visible = xlSheetHidden
+        sheets("redeem").Delete
+    End If
+    
+    Application.DisplayAlerts = True
+    Application.ScreenUpdating = True
+End Sub
 
+Function check_empty_cells(ws As Worksheet, col_num As Long) As Boolean
+    Dim lastRow As Long
+    Dim columnToCheck As Integer
+    Dim i As Long
+    lastRow = ws.Cells(ws.Rows.count, col_num).End(xlUp).Row
 
+    For i = 1 To lastRow
+        If IsEmpty(ws.Cells(i, col_num).value) Then
+            check_empty_cells = True
+            Exit Function
+        End If
+    Next i
+    check_empty_cells = False
+End Function
 
+Function check_exist_dis_levels() As String
+    Dim ws As Worksheet
+    Dim dt_ws As Worksheet
+    Dim rng As Range
+    Dim c As Range
+    Dim last_row As Long
+    Dim col_number As Long
+    Dim check_dis As Boolean
+    Dim header_arr() As Variant
+    Dim v As Variant
+    
+    Set ws = sheets("disaggregation_setting")
+    Set dt_ws = sheets(find_main_data)
+    last_row = ws.Cells(Rows.count, 1).End(xlUp).Row
+    Set rng = ws.Range("A2:A" & last_row)
+    
+    header_arr = dt_ws.Range(dt_ws.Cells(1, 1), dt_ws.Cells(1, 1).End(xlToRight)).Value2
+     
+    For Each c In rng
+        If c <> "ALL" Then
+            col_number = gen_column_number(CStr(c), find_main_data)
+            If col_number = 0 Then
+                Debug.Print CStr(c)
+                check_exist_dis_levels = CStr(c)
+                Exit Function
+            End If
+        End If
+    Next c
+    check_exist_dis_levels = vbNullString
+End Function
+
+Function check_null_dis_levels() As String
+    Dim ws As Worksheet
+    Dim rng As Range
+    Dim c As Range
+    Dim last_row As Long
+    Dim col_number As Long
+    Dim check_dis As Boolean
+    Set ws = sheets("disaggregation_setting")
+    last_row = ws.Cells(Rows.count, 1).End(xlUp).Row
+    Set rng = ws.Range("A2:A" & last_row)
+    
+    For Each c In rng
+        If c <> "ALL" Then
+            col_number = gen_column_number(CStr(c), find_main_data)
+            check_dis = check_empty_cells(sheets(find_main_data), col_number)
+            If check_dis Then
+                check_null_dis_levels = CStr(c)
+                Exit Function
+            End If
+        End If
+    Next c
+    check_null_dis_levels = vbNullString
+End Function
+
+Private Function show_sheet()
+'    sheets("keen").Visible = True
+    sheets("dm_backend").Visible = True
+End Function
+
+Function ColumnNumberToLetter(colNumber As Integer) As String
+    Dim dividend As Integer
+    Dim columnLetter As String
+    Dim modulo As Integer
+    
+    columnLetter = ""
+    dividend = colNumber
+    
+    Do
+        modulo = (dividend - 1) Mod 26
+        columnLetter = Chr(65 + modulo) & columnLetter
+        dividend = (dividend - modulo) \ 26
+    Loop While dividend > 0
+    
+    ColumnNumberToLetter = columnLetter
+End Function
+
+Sub ListAllThisSheets()
+    Dim ws As Worksheet
+    For Each ws In ThisWorkbook.Worksheets
+        Debug.Print ws.Name
+    Next ws
+End Sub
+
+Sub ListAllSheets()
+    Dim ws As Worksheet
+    For Each ws In Worksheets
+        Debug.Print ws.Name
+    Next ws
+End Sub

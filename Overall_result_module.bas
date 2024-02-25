@@ -1,22 +1,24 @@
 Attribute VB_Name = "Overall_result_module"
 Option Explicit
-
 Global NO_NUMERIC As Boolean
 Global NO_CATEGORICAL As Boolean
 Global LAST_CATEGORICAL As Long
 
 Sub all_result_data()
     
-    On Error GoTo errHandler
+    On Error GoTo errhandler
     Dim res_sheet As Worksheet
     Dim temp_ws As Worksheet
     Dim xx_sheet As Worksheet
     Dim indi_rng As Range
+    Dim dis_rng As Range
+    Dim has_all_dis As Boolean
     Dim c As Range
     Dim i As Long
     Dim last_row As Long
     Dim last_row_result  As Long
-       
+    Dim last_row_indi_list As Long
+    
     Application.ScreenUpdating = False
     LAST_CATEGORICAL = 0
     NO_NUMERIC = False
@@ -27,6 +29,28 @@ Sub all_result_data()
     If Not worksheet_exists("result") Then
         Unload wait_form
         MsgBox "There is no analysis results, please run the analysis first.", vbInformation
+        End
+    End If
+    
+    If Not worksheet_exists("indi_list") Then
+        Unload wait_form
+        MsgBox "Please first analyze the data with 'ALL' disaggrigations level." & vbCrLf & _
+            "Then try to generate charts for overall data.", vbInformation
+        End
+    End If
+    
+    Set dis_rng = sheets("indi_list").Range("G1").CurrentRegion
+    
+    For Each c In dis_rng
+        If c = "ALL" Then
+            has_all_dis = True
+        End If
+    Next c
+    
+    If Not has_all_dis Then
+        Unload wait_form
+        MsgBox "Please first analyze the data with 'ALL' disaggrigations level." & vbCrLf & _
+            "Then try to generate charts for overall data.", vbInformation
         End
     End If
     
@@ -42,10 +66,9 @@ Sub all_result_data()
         Application.DisplayAlerts = True
     End If
     
-    If Not worksheet_exists("overall") Then
-        Call create_sheet("result", "overall")
-    End If
-    
+    Set xx_sheet = ActiveWorkbook.Worksheets.Add(after:=ActiveWorkbook.Worksheets(ActiveWorkbook.Worksheets.count))
+    xx_sheet.Name = "overall"
+
     If Not worksheet_exists("temp_sheet") Then
         Call create_sheet("result", "temp_sheet")
     End If
@@ -54,7 +77,7 @@ Sub all_result_data()
     temp_ws.Cells.Clear
     Set xx_sheet = sheets("overall")
 
-    last_row_result = sheets("result").Cells(rows.count, 1).End(xlUp).Row
+    last_row_result = sheets("result").Cells(Rows.count, 1).End(xlUp).Row
     
     If (Worksheets("result").AutoFilterMode And Worksheets("result").FilterMode) Or Worksheets("result").FilterMode Then
         Worksheets("result").ShowAllData
@@ -62,14 +85,13 @@ Sub all_result_data()
     
     res_sheet.Range("$A$1:$M$" & last_row_result).AutoFilter Field:=2, Criteria1:="ALL"
     res_sheet.Range("$A$1:$M$" & last_row_result).AutoFilter Field:=8, Criteria1:="percentage"
-    res_sheet.columns("E:L").Copy
+    res_sheet.Columns("E:L").Copy
     
-'    temp_ws.Select
     temp_ws.Activate
     temp_ws.Range("A1").Select
     ActiveSheet.Paste
 
-    last_row = temp_ws.Cells(rows.count, 1).End(xlUp).Row
+    last_row = temp_ws.Cells(Rows.count, 1).End(xlUp).Row
     
     If last_row = 1 Then
         NO_CATEGORICAL = True
@@ -108,24 +130,26 @@ Sub all_result_data()
         .Apply
     End With
     
-    temp_ws.columns("C:C").Cut
+    temp_ws.Columns("C:C").Cut
     
-    temp_ws.columns("E:E").Select
+    temp_ws.Columns("E:E").Select
     
     ActiveSheet.Paste
     
-    temp_ws.columns("C:C").Delete Shift:=xlToLeft
+    temp_ws.Columns("C:C").Delete Shift:=xlToLeft
     
     ' sorting
     If Not worksheet_exists("indi_list") Then
         Call populate_indicators
     End If
 
-    Set indi_rng = sheets("indi_list").UsedRange
+    last_row_indi_list = sheets("indi_list").Cells(Rows.count, 1).End(xlUp).Row
+    Set indi_rng = sheets("indi_list").Range("B1:B" & last_row_indi_list)
+    
     temp_ws.Cells(1, 5) = "sorting"
     For Each c In indi_rng
         For i = 1 To last_row
-            If c.Value = temp_ws.Cells(i, 2) Then
+            If c.value = temp_ws.Cells(i, 2) Then
                 temp_ws.Cells(i, 5) = c.Row
             End If
         Next
@@ -135,7 +159,7 @@ Sub all_result_data()
     
     Call Range("A1").CurrentRegion.Sort(Key1:=Range("E2"), Order1:=xlAscending, Header:=xlYes)
               
-    temp_ws.rows("1:1").Delete Shift:=xlUp
+    temp_ws.Rows("1:1").Delete Shift:=xlUp
 
     Call make_seperate_data
     
@@ -145,10 +169,12 @@ extract_avereges:
 
     If NO_CATEGORICAL And NO_NUMERIC Then
         Unload wait_form
-        MsgBox "Figures are only for overall disaggregation level." & vbCrLf & _
-                "Please add 'ALL' in the disaggrigations for generating figures.", vbInformation
+        MsgBox "Please first analyze the data with 'ALL' disaggrigations level." & vbCrLf & _
+            "Then try to generate charts for overall data.", vbInformation
 
         Application.DisplayAlerts = False
+        
+        On Error Resume Next
 
         If worksheet_exists("temp_sheet") Then
             sheets("temp_sheet").Visible = xlSheetHidden
@@ -162,6 +188,8 @@ extract_avereges:
         Application.DisplayAlerts = True
         sheets("result").Activate
         Call clear_active_filter
+        
+        Application.DisplayAlerts = True
         End
     End If
 
@@ -177,11 +205,14 @@ extract_avereges:
     xx_sheet.Activate
     
     Unload wait_form
+    
+    xx_sheet.Columns("A:B").Font.Size = 10
+    
     Application.ScreenUpdating = True
     
 Exit Sub
 
-errHandler:
+errhandler:
 
 If worksheet_exists("temp_sheet") Then
     sheets("temp_sheet").Visible = xlSheetHidden
@@ -225,18 +256,22 @@ Sub add_numeric_table(measurement As String)
     
     rng.AdvancedFilter xlFilterCopy, cr_rng, t_sheet.Range("D1:E1")
     
-    last_average = t_sheet.Cells(rows.count, 4).End(xlUp).Row
+    last_average = t_sheet.Cells(Rows.count, 4).End(xlUp).Row
     
     If measurement = "average" Then
-        new_row_overall = all_sheet.Cells(rows.count, 1).End(xlUp).Row + (16 - LAST_CATEGORICAL)
+        If LAST_CATEGORICAL > 12 Then
+            new_row_overall = all_sheet.Cells(Rows.count, 1).End(xlUp).Row + 3
+        Else
+            new_row_overall = all_sheet.Cells(Rows.count, 1).End(xlUp).Row + (16 - LAST_CATEGORICAL)
+        End If
     Else
-       new_row_overall = all_sheet.Cells(rows.count, 1).End(xlUp).Row + 3
+       new_row_overall = all_sheet.Cells(Rows.count, 1).End(xlUp).Row + 3
     End If
     
     If NO_CATEGORICAL Then
         new_row_overall = 1
-        all_sheet.columns("A:A").ColumnWidth = 65
-        all_sheet.columns("B:B").ColumnWidth = 10
+        all_sheet.Columns("A:A").ColumnWidth = 60
+        all_sheet.Columns("B:B").ColumnWidth = 10
     End If
     
     If last_average > 1 Then
@@ -276,10 +311,11 @@ Sub make_seperate_data()
     Dim t_sheet As Worksheet
     Dim last_row_overall As Long
     Dim chart_width As Long
+    Dim chart_height As Long
     Dim unique_choices As New Collection
     Dim choices_numbers As New Collection
     Dim tbl_rng As Range
-    Dim chart_type As Boolean
+    Dim chart_type As String
     Dim last_row_temp As Long
     Dim i As Long
     Dim j As Long
@@ -291,15 +327,15 @@ Sub make_seperate_data()
     Set xx_sheet = sheets("overall")
     Set t_sheet = sheets("temp_sheet")
     
-    last_row_overall = xx_sheet.Cells(rows.count, 1).End(xlUp).Row
-    last_row_temp = t_sheet.Cells(rows.count, 1).End(xlUp).Row
+    last_row_overall = xx_sheet.Cells(Rows.count, 1).End(xlUp).Row
+    last_row_temp = t_sheet.Cells(Rows.count, 1).End(xlUp).Row
     
     ' need to check if unique values more than 255
     Set unique_choices = unique_values(t_sheet.Range("A1:A" & last_row_temp))
     
-    xx_sheet.columns("A:A").ColumnWidth = 65
-    xx_sheet.columns("B:B").ColumnWidth = 10
-    xx_sheet.columns("C:C").ColumnWidth = 6
+    xx_sheet.Columns("A:A").ColumnWidth = 60
+    xx_sheet.Columns("B:B").ColumnWidth = 10
+    xx_sheet.Columns("C:C").ColumnWidth = 6
     
     For i = 1 To unique_choices.count
         k = 0
@@ -320,7 +356,6 @@ Sub make_seperate_data()
     For m = 1 To choices_numbers.count
         
         chart_width = 300
-        chart_type = False
         
         xx_sheet.Cells(n, 1) = t_sheet.Cells(1, 2)
         xx_sheet.Cells(n, 2) = "Percentage"
@@ -331,7 +366,7 @@ Sub make_seperate_data()
             .TintAndShade = 0.8
         End With
         
-        With xx_sheet.rows(n)
+        With xx_sheet.Rows(n)
             .HorizontalAlignment = xlGeneral
             .VerticalAlignment = xlCenter
             .WrapText = True
@@ -352,51 +387,56 @@ Sub make_seperate_data()
         
         tool_type = question_type(t_sheet.Cells(1, 1))
         
-        If tool_type = "select_multiple" Or tool_type = "select_multiple_external" Then
-            chart_type = True
-        ElseIf choices_numbers(m) > 7 Then
-            chart_type = False
+        
+        If choices_numbers(m) = 2 And (tool_type = "select_one" Or tool_type = "select_one_external") Then
+            chart_type = "pie"
+        ElseIf choices_numbers(m) < 16 Then
+            chart_type = "col"
         Else
-            chart_type = True
+            chart_type = "bar"
         End If
         
-        If choices_numbers(m) > 4 Then
-            chart_width = Application.WorksheetFunction.Round(choices_numbers(m) * 280 / 4, 0)
+        
+        If choices_numbers(m) > 4 And choices_numbers(m) < 16 Then
+            chart_width = Application.WorksheetFunction.Round(choices_numbers(m) * 290 / 4, 0)
+        ElseIf choices_numbers(m) >= 16 And choices_numbers(m) < 35 Then
+            chart_height = Application.WorksheetFunction.Round(choices_numbers(m) * 57 / 4, 0)
         End If
         
         Dim ch_title As String, ch_title2 As String
         
-        ch_title2 = t_sheet.Cells(1, 2).Value
+        ch_title2 = t_sheet.Cells(1, 2).value
         
         If Len(ch_title2) > 150 Then
             ch_title2 = left(ch_title2, 150)
         End If
         
-        If choices_numbers(m) < 15 Then
+        If choices_numbers(m) < 16 Then
             Call add_barchart(tbl_rng, ch_title2, chart_type, xx_sheet.Cells(n, 1).top, xx_sheet.Cells(n, 4).left, chart_width)
+        ElseIf choices_numbers(m) < 35 Then
+            Call add_barchart(tbl_rng, ch_title2, chart_type, xx_sheet.Cells(n, 1).top, xx_sheet.Cells(n, 4).left, , chart_height)
         End If
         
         t_sheet.Activate
         
-        rows("1:" & choices_numbers(m)).Select
+        Rows("1:" & choices_numbers(m)).Select
         Selection.Delete Shift:=xlUp
         
         If choices_numbers(m) < 15 Then
-            n = xx_sheet.Cells(rows.count, 1).End(xlUp).Row + 15 - choices_numbers(m) + 2
+            n = xx_sheet.Cells(Rows.count, 1).End(xlUp).Row + 15 - choices_numbers(m) + 2
         Else
-            n = xx_sheet.Cells(rows.count, 1).End(xlUp).Row + 2
+            n = xx_sheet.Cells(Rows.count, 1).End(xlUp).Row + 2
         End If
 
     Next
     
 End Sub
 
-Sub add_barchart(input_rng As Range, title As String, bar As Boolean, top As String, left As String, Optional bar_width As Long)
+Sub add_barchart(input_rng As Range, title As String, chart_type As String, top As String, left As String, Optional chart_width As Long, Optional chart_height As Long)
 '    On Error Resume Next
     Dim ws As Worksheet
     Dim rng As Range
     Dim my_chart As Object
-    Dim chtSeries
 
     Set ws = Worksheets("overall")
     Set rng = input_rng
@@ -406,18 +446,27 @@ Sub add_barchart(input_rng As Range, title As String, bar As Boolean, top As Str
     
     With my_chart.Chart
         .SetSourceData rng
-        If bar Then
+        If chart_type = "col" Then
             .ChartType = xlColumnClustered
             .SetElement (msoElementDataLabelOutSideEnd)
-            .Parent.Width = bar_width
+            .Parent.Width = chart_width
             .ChartTitle.Format.TextFrame2.TextRange.Font.Size = 10
             .SeriesCollection(1).Interior.Color = RGB(4, 49, 76)
-        Else
-            .ChartType = xlPie
+            
+        ElseIf chart_type = "bar" Then
+            .ChartType = xlBarClustered
+            .SetElement (msoElementDataLabelOutSideEnd)
             .Parent.Width = 500
+            .Parent.Height = chart_height
+            .ChartTitle.Format.TextFrame2.TextRange.Font.Size = 10
+            .SeriesCollection(1).Interior.Color = RGB(4, 49, 76)
+        
+        ElseIf chart_type = "pie" Then
+            .ChartType = xlPie
+            .Parent.Width = 300
             .SetElement (msoElementLegendRight)
-            .Legend.left = 270
-            .Legend.Width = 270
+            .Legend.left = 200
+            .Legend.Width = 100
             .PlotArea.Width = 160
             .PlotArea.Height = 160
             .PlotArea.left = 20
@@ -425,7 +474,8 @@ Sub add_barchart(input_rng As Range, title As String, bar As Boolean, top As Str
             .ChartTitle.Format.TextFrame2.TextRange.Font.Size = 10
             .SetElement msoElementDataLabelInsideEnd
         End If
-        .ChartTitle.text = title
+        
+        .ChartTitle.Text = title
         .Parent.top = top
         .Parent.left = left
         
@@ -439,27 +489,27 @@ Sub add_border(rng As Range)
     rng.Borders(xlDiagonalUp).LineStyle = xlNone
     With rng.Borders(xlEdgeLeft)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
     With rng.Borders(xlEdgeTop)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
     With rng.Borders(xlEdgeBottom)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
     With rng.Borders(xlEdgeRight)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
     With rng.Borders(xlInsideVertical)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
     With rng.Borders(xlInsideHorizontal)
         .LineStyle = xlContinuous
-        .weight = xlThin
+        .Weight = xlThin
     End With
 
 End Sub

@@ -3,7 +3,7 @@ Option Explicit
 
 Sub replace_log()
 
-    On Error GoTo errHandler
+    On Error GoTo errhandler
     Application.ScreenUpdating = False
     Dim ws_main As Worksheet
     Dim ws_log As Worksheet
@@ -51,10 +51,10 @@ Sub replace_log()
     log_new_value_col_number = column_number("new.value")
     log_changed_col_number = column_number("changed")
     
-    log_last_col = ws_log.Cells(1, columns.count).End(xlToLeft).Column
-    log_last_row = ws_log.UsedRange.rows(ws_log.UsedRange.rows.count).Row
+    log_last_col = ws_log.Cells(1, Columns.count).End(xlToLeft).Column
+    log_last_row = ws_log.UsedRange.Rows(ws_log.UsedRange.Rows.count).Row
     
-    LastCol = ws_main.UsedRange.columns.count
+    LastCol = ws_main.UsedRange.Columns.count
     lastColLetter = Split(ws_main.Cells(, LastCol).Address, "$")(1)
 
     ' new column for remarks in the log book shet:
@@ -147,7 +147,7 @@ Sub replace_log()
     Application.StatusBar = False
     Exit Sub
     
-errHandler:
+errhandler:
     MsgBox "The log replacement failed! Pleae check your logbook and main data set and the integrated tool, then try again.", vbInformation
     Exit Sub
     
@@ -198,18 +198,18 @@ Sub remove_duplicate_log()
     Dim row_col As Long
     
     Application.CutCopyMode = False
-    sheets("log_book").Range("A1").CurrentRegion.RemoveDuplicates columns:=Array(1, 2), Header:=xlYes
+    sheets("log_book").Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2), Header:=xlYes
     sheets("log_book").Range("A1").CurrentRegion.RemoveDuplicates
     row_col = gen_column_number("row", "log_book")
     
     If row_col > 0 Then
-        sheets("log_book").columns(row_col).Delete Shift:=xlToLeft
+        sheets("log_book").Columns(row_col).Delete Shift:=xlToLeft
     End If
     
     key_col = gen_column_number("key", "log_book")
     
     If key_col > 0 Then
-        sheets("log_book").columns(key_col).Delete Shift:=xlToLeft
+        sheets("log_book").Columns(key_col).Delete Shift:=xlToLeft
     End If
 
 End Sub
@@ -241,18 +241,18 @@ Sub find_duplicate_log()
     
     Call clear_active_filter
     
-    r_col = gen_column_number("row", ws.name)
+    r_col = gen_column_number("row", ws.Name)
     If r_col > 0 Then
-        ws.columns(r_col).Delete
+        ws.Columns(r_col).Delete
     End If
      
-    k_col = gen_column_number("key", ws.name)
+    k_col = gen_column_number("key", ws.Name)
     If k_col > 0 Then
-        ws.columns(k_col).Delete
+        ws.Columns(k_col).Delete
     End If
     
-    last_col = ws.Cells(1, columns.count).End(xlToLeft).Column
-    last_row = ws.Cells(rows.count, 1).End(xlUp).Row
+    last_col = ws.Cells(1, Columns.count).End(xlToLeft).Column
+    last_row = ws.Cells(Rows.count, 1).End(xlUp).Row
      
     If last_row < 3 Then
         extra_logs_form.LabelMessage.Caption = "No Duplicate :)"
@@ -269,7 +269,7 @@ Sub find_duplicate_log()
     
     ws.Range(ws.Cells(2, last_col + 2), ws.Cells(last_row, last_col + 2)).Formula = "=A2 & B2"
     
-    key_col_letter = gen_column_letter("key", ws.name)
+    key_col_letter = gen_column_letter("key", ws.Name)
     
     For m = 2 To last_row
         If Application.WorksheetFunction.CountIf(ws.Range(key_col_letter & "2:" & key_col_letter & last_row), _
@@ -281,20 +281,20 @@ Sub find_duplicate_log()
     
     If has_duplicate Then
         ' find duplicated
-        ws.columns(last_col + 2).FormatConditions.AddUniqueValues
-        ws.columns(last_col + 2).FormatConditions(ws.columns(last_col + 2).FormatConditions.count).SetFirstPriority
-        ws.columns(last_col + 2).FormatConditions(1).DupeUnique = xlDuplicate
-        With ws.columns(last_col + 2).FormatConditions(1).Interior
+        ws.Columns(last_col + 2).FormatConditions.AddUniqueValues
+        ws.Columns(last_col + 2).FormatConditions(ws.Columns(last_col + 2).FormatConditions.count).SetFirstPriority
+        ws.Columns(last_col + 2).FormatConditions(1).DupeUnique = xlDuplicate
+        With ws.Columns(last_col + 2).FormatConditions(1).Interior
             .PatternColorIndex = xlAutomatic
             .Color = 13551615
             .TintAndShade = 0
         End With
-        ws.columns(last_col + 2).FormatConditions(1).StopIfTrue = False
+        ws.Columns(last_col + 2).FormatConditions(1).StopIfTrue = False
         
-        ws.columns(last_col + 2).ColumnWidth = 50
+        ws.Columns(last_col + 2).ColumnWidth = 50
     Else
-        ws.columns(last_col + 2).Delete
-        ws.columns(last_col + 1).Delete
+        ws.Columns(last_col + 2).Delete
+        ws.Columns(last_col + 1).Delete
         extra_logs_form.LabelMessage.Caption = "No Duplicate :)"
     End If
        
@@ -303,7 +303,7 @@ End Sub
 
 Sub show_issue()
 
-    If ActiveSheet.name = "log_book" Then
+    If ActiveSheet.Name = "log_book" Then
     
         Dim main_ws As Worksheet
         Dim log_ws As Worksheet
@@ -322,7 +322,7 @@ Sub show_issue()
         
         uuid_col = data_column_letter("_uuid")
         
-        question_col = gen_column_number(question, main_ws.name)
+        question_col = gen_column_number(question, main_ws.Name)
         
         If log_ws.Cells(ActiveCell.Row, 1) <> vbNullString And uuid_col <> "" And question_col <> 0 Then
         
