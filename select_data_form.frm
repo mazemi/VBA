@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} select_data_form 
    Caption         =   "Select Data"
-   ClientHeight    =   1752
-   ClientLeft      =   -12
-   ClientTop       =   -42
-   ClientWidth     =   4782
+   ClientHeight    =   1710
+   ClientLeft      =   -300
+   ClientTop       =   -1338
+   ClientWidth     =   4836
    OleObjectBlob   =   "select_data_form.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -16,11 +16,15 @@ Attribute VB_Exposed = False
 
 
 
+
+
+
+
 Private Sub CommandAdd_Click()
     On Error Resume Next
-    dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", Me.ComboSheets.Value)
+    dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", Me.ComboSheets.value)
     
-    If Me.ComboSheets.Value = "" Then
+    If Me.ComboSheets.value = "" Then
         End
     End If
     Unload Me
@@ -34,7 +38,7 @@ Private Sub UserForm_Initialize()
 
     If dt <> "" Then
         If worksheet_exists(dt) Then
-            Me.ComboSheets.text = dt
+            Me.ComboSheets.Text = dt
         End If
     End If
     
@@ -44,9 +48,9 @@ Private Sub UserForm_Initialize()
     For Each sh In sheet_li
         If ActiveWorkbook.Worksheets(CStr(sh)).Visible Then
             If CStr(sh) <> "result" And CStr(sh) <> "log_book" And CStr(sh) <> "analysis_list" And _
-               CStr(sh) <> "dissagregation_setting" And CStr(sh) <> "overall" And CStr(sh) <> "survey" And _
+               CStr(sh) <> "disaggregation_setting" And CStr(sh) <> "overall" And CStr(sh) <> "survey" And _
                 CStr(sh) <> "keen" And CStr(sh) <> "indi_list" And CStr(sh) <> "temp_sheet" And _
-               CStr(sh) <> "choices" And CStr(sh) <> "xsurvey_choices" And CStr(sh) <> "datamerge" Then
+               CStr(sh) <> "choices" And CStr(sh) <> "xsurvey_choices" And CStr(sh) <> "datamerge" And CStr(sh) <> "dm_backend" Then
                 Me.ComboSheets.AddItem sh
             End If
         End If

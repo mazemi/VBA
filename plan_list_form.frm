@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} plan_list_form 
    Caption         =   "Cleaning Plan"
-   ClientHeight    =   5520
-   ClientLeft      =   -12
-   ClientTop       =   -48
-   ClientWidth     =   10860
+   ClientHeight    =   5532
+   ClientLeft      =   -288
+   ClientTop       =   -1338
+   ClientWidth     =   10824
    OleObjectBlob   =   "plan_list_form.frx":0000
    ShowModal       =   0   'False
    StartUpPosition =   1  'CenterOwner
@@ -75,7 +75,7 @@ Private Sub UserForm_Initialize()
     
     Set ws = ThisWorkbook.sheets("xlogical_checks")
     
-    last_row = ws.Cells(rows.count, 1).End(xlUp).Row
+    last_row = ws.Cells(Rows.count, 1).End(xlUp).Row
      
     If ws.Cells(1, 1) <> "" Then
     
@@ -114,7 +114,7 @@ End Sub
 
 Sub delete_row(n As Long)
     On Error Resume Next
-    ThisWorkbook.sheets("xlogical_checks").rows(n).EntireRow.Delete
+    ThisWorkbook.sheets("xlogical_checks").Rows(n).EntireRow.Delete
 End Sub
 
 

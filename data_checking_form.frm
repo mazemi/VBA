@@ -2,9 +2,9 @@ VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} data_checking_form 
    Caption         =   "Data Checking"
    ClientHeight    =   3408
-   ClientLeft      =   -264
-   ClientTop       =   -1260
-   ClientWidth     =   6702
+   ClientLeft      =   -564
+   ClientTop       =   -2550
+   ClientWidth     =   6708
    OleObjectBlob   =   "data_checking_form.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -15,6 +15,10 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 
+
+
+
+
 Private Sub CommandRun_Click()
     If Me.OptionWrongValue = True Then
         Public_module.ISSUE_TEXT = "Wrong value"
@@ -23,7 +27,7 @@ Private Sub CommandRun_Click()
     ElseIf Me.OptionHarmonization = True Then
         Public_module.ISSUE_TEXT = "Translation and Harmonization"
     Else
-        Public_module.ISSUE_TEXT = Me.TextOther.Value
+        Public_module.ISSUE_TEXT = Me.TextOther.value
         res = SaveRegistrySetting("ramSetting", "issueTextReg", Public_module.ISSUE_TEXT)
     End If
     
@@ -53,7 +57,7 @@ Private Sub UserForm_Initialize()
     Me.OptionWrongValue = True
     Public_module.ISSUE_TEXT = "Wrong value"
 
-    Me.TextOther.Value = GetRegistrySetting("ramSetting", "issueTextReg")
+    Me.TextOther.value = GetRegistrySetting("ramSetting", "issueTextReg")
     
 End Sub
 

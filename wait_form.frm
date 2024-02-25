@@ -1,9 +1,9 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} wait_form 
-   ClientHeight    =   930
-   ClientLeft      =   -108
-   ClientTop       =   -474
-   ClientWidth     =   3828
+   ClientHeight    =   1002
+   ClientLeft      =   -450
+   ClientTop       =   -2034
+   ClientWidth     =   4176
    OleObjectBlob   =   "wait_form.frx":0000
    StartUpPosition =   1  'CenterOwner
 End

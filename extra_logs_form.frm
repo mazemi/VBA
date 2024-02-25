@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} extra_logs_form 
    Caption         =   "Logbook option"
-   ClientHeight    =   1818
-   ClientLeft      =   0
-   ClientTop       =   -42
-   ClientWidth     =   7422
+   ClientHeight    =   1866
+   ClientLeft      =   -300
+   ClientTop       =   -1344
+   ClientWidth     =   7470
    OleObjectBlob   =   "extra_logs_form.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -14,11 +14,13 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
+
 Private Sub CommandAdd_Click()
     On Error Resume Next
     Application.ScreenUpdating = False
     
-    If Me.ComboQuestion = vbNullString Then
+    If Me.ComboQuestion.value = vbNullString Then
         Exit Sub
     End If
     
@@ -38,14 +40,13 @@ Private Sub CommandAdd_Click()
     
     Set header_rng = log_ws.Range(log_ws.Cells(1, 1), log_ws.Cells(1, 1).End(xlToRight))
     i = 0
-    For i = 1 To header_rng.columns.count
+    For i = 1 To header_rng.Columns.count
     
-        If Me.ComboQuestion = log_ws.Cells(1, i) Then
+        If Me.ComboQuestion.value = log_ws.Cells(1, i) Then
             new_col = i
-'            Debug.Print i, Me.ComboQuestion
             Exit For
         Else
-            new_col = log_ws.Cells(1, columns.count).End(xlToLeft).Column + 1
+            new_col = log_ws.Cells(1, Columns.count).End(xlToLeft).Column + 1
         End If
         
     Next
@@ -57,10 +58,10 @@ Private Sub CommandAdd_Click()
     
     question_col_letter = data_column_letter(Me.ComboQuestion)
     uuid_col_letter = data_column_letter("_uuid")
-    last_log = log_ws.Cells(rows.count, 1).End(xlUp).Row
+    last_log = log_ws.Cells(Rows.count, 1).End(xlUp).Row
     
     uuid_coln = gen_column_number("_uuid", find_main_data)
-    last_dt = dt_ws.Cells(rows.count, uuid_coln).End(xlUp).Row
+    last_dt = dt_ws.Cells(Rows.count, uuid_coln).End(xlUp).Row
   
     new_col_letter = Split(log_ws.Cells(1, new_col).Address, "$")(1)
 '    Debug.Print new_col, new_col_letter
@@ -68,7 +69,7 @@ Private Sub CommandAdd_Click()
     Dim uuid_rng As Range
     Set uuid_rng = log_ws.Range("A1:A" & last_log)
     
-    log_ws.Cells(1, new_col) = Me.ComboQuestion
+    log_ws.Cells(1, new_col) = Me.ComboQuestion.value
     
     For j = 2 To last_log
         res = Application.Index(dt_ws.Range(question_col_letter & "2:" & question_col_letter & last_dt), _

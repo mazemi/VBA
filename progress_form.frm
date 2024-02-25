@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} progress_form 
    Caption         =   "Progress"
-   ClientHeight    =   1566
-   ClientLeft      =   -138
-   ClientTop       =   -708
-   ClientWidth     =   6054
+   ClientHeight    =   1662
+   ClientLeft      =   -426
+   ClientTop       =   -2004
+   ClientWidth     =   6048
    OleObjectBlob   =   "progress_form.frx":0000
    ShowModal       =   0   'False
    StartUpPosition =   1  'CenterOwner

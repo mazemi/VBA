@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} setting_form 
    Caption         =   "Setting"
-   ClientHeight    =   5058
-   ClientLeft      =   -54
-   ClientTop       =   -258
-   ClientWidth     =   7914
+   ClientHeight    =   4962
+   ClientLeft      =   -222
+   ClientTop       =   -1032
+   ClientWidth     =   7932
    OleObjectBlob   =   "setting_form.frx":0000
    ShowModal       =   0   'False
    StartUpPosition =   1  'CenterOwner
@@ -15,13 +15,18 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
+
+
+
+
 Private Sub CommandSave_Click()
     On Error Resume Next
     Dim current_dt_name As String
     Dim new_name As String
     
-    If Me.ComboData.Value <> vbNullString Then
-        current_dt_name = Me.ComboData.Value
+    If Me.ComboData.value <> vbNullString Then
+        current_dt_name = Me.ComboData.value
         new_name = alpha_numeric_only(current_dt_name)
         
         If Len(new_name) > 15 Then
@@ -30,17 +35,17 @@ Private Sub CommandSave_Click()
         
         Public_module.DATA_SHEET = new_name
         dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", new_name)
-        sheets(current_dt_name).name = new_name
+        sheets(current_dt_name).Name = new_name
         
     Else
-        Public_module.DATA_SHEET = Me.ComboData.Value
-        dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", Me.ComboData.Value)
+        Public_module.DATA_SHEET = Me.ComboData.value
+        dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", Me.ComboData.value)
     End If
     
     ' save to registry:
-    user = SaveRegistrySetting("ramSetting", "koboUserReg", Me.TextUser.Value)
-    Password = SaveRegistrySetting("ramSetting", "koboPasswordReg", Me.TextPassword.Value)
-    audit = SaveRegistrySetting("ramSetting", "koboAuditReg", Me.ComboAudit.Value)
+    user = SaveRegistrySetting("ramSetting", "koboUserReg", Me.TextUser.value)
+    Password = SaveRegistrySetting("ramSetting", "koboPasswordReg", Me.TextPassword.value)
+    audit = SaveRegistrySetting("ramSetting", "koboAuditReg", Me.ComboAudit.value)
     
     Unload Me
     
@@ -74,6 +79,7 @@ Private Sub LabelReset_Click()
         End If
         
         If worksheet_exists("keen2") Then
+            sheets("keen2").Visible = xlSheetHidden
             sheets("keen2").Delete
         End If
     
@@ -87,9 +93,9 @@ Private Sub LabelReset_Click()
             sheets("redeem").Delete
         End If
         
-        If worksheet_exists("dissagregation_setting") Then
-            sheets("dissagregation_setting").Visible = xlSheetHidden
-            sheets("dissagregation_setting").Delete
+        If worksheet_exists("disaggregation_setting") Then
+            sheets("disaggregation_setting").Visible = xlSheetHidden
+            sheets("disaggregation_setting").Delete
         End If
          
         If worksheet_exists("indi_list") Then
@@ -101,6 +107,10 @@ Private Sub LabelReset_Click()
             sheets("analysis_list").Delete
         End If
     
+        If worksheet_exists("result") Then
+            sheets("result").Delete
+        End If
+        
         ThisWorkbook.sheets("xsurvey").Cells.Clear
         ThisWorkbook.sheets("xchoices").Cells.Clear
         ThisWorkbook.sheets("xsurvey_choices").Cells.Clear
@@ -113,21 +123,22 @@ Private Sub LabelReset_Click()
     Application.Calculation = xlAutomatic
     Application.DisplayAlerts = True
     Application.ScreenUpdating = True
-     
-    Call UserForm_Initialize
+    
     Me.ComboData = ""
+    Call UserForm_Initialize
+
 End Sub
 
 Private Sub UserForm_Initialize()
     Dim dt_sheet As String
     Me.Label_import.Visible = False
-    Me.TextUser.Value = GetRegistrySetting("ramSetting", "koboUserReg")
-    Me.TextPassword.Value = GetRegistrySetting("ramSetting", "koboPasswordReg")
+    Me.TextUser.value = GetRegistrySetting("ramSetting", "koboUserReg")
+    Me.TextPassword.value = GetRegistrySetting("ramSetting", "koboPasswordReg")
     dt_sheet = GetRegistrySetting("ramSetting", "dataReg")
-    Me.ComboAudit.Value = GetRegistrySetting("ramSetting", "koboAuditReg")
+    Me.ComboAudit.value = GetRegistrySetting("ramSetting", "koboAuditReg")
     
     If worksheet_exists(dt_sheet) Then
-        Me.ComboData.Value = dt_sheet
+        Me.ComboData.value = dt_sheet
     End If
     
     If ThisWorkbook.sheets("xsurvey").Range("A1") <> vbNullString Then
@@ -168,9 +179,9 @@ Private Sub PopulateComboBox()
     For Each sh In sheet_li
         If ActiveWorkbook.Worksheets(CStr(sh)).Visible Then
             If CStr(sh) <> "result" And CStr(sh) <> "log_book" And CStr(sh) <> "analysis_list" And _
-               CStr(sh) <> "dissagregation_setting" And CStr(sh) <> "overall" And CStr(sh) <> "survey" And _
+               CStr(sh) <> "disaggregation_setting" And CStr(sh) <> "overall" And CStr(sh) <> "survey" And _
                 CStr(sh) <> "keen" And CStr(sh) <> "indi_list" And CStr(sh) <> "temp_sheet" And _
-                CStr(sh) <> "choices" And CStr(sh) <> "datamerge" Then
+                CStr(sh) <> "choices" And CStr(sh) <> "datamerge" And CStr(sh) <> "dm_backend" Then
                 Me.ComboData.AddItem sh
             End If
         End If
@@ -180,8 +191,8 @@ End Sub
 
 Private Sub CommandTools_Click()
     
-    On Error GoTo errHandler
-    
+    On Error GoTo errhandler
+    Me.Label_import.Visible = False
     Application.ScreenUpdating = False
     
     Dim objFSO As New FileSystemObject
@@ -191,39 +202,98 @@ Private Sub CommandTools_Click()
     With myFile
         .title = "Choose File"
         .AllowMultiSelect = False
+        .Filters.Clear
+        .Filters.Add "Excel Files", "*.xls; *.xlsx"
         If .Show <> -1 Then
             Exit Sub
         End If
         FileSelected = .SelectedItems(1)
     End With
-
-    Me.Label_import.Visible = True
+    
+ Debug.Print FileSelected
     DoEvents
+    Me.bar.Width = 10
+    Me.bar.Visible = True
+    
+    If Not check_tools_file(FileSelected) Then
+        MsgBox "Something went wrong!   " & vbCrLf & _
+        "Please select a valid KOBO tool with survey and choices sheets.   ", vbCritical
+        Me.bar.Width = 0
+        Application.ScreenUpdating = True
+        Exit Sub
+    End If
     
     Call import_survey(FileSelected)
+    DoEvents
+    Me.bar.Width = 30
     Call import_choices(FileSelected)
+    DoEvents
+    Me.bar.Width = 40
     Call make_survey_choice
-
-    Me.Label_import.Caption = "imported"
+    DoEvents
+    Me.bar.Width = 63
     
-    Application.ScreenUpdating = True
+    Application.Wait (Now + 0.00001)
+    Me.bar.Visible = False
+    Me.Label_import.Visible = True
     
     tool_path = SaveRegistrySetting("ramSetting", "koboToolReg", FileSelected)
-    
     Me.tooLabel = "Integrated Tool: " & vbCrLf & GetRegistrySetting("ramSetting", "koboToolReg")
     
     ActiveWorkbook.Save
-        
+    Me.Label_import.Caption = "imported"
+    Me.bar.Visible = False
+    Application.ScreenUpdating = True
     Exit Sub
 
-errHandler:
+errhandler:
         Me.Label_import.Visible = False
-'        Unload wait_form
-        MsgBox "There is an issue!   " & vbCrLf & _
+        MsgBox "Something went wrong!   " & vbCrLf & _
         "Please select a valid KOBO tool.   ", vbCritical
+        Me.bar.Width = 0
         Application.ScreenUpdating = True
 End Sub
 
+Private Function check_tools_file(filePath As String) As Boolean
+    Dim excelApp As Object
+    Dim closedWorkbook As Object
+    Dim sheet As Object
+    Dim has_survey As Boolean
+    Dim has_choices As Boolean
+    
+    Set excelApp = CreateObject("Excel.Application")
+    excelApp.Visible = False
+    
+    Set closedWorkbook = excelApp.Workbooks.Open(filePath, ReadOnly:=True)
+    For Each sheet In closedWorkbook.sheets
+        If sheet.Name = "survey" Then
+            has_survey = True
+        End If
+        
+        If sheet.Name = "choices" Then
+            has_choices = True
+        End If
+        
+        Debug.Print sheet.Name
+    Next sheet
+    
+    closedWorkbook.Close False
+    
+    excelApp.Quit
+    
+    Set sheet = Nothing
+    Set closedWorkbook = Nothing
+    Set excelApp = Nothing
+    
+    If has_choices And has_survey Then
+        check_tools_file = True
+        Debug.Print "fine"
+    Else
+        check_tools_file = False
+        Debug.Print "not fine"
+    End If
+    
+End Function
 
 
 

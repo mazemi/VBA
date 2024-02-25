@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} plan_form 
    Caption         =   "Logical Data Cleaning "
-   ClientHeight    =   3486
-   ClientLeft      =   -12
-   ClientTop       =   -42
-   ClientWidth     =   10320
+   ClientHeight    =   3528
+   ClientLeft      =   -306
+   ClientTop       =   -1344
+   ClientWidth     =   10434
    OleObjectBlob   =   "plan_form.frx":0000
    ShowModal       =   0   'False
    StartUpPosition =   1  'CenterOwner
@@ -15,11 +15,15 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
+
+
+
 Option Explicit
 
 Private Sub ComboOp1_Change()
-    If Me.ComboOp1.Value = "is empty" Or Me.ComboOp1.Value = "is not empty" Then
-        Me.ComboAns1.Value = vbNullString
+    If Me.ComboOp1.value = "is empty" Or Me.ComboOp1.value = "is not empty" Then
+        Me.ComboAns1.value = vbNullString
         Me.ComboAns1.Enabled = False
     Else
         Me.ComboAns1.Enabled = True
@@ -27,8 +31,8 @@ Private Sub ComboOp1_Change()
 End Sub
 
 Private Sub ComboOp2_Change()
-    If Me.ComboOp2.Value = "is empty" Or Me.ComboOp2.Value = "is not empty" Then
-        Me.ComboAns2.Value = vbNullString
+    If Me.ComboOp2.value = "is empty" Or Me.ComboOp2.value = "is not empty" Then
+        Me.ComboAns2.value = vbNullString
         Me.ComboAns2.Enabled = False
     Else
         Me.ComboAns2.Enabled = True
@@ -39,16 +43,16 @@ Private Sub ComboQ1_Change()
     Dim last_row As Long
     Dim i As Long
     
-    If Me.ComboQ1.Value <> vbNullString Then
+    If Me.ComboQ1.value <> vbNullString Then
         Do While Me.ComboAns1.ListCount > 0
             Me.ComboAns1.RemoveItem (0)
         Loop
         
-        Me.ComboAns1.Value = vbNullString
+        Me.ComboAns1.value = vbNullString
         Call extract_choice(Me.ComboQ1)
         
         If ThisWorkbook.sheets("xsurvey_choices").Cells(2, "K") <> vbNullString Then
-            last_row = ThisWorkbook.sheets("xsurvey_choices").Cells(rows.count, "K").End(xlUp).Row
+            last_row = ThisWorkbook.sheets("xsurvey_choices").Cells(Rows.count, "K").End(xlUp).Row
             For i = 2 To last_row
                 Me.ComboAns1.AddItem (ThisWorkbook.sheets("xsurvey_choices").Cells(i, "K"))
             Next i
@@ -64,16 +68,16 @@ Private Sub ComboQ2_Change()
     Dim last_row As Long
     Dim i As Long
     
-    If Me.ComboQ2.Value <> vbNullString Then
+    If Me.ComboQ2.value <> vbNullString Then
         Do While Me.ComboAns2.ListCount > 0
             Me.ComboAns2.RemoveItem (0)
         Loop
         
-        Me.ComboAns2.Value = vbNullString
+        Me.ComboAns2.value = vbNullString
         Call extract_choice(Me.ComboQ2)
         
         If ThisWorkbook.sheets("xsurvey_choices").Cells(2, "K") <> vbNullString Then
-            last_row = ThisWorkbook.sheets("xsurvey_choices").Cells(rows.count, "K").End(xlUp).Row
+            last_row = ThisWorkbook.sheets("xsurvey_choices").Cells(Rows.count, "K").End(xlUp).Row
             For i = 2 To last_row
                 Me.ComboAns2.AddItem (ThisWorkbook.sheets("xsurvey_choices").Cells(i, "K"))
             Next i
@@ -118,9 +122,9 @@ Private Sub CommanSave_Click()
         Exit Sub
         
     ElseIf Len(Me.ComboAns1) = 0 And _
-        (Me.ComboOp1.Value = "is equal" Or Me.ComboOp1.Value = "is not equal" Or _
-         Me.ComboOp1.Value = "is greater than" Or Me.ComboOp1.Value = "is greater than or equal" Or _
-         Me.ComboOp1.Value = "is less than" Or Me.ComboOp1.Value = "is less than or equal") Then
+        (Me.ComboOp1.value = "is equal" Or Me.ComboOp1.value = "is not equal" Or _
+         Me.ComboOp1.value = "is greater than" Or Me.ComboOp1.value = "is greater than or equal" Or _
+         Me.ComboOp1.value = "is less than" Or Me.ComboOp1.value = "is less than or equal") Then
         MsgBox "This is not a valid checking role! Complete in the first part. ans  ", vbCritical
         Exit Sub
         
@@ -129,14 +133,14 @@ Private Sub CommanSave_Click()
         Exit Sub
     
     ElseIf Len(Me.ComboAns2) = 0 And _
-        (Me.ComboOp2.Value = "is equal" Or Me.ComboOp2.Value = "is not equal" Or _
-         Me.ComboOp2.Value = "is greater than" Or Me.ComboOp2.Value = "is greater than or equal" Or _
-         Me.ComboOp2.Value = "is less than" Or Me.ComboOp2.Value = "is less than or equal") Then
+        (Me.ComboOp2.value = "is equal" Or Me.ComboOp2.value = "is not equal" Or _
+         Me.ComboOp2.value = "is greater than" Or Me.ComboOp2.value = "is greater than or equal" Or _
+         Me.ComboOp2.value = "is less than" Or Me.ComboOp2.value = "is less than or equal") Then
         MsgBox "This is not a valid checking role! Complete in the second part. ans  ", vbCritical
         Exit Sub
     End If
   
-    new_row = ws.Cells(rows.count, 1).End(xlUp).Row + 1
+    new_row = ws.Cells(Rows.count, 1).End(xlUp).Row + 1
     
     If new_row = 2 And ws.Cells(1, 1) = "" Then
         new_row = 1
@@ -153,7 +157,7 @@ Private Sub CommanSave_Click()
     
     End If
     
-    If Me.ComboOp1.Value = "is empty" Or Me.ComboOp1.Value = "is not empty" Then
+    If Me.ComboOp1.value = "is empty" Or Me.ComboOp1.value = "is not empty" Then
         ws.Cells(new_row, 3) = vbNullString
     Else
         If IsNumeric(Me.ComboAns1) And Len(Me.ComboAns1) > 0 Then
@@ -170,7 +174,7 @@ Private Sub CommanSave_Click()
     ws.Cells(new_row, 5) = Me.ComboQ2
     ws.Cells(new_row, 6) = Me.ComboOp2
     
-    If Me.ComboOp2.Value = "is empty" Or Me.ComboOp2.Value = "is not empty" Then
+    If Me.ComboOp2.value = "is empty" Or Me.ComboOp2.value = "is not empty" Then
         ws.Cells(new_row, 7) = vbNullString
     Else
         If IsNumeric(Me.ComboAns2) And Len(Me.ComboAns2) > 0 Then
@@ -180,7 +184,7 @@ Private Sub CommanSave_Click()
         End If
     End If
     
-    If Me.ComboQ2 = vbNullString Then
+    If Me.ComboQ2.value = vbNullString Then
         ws.Cells(new_row, 4) = vbNullString
         ws.Cells(new_row, 5) = vbNullString
         ws.Cells(new_row, 6) = vbNullString
@@ -205,8 +209,8 @@ End Sub
 
 Sub remove_duplicated_plan()
     Dim last_row  As Long
-    last_row = ThisWorkbook.sheets("xlogical_checks").Cells(rows.count, 1).End(xlUp).Row
-    ThisWorkbook.sheets("xlogical_checks").Range("$A$1:$H$" & last_row).RemoveDuplicates columns:=Array(1, 2, 3, 4, 5, 6, 7, 8), Header:=xlNo
+    last_row = ThisWorkbook.sheets("xlogical_checks").Cells(Rows.count, 1).End(xlUp).Row
+    ThisWorkbook.sheets("xlogical_checks").Range("$A$1:$H$" & last_row).RemoveDuplicates Columns:=Array(1, 2, 3, 4, 5, 6, 7, 8), Header:=xlNo
 End Sub
 
 Private Sub OptionAnd_Click()
@@ -222,9 +226,9 @@ Private Sub OptionOr_Click()
 End Sub
 
 Private Sub OptionSimple_Click()
-    Me.ComboQ2.Value = Null
-    Me.ComboOp2.Value = Null
-    Me.ComboAns2.Value = Null
+    Me.ComboQ2.value = Null
+    Me.ComboOp2.value = Null
+    Me.ComboAns2.value = Null
     Me.ComboQ2.Enabled = False
     Me.ComboOp2.Enabled = False
     Me.ComboAns2.Enabled = False
@@ -329,7 +333,7 @@ Private Function is_loaded(form_name As String) As Boolean
     On Error Resume Next
     Dim frm As Object
     For Each frm In VBA.UserForms
-        If frm.name = form_name Then
+        If frm.Name = form_name Then
             is_loaded = True
             Exit Function
         End If

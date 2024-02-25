@@ -14,11 +14,11 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
 Option Explicit
 
 Private Sub CommandRun_Click()
-    Dim t As Double
-    t = Timer
+    On Error GoTo errhandler
     Application.ScreenUpdating = False
     Dim SelectedItemIndex As Integer
     Dim i As Integer
@@ -40,8 +40,7 @@ Private Sub CommandRun_Click()
     Dim dis_count As Long
     Dim option_count As Long
     
-    If Me.ComboBoxDis = "" Then
-        Debug.Print "not selected dis..."
+    If Me.ComboBoxDis.value = vbNullString Then
         Exit Sub
     End If
     
@@ -54,13 +53,12 @@ Private Sub CommandRun_Click()
     Next i
     
     If SelectedItemIndex = -1 Then
-        Debug.Print "not selected var..."
         Exit Sub
     End If
     
     selected_var = ListBoxVars.List(SelectedItemIndex)
     
-    If selected_var = Me.ComboBoxDis.Value Then
+    If selected_var = Me.ComboBoxDis.value Then
         MsgBox "The disaggregation level and the selected variable are the same. Please choose another variable.", vbInformation
         Exit Sub
     End If
@@ -76,8 +74,8 @@ Private Sub CommandRun_Click()
     Set ws = sheets.Add(after:=sheets(sheets.count))
     ws.Name = sheetName & "-" & i
     
-    last_row = dm_ws.Cells(Rows.count, 1).End(xlUp).row
-    ws.Range("A1:B" & last_row).Value = dm_ws.Range("A1:B" & last_row).Value
+    last_row = dm_ws.Cells(Rows.count, 1).End(xlUp).Row
+    ws.Range("A1:B" & last_row).value = dm_ws.Range("A1:B" & last_row).value
     
     last_dm_col = dm_ws.Cells(3, Columns.count).End(xlToLeft).Column
     last_dm_col_letter = number_to_letter(last_dm_col, dm_ws)
@@ -96,45 +94,108 @@ Private Sub CommandRun_Click()
     chart_col_end = number_to_letter(k + 1, ws)
     dm_col_start = number_to_letter(m + 5 - k, dm_ws)
     dm_col_end = number_to_letter(m + 3, dm_ws)
-    ws.Range("C1:" & chart_col_end & last_row).Value = dm_ws.Range(dm_col_start & "1:" & dm_col_end & last_row).Value
+    ws.Range("C1:" & chart_col_end & last_row).value = dm_ws.Range(dm_col_start & "1:" & dm_col_end & last_row).value
     
     Call arrange_table(ws)
-
-    Debug.Print "after arrange table:", Timer - t
     
-    dis_count = ws.Cells(ws.Rows.count, 1).End(xlUp).row - 2
+    dis_count = ws.Cells(ws.Rows.count, 1).End(xlUp).Row - 2
     option_count = k - 3
     
     If option_count > 12 And dis_count > 35 Then
         Exit Sub
     End If
         
+    Call make_chart(ws)
+    
     Application.ScreenUpdating = True
+    Exit Sub
+    
+errhandler:
+    MsgBox " Oops!, Something went wrong!  ", vbInformation
+    Unload single_chart_form
+
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
+
+    Exit Sub
+    
 End Sub
 
-Private Sub make_chart(ws As Worksheet, dis_count As Long, option_count As Long)
-
+Private Sub make_chart(ws As Worksheet)
+    On Error Resume Next
     Dim rng As Range
-    Dim my_chart As Object
+    Dim ave_rng As Range
+    Dim med_rng As Range
+    Dim ave_chart As Object
+    Dim med_chart As Object
+    Dim cat_chart As Object
+    Dim last_row As Long
+    Dim last_col As Long
+    
+    last_row = ws.Cells(Rows.count, 1).End(xlUp).Row
+    last_col = ws.Cells(2, Columns.count).End(xlToLeft).Column
+    
+    If NUMERIC_CHART Then
+        
+        Set ave_chart = ws.Shapes.AddChart2
+        Set med_chart = ws.Shapes.AddChart2
+        Set ave_rng = ws.Range("A2:B" & last_row)
+        Set med_rng = Union(ws.Range("A2:A" & last_row), ws.Range("C2:C" & last_row))
+        With ave_chart.Chart
+            .SetSourceData ave_rng
+            .ChartType = xlColumnClustered
+            .SetElement (msoElementDataLabelOutSideEnd)
+            .HasLegend = False
+            .Parent.Width = 20 * last_row + 120
+            .Parent.Height = 200
+            .ChartTitle.Format.TextFrame2.TextRange.Font.Size = 10
+            .SeriesCollection(1).Interior.Color = RGB(4, 49, 76)
+            .ChartTitle.Text = left(ws.Range("A1").value, 150) & " [Average]"
+            .Parent.top = 0
+            .Parent.left = 230
+        End With
+    
+        With med_chart.Chart
+            .SetSourceData med_rng
+            .ChartType = xlColumnClustered
+            .SetElement (msoElementDataLabelOutSideEnd)
+            .HasLegend = False
+            .Parent.Width = 20 * last_row + 120
+            .Parent.Height = 200
+            .ChartTitle.Format.TextFrame2.TextRange.Font.Size = 10
+            .SeriesCollection(1).Interior.Color = RGB(4, 49, 76)
+            .ChartTitle.Text = left(ws.Range("A1").value, 150) & " [Median]"
+            .Parent.top = 210
+            .Parent.left = 230
+        End With
+        
+    Else
+        Set rng = ws.UsedRange
+        Set rng = rng.Offset(1, 0).Resize(rng.Rows.count - 1)
+        Set cat_chart = ws.Shapes.AddChart2
 
-    Set rng = ws.UsedRange
-    Set rng = rng.Offset(1, 0).Resize(rng.Rows.count - 1)
-    Set my_chart = ws.Shapes.AddChart2
+        With cat_chart.Chart
+            .SetSourceData rng
+            .ChartType = xlColumnClustered
+            .PlotBy = xlColumns
+            .SetElement (msoElementDataLabelOutSideEnd)
+            .Parent.Width = 22 * last_row + 30 * last_col
+            .ChartTitle.Format.TextFrame2.TextRange.Font.Size = 10
+            .SeriesCollection(1).Interior.Color = RGB(4, 49, 76)
+            .ChartTitle.Text = left(ws.Range("A1").value, 150) & " [Percentage]"
+            .Parent.Height = 300
+            .ApplyLayout (3)
     
-    CHART_COUNT = CHART_COUNT + 1
-    
-    With my_chart.Chart
-        .SetSourceData rng
-        .ChartType = xlColumnClustered
-        .SetElement (msoElementDataLabelOutSideEnd)
-        .Parent.Width = 100
-        .ChartTitle.Format.TextFrame2.TextRange.Font.Size = 10
-        .SeriesCollection(1).Interior.Color = RGB(4, 49, 76)
-        .ChartTitle.Text = ws.Range("A1").Value
-        .Parent.top = 10
-        .Parent.left = 10
-    End With
-    
+            If last_col > 4 Then
+                .Parent.top = ws.Range("A" & last_row + 2).top
+                .Parent.left = 0
+            Else
+                .Parent.top = 0
+                .Parent.left = ws.Cells(2, last_col + 1).left + 10
+            End If
+        End With
+        
+    End If
 End Sub
 
 Private Sub arrange_table(ws As Worksheet)
@@ -147,12 +208,12 @@ Private Sub arrange_table(ws As Worksheet)
     Dim i As Long
     Dim rng As Range
     
-    dis_level = Me.ComboBoxDis.Value
-    last_row = ws.Cells(ws.Rows.count, 1).End(xlUp).row
+    dis_level = Me.ComboBoxDis.value
+    last_row = ws.Cells(ws.Rows.count, 1).End(xlUp).Row
     last_col = ws.Cells(3, Columns.count).End(xlToLeft).Column
 
     For i = last_row To 5 Step -1
-        If ws.Cells(i, 1).Value <> dis_level Then
+        If ws.Cells(i, 1).value <> dis_level Then
             ws.Rows(i).Delete
         End If
     Next i
@@ -181,7 +242,8 @@ Private Sub arrange_table(ws As Worksheet)
     With ws.Range("A1:" & last_col_letter & 1)
         .Interior.Color = RGB(170, 170, 170)
         .HorizontalAlignment = xlCenter
-        .VerticalAlignment = xlCenter
+        .VerticalAlignment = xlTop
+        .WrapText = True
     End With
     
     With ws.Range("A2")
@@ -198,7 +260,7 @@ Private Sub arrange_table(ws As Worksheet)
        
     ws.Cells.Font.Size = 9
     ws.Rows("1:1").Font.Size = 10
-    ws.Rows("1:1").RowHeight = 20
+    ws.Rows("1:1").RowHeight = 27
     
     If NUMERIC_CHART Then
         ws.Columns("A:C").ColumnWidth = 12
@@ -218,6 +280,7 @@ Private Sub arrange_table(ws As Worksheet)
     
 End Sub
 
+
 Private Sub TextBoxSearch_Change()
     Dim filterText As String
     Dim originalItems As Variant
@@ -234,7 +297,7 @@ Private Sub TextBoxSearch_Change()
     Dim rng As Range
     Dim filtered_rng As Range
     
-    Set ws = ThisWorkbook.sheets("indi_list")
+    Set ws = sheets("indi_list")
     Set rng = ws.Range("A1").CurrentRegion
     
     filterText = LCase(TextBoxSearch.Text)
@@ -267,8 +330,8 @@ Private Sub TextBoxSearch_Change()
         For Each cell In filtered_rng.Rows
             Me.ListBoxVars.AddItem
             rowIdx = Me.ListBoxVars.ListCount - 1
-            Me.ListBoxVars.List(rowIdx, 0) = cell.Cells(1, 1).Value
-            Me.ListBoxVars.List(rowIdx, 1) = cell.Cells(1, 2).Value
+            Me.ListBoxVars.List(rowIdx, 0) = cell.Cells(1, 1).value
+            Me.ListBoxVars.List(rowIdx, 1) = cell.Cells(1, 2).value
         Next cell
         
     End If
@@ -289,7 +352,7 @@ Private Sub UserForm_Initialize()
         Exit Sub
     End If
     
-    Set ws = ThisWorkbook.sheets("indi_list")
+    Set ws = sheets("indi_list")
     Set rng = ws.Range("A1").CurrentRegion
     Me.TextBoxSearch.BorderStyle = 1
     With Me.ListBoxVars
@@ -300,25 +363,31 @@ Private Sub UserForm_Initialize()
     For Each cell In rng.Rows
         Me.ListBoxVars.AddItem
         rowIdx = Me.ListBoxVars.ListCount - 1
-        Me.ListBoxVars.List(rowIdx, 0) = cell.Cells(1, 1).Value
-        Me.ListBoxVars.List(rowIdx, 1) = cell.Cells(1, 2).Value
+        Me.ListBoxVars.List(rowIdx, 0) = cell.Cells(1, 1).value
+        Me.ListBoxVars.List(rowIdx, 1) = cell.Cells(1, 2).value
     Next cell
     
     Set dis_rng = ws.Range("G1").CurrentRegion
     
     For Each cell In dis_rng
-        Me.ComboBoxDis.AddItem cell.Value
+        Me.ComboBoxDis.AddItem cell.value
     Next cell
     
     For Each cell In dis_rng
-        If cell.Value <> "ALL" Then
-            Me.ComboBoxDis.Value = cell.Value
+        If cell.value <> "ALL" Then
+            Me.ComboBoxDis.value = cell.value
             Exit For
         End If
         
     Next cell
     
 End Sub
+
+
+
+
+
+
 
 
 

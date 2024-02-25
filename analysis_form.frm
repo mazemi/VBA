@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} analysis_form 
    Caption         =   "Analysis"
-   ClientHeight    =   5394
+   ClientHeight    =   4908
    ClientLeft      =   -576
    ClientTop       =   -2682
    ClientWidth     =   7902
@@ -14,6 +14,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 
 
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
@@ -32,7 +33,7 @@ Private Sub CommandRunAnalysis_Click()
     Dim uuid_col As Long
     Dim start_time As Double
     start_time = Timer
-    On Error GoTo errHandler
+    On Error GoTo errhandler
     
     If Not worksheet_exists("disaggregation_setting") Then
         MsgBox "Please set the disaggregation levels. ", vbInformation
@@ -83,19 +84,13 @@ Private Sub CommandRunAnalysis_Click()
     
     DoEvents
     
-    If Me.CheckBoxNonSeletedOptions Then
-        sheets("disaggregation_setting").Range("F1") = True
-    Else
-        sheets("disaggregation_setting").Range("F1") = False
-    End If
-    
     Me.dmLabel.Visible = False
     Debug.Print "start analysis: ", Timer - t
     Call do_analize
 
-    str_info = vbLf & analysis_form.TextInfo.Value
+    str_info = vbLf & analysis_form.TextInfo.value
     txt = "Generating Datamerge... " & str_info
-    Me.TextInfo.Value = txt
+    Me.TextInfo.value = txt
     Me.Repaint
     
     Debug.Print "start datamerge: ", Timer - t
@@ -112,7 +107,7 @@ Private Sub CommandRunAnalysis_Click()
     
     Exit Sub
 
-errHandler:
+errhandler:
 
     Call remove_tmp
     MsgBox " Oops!, Something went wrong! Pleass check properly your main dataset, disaggregation levels and analysis variables.  ", vbInformation
@@ -148,7 +143,7 @@ Private Sub UserForm_Initialize()
     If worksheet_exists("datamerge") Then
         Me.dmLabel.Visible = True
     End If
-    Me.CheckBoxNonSeletedOptions.Value = True
+'    Me.CheckBoxNonSeletedOptions.value = True
     
     Public_module.DATA_SHEET = find_main_data
     Me.Frame1.BorderStyle = fmBorderStyleSingle
