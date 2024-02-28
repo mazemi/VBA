@@ -111,6 +111,10 @@ Private Sub LabelReset_Click()
             sheets("result").Delete
         End If
         
+        If worksheet_exists("dm_backend") Then
+            sheets("dm_backend").Delete
+        End If
+        
         ThisWorkbook.sheets("xsurvey").Cells.Clear
         ThisWorkbook.sheets("xchoices").Cells.Clear
         ThisWorkbook.sheets("xsurvey_choices").Cells.Clear
@@ -150,11 +154,14 @@ Private Sub UserForm_Initialize()
     Me.LabelVersion.Caption = "version " & VERSION
 End Sub
 
+
 Private Sub PopulateComboBox()
     On Error Resume Next
+    Dim ws As Worksheet
+    Dim sheet_li As Collection
+    Dim sh As Variant
     Dim header_arr() As Variant
     Dim filtered_arr() As String
-    Dim ws As Worksheet
     
     Set ws = ActiveWorkbook.ActiveSheet
 
@@ -168,26 +175,16 @@ Private Sub PopulateComboBox()
     
     Me.ComboAudit.List = filtered_arr
     
-    Dim sheet_li As Collection
-    
-    'Get the collection of worksheet names
     Set sheet_li = sheet_list
     
-    'name of a sheet
-    Dim sh As Variant
-    
     For Each sh In sheet_li
-        If ActiveWorkbook.Worksheets(CStr(sh)).Visible Then
-            If CStr(sh) <> "result" And CStr(sh) <> "log_book" And CStr(sh) <> "analysis_list" And _
-               CStr(sh) <> "disaggregation_setting" And CStr(sh) <> "overall" And CStr(sh) <> "survey" And _
-                CStr(sh) <> "keen" And CStr(sh) <> "indi_list" And CStr(sh) <> "temp_sheet" And _
-                CStr(sh) <> "choices" And CStr(sh) <> "datamerge" And CStr(sh) <> "dm_backend" Then
-                Me.ComboData.AddItem sh
-            End If
+        If ActiveWorkbook.Worksheets(CStr(sh)).Visible And Not IsInArray(CStr(sh), InitializeExcludedSheets) And left(CStr(sh), 6) <> "chart-" Then
+            Me.ComboData.AddItem sh
         End If
     Next sh
     
 End Sub
+
 
 Private Sub CommandTools_Click()
     

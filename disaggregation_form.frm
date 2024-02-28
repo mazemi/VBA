@@ -205,6 +205,10 @@ End Sub
 Private Sub UserForm_Initialize()
     On Error GoTo err_handler
     Application.ScreenUpdating = False
+    Dim disaggregation_ws As Worksheet, dis_rng As Range
+    Dim sheet_li As Collection
+    Dim sh As Variant
+    
     Me.CheckBoxAll.value = True
     If Not worksheet_exists("disaggregation_setting") Then
         Call create_sheet(sheets(sheets.count).Name, "disaggregation_setting")
@@ -220,23 +224,15 @@ Private Sub UserForm_Initialize()
     End If
     
     dt_sheet_name = find_main_data
-  
+    Set sheet_li = sheet_list
+    
     If worksheet_exists(dt_sheet_name) Then
         Me.ComboSheets.Text = dt_sheet_name
     End If
-
-    Dim disaggregation_ws As Worksheet, dis_rng As Range
-    Dim sheet_li As Collection
-    Set sheet_li = sheet_list
-    Dim sh As Variant
+    
     For Each sh In sheet_li
-        If ActiveWorkbook.Worksheets(CStr(sh)).Visible Then
-            If CStr(sh) <> "result" And CStr(sh) <> "log_book" And CStr(sh) <> "analysis_list" And _
-               CStr(sh) <> "disaggregation_setting" And CStr(sh) <> "overall" And CStr(sh) <> "survey" And _
-               CStr(sh) <> "keen" And CStr(sh) <> "indi_list" And CStr(sh) <> "temp_sheet" And _
-               CStr(sh) <> "choices" And CStr(sh) <> "xsurvey_choices" And CStr(sh) <> "datamerge" And CStr(sh) <> "dm_backend" Then
-                Me.ComboSheets.AddItem sh
-            End If
+        If ActiveWorkbook.Worksheets(CStr(sh)).Visible And Not IsInArray(CStr(sh), InitializeExcludedSheets) And left(CStr(sh), 6) <> "chart-" Then
+            Me.ComboSheets.AddItem sh
         End If
     Next sh
     
