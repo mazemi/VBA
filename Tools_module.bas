@@ -579,18 +579,17 @@ Sub check_choice_duplicates()
         Set rng = ws.Range("M1").CurrentRegion
         rng.RemoveDuplicates Columns:=Array(1, 2), Header:=xlNo
         Set rng = ws.Range("M1").CurrentRegion
+     
+        For k = 1 To rng.Rows.count
+            msg = msg & vbCrLf & "question: " & rng.Cells(k, 1).value & " , choice: " & rng.Cells(k, 2).value
+        Next k
+                
+        If msg <> vbNullString Then
+            MsgBox "There are some repetitive questions or choices in your KOBO tool." & _
+                " Please first check the tool and import it again." & _
+                " If you would like to ignore this message, these questions won't be analyzed." & vbCrLf & _
+                msg, vbInformation
+        End If
     End If
-    
-    For k = 1 To rng.Rows.count
-        msg = msg & vbCrLf & "question: " & rng.Cells(k, 1).value & " , choice: " & rng.Cells(k, 2).value
-    Next k
-            
-    If msg <> vbNullString Then
-        MsgBox "There are some repetitive questions or choices in your KOBO tool." & _
-            " Please first check the tool and import it again." & _
-            " If you would like to ignore this message, these questions won't be analyzed." & vbCrLf & _
-            msg, vbInformation
-    End If
-    
     ws.Columns("M:N").Clear
 End Sub

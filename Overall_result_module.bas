@@ -387,8 +387,8 @@ Sub make_seperate_data()
         
         tool_type = question_type(t_sheet.Cells(1, 1))
         
-        
-        If choices_numbers(m) = 2 And (tool_type = "select_one" Or tool_type = "select_one_external") Then
+        If choices_numbers(m) = 2 And tbl_rng.Value2(3, 2) > 3 And _
+            (tool_type = "select_one" Or tool_type = "select_one_external") Then
             chart_type = "pie"
         ElseIf choices_numbers(m) < 16 Then
             chart_type = "col"
@@ -396,8 +396,7 @@ Sub make_seperate_data()
             chart_type = "bar"
         End If
         
-        
-        If choices_numbers(m) > 4 And choices_numbers(m) < 16 Then
+        If (m) > 4 And choices_numbers(m) < 16 Then
             chart_width = Application.WorksheetFunction.Round(choices_numbers(m) * 290 / 4, 0)
         ElseIf choices_numbers(m) >= 16 And choices_numbers(m) < 35 Then
             chart_height = Application.WorksheetFunction.Round(choices_numbers(m) * 57 / 4, 0)
@@ -433,7 +432,7 @@ Sub make_seperate_data()
 End Sub
 
 Sub add_barchart(input_rng As Range, title As String, chart_type As String, top As String, left As String, Optional chart_width As Long, Optional chart_height As Long)
-'    On Error Resume Next
+    On Error Resume Next
     Dim ws As Worksheet
     Dim rng As Range
     Dim my_chart As Object

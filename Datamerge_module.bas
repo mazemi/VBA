@@ -218,7 +218,7 @@ Sub lookup()
     Set temp_ws = sheets("temp_sheet")
     Set rng = res_ws.Range("A1").CurrentRegion
     temp_ws.Cells.Clear
-    
+    temp_ws.Visible = xlSheetVisible
     last_row_res = res_ws.Cells(Rows.count, 1).End(xlUp).Row
     last_row_dm = dm_ws.Cells(Rows.count, 1).End(xlUp).Row
     last_col = dm_ws.Cells(3, dm_ws.Columns.count).End(xlToLeft).Column
@@ -236,7 +236,7 @@ Sub lookup()
         
         rng.AdvancedFilter xlFilterCopy, temp_ws.Range("D1").CurrentRegion, temp_ws.Range("A1:B1")
         last_row_temp = temp_ws.Cells(Rows.count, "A").End(xlUp).Row
-            
+        
         arr = temp_ws.Range("A2:B" & last_row_temp)
         For j = 1 To UBound(arr, 1)
             dm_ws.Cells(i + 4, arr(j, 2) + 4) = arr(j, 1)

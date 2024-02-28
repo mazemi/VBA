@@ -12,6 +12,26 @@ Global CURRENT_WORK_BOOK As Workbook
 Global CHART_COUNT As Long
 Global NUMERIC_CHART As Boolean
 
+Function InitializeExcludedSheets() As Variant
+    Dim internalSheets() As Variant
+    internalSheets = Array("result", "log_book", "analysis_list", "disaggregation_setting", _
+                            "overall", "survey", "keen", "keen2", "indi_list", "temp_sheet", _
+                            "choices", "datamerge", "dm_backend")
+                            
+     InitializeExcludedSheets = internalSheets
+End Function
+
+Function IsInArray(valToFind As String, arr As Variant) As Boolean
+    Dim element As Variant
+    For Each element In arr
+        If element = valToFind Then
+            IsInArray = True
+            Exit Function
+        End If
+    Next element
+    IsInArray = False
+End Function
+
 Public Function number_to_letter(col_num As Long, input_ws As Worksheet) As String
     On Error Resume Next
     Dim vArr
@@ -523,7 +543,7 @@ Function check_empty_cells(ws As Worksheet, col_num As Long) As Boolean
     Dim lastRow As Long
     Dim columnToCheck As Integer
     Dim i As Long
-    lastRow = ws.Cells(ws.Rows.count, col_num).End(xlUp).Row
+    lastRow = ws.Cells(ws.Rows.count, uuid_coln).End(xlUp).Row
 
     For i = 1 To lastRow
         If IsEmpty(ws.Cells(i, col_num).value) Then
@@ -590,7 +610,6 @@ Function check_null_dis_levels() As String
 End Function
 
 Private Function show_sheet()
-'    sheets("keen").Visible = True
     sheets("dm_backend").Visible = True
 End Function
 
