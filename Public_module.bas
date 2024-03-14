@@ -11,6 +11,7 @@ Global CANCEL_PROCESS As Boolean
 Global CURRENT_WORK_BOOK As Workbook
 Global CHART_COUNT As Long
 Global NUMERIC_CHART As Boolean
+Global CHOSEN_CHART As Integer
 
 Function InitializeExcludedSheets() As Variant
     Dim internalSheets() As Variant
@@ -81,12 +82,12 @@ Public Function column_letter(column_value As String) As String
     End If
 End Function
 
-Public Function gen_column_number(column_value As String, sheet_name As String) As Long
+Public Function gen_column_number(column_value As String, SHEET_NAME As String) As Long
     On Error Resume Next
     Dim colNum As Long
     Dim worksheetName As String
 
-    colNum = Application.Match(column_value, sheets(sheet_name).Range("1:1"), 0)
+    colNum = Application.Match(column_value, sheets(SHEET_NAME).Range("1:1"), 0)
     
     If Not IsError(colNum) Then
         gen_column_number = colNum
@@ -96,12 +97,12 @@ Public Function gen_column_number(column_value As String, sheet_name As String) 
     
 End Function
 
-Public Function this_gen_column_number(column_value As String, sheet_name As String) As Long
+Public Function this_gen_column_number(column_value As String, SHEET_NAME As String) As Long
     On Error Resume Next
     Dim colNum As Long
     Dim worksheetName As String
 
-    colNum = Application.Match(column_value, ThisWorkbook.sheets(sheet_name).Range("1:1"), 0)
+    colNum = Application.Match(column_value, ThisWorkbook.sheets(SHEET_NAME).Range("1:1"), 0)
     
     If Not IsError(colNum) Then
         this_gen_column_number = colNum
@@ -111,15 +112,15 @@ Public Function this_gen_column_number(column_value As String, sheet_name As Str
     
 End Function
 
-Public Function gen_column_letter(column_value As String, sheet_name As String) As String
+Public Function gen_column_letter(column_value As String, SHEET_NAME As String) As String
     On Error Resume Next
     Dim colNum As Long
     Dim vArr
 
-    colNum = Application.Match(column_value, sheets(sheet_name).Range("1:1"), 0)
+    colNum = Application.Match(column_value, sheets(SHEET_NAME).Range("1:1"), 0)
     
     If Not IsError(colNum) Then
-        gen_column_letter = Replace(sheets(sheet_name).Cells(1, colNum).Address(False, False), "1", "")
+        gen_column_letter = Replace(sheets(SHEET_NAME).Cells(1, colNum).Address(False, False), "1", "")
     Else
         gen_column_letter = ""
     End If
@@ -141,7 +142,7 @@ Public Function data_column_letter(column_value As String) As String
     End If
 End Function
 
-Public Function uuid_coln() As Long
+Public Function find_uuid_coln() As Long
     On Error Resume Next
     Dim colNum As Long
     Dim worksheetName As String
@@ -149,9 +150,9 @@ Public Function uuid_coln() As Long
     colNum = Application.Match("_uuid", sheets(find_main_data).Range("1:1"), 0)
     
     If Not IsError(colNum) Then
-        uuid_coln = colNum
+        find_uuid_coln = colNum
     Else
-        uuid_coln = 0
+        find_uuid_coln = 0
     End If
 End Function
 
@@ -384,7 +385,7 @@ Sub no_value_col()
         With empty_col_form.ListBoxEmptyCols
             .ColumnHeads = True
             .columnCount = 2
-            .ColumnWidths = "60;140"
+            .columnWidths = "60;140"
         End With
         
         Set rng = sheets("temp_sheet").Range("A1").CurrentRegion
@@ -433,13 +434,13 @@ End Sub
 
 ' return the label of main measurement
 Function var_label(var As String) As String
-    On Error GoTo errhandler
+    On Error GoTo errHandler
     
     Dim last_row_survey As Long
     Dim v_label As String
     
     last_row_survey = ThisWorkbook.Worksheets("xsurvey").Cells(Rows.count, 1).End(xlUp).Row
-    v_label = WorksheetFunction.Index(ThisWorkbook.sheets("xsurvey").Range("C2:C" & last_row_survey), _
+    v_label = WorksheetFunction.index(ThisWorkbook.sheets("xsurvey").Range("C2:C" & last_row_survey), _
             WorksheetFunction.Match(var, ThisWorkbook.sheets("xsurvey").Range("B2:B" & last_row_survey), 0))
                 
     If v_label = vbNullString Then
@@ -450,7 +451,7 @@ Function var_label(var As String) As String
     End If
     Exit Function
                 
-errhandler:
+errHandler:
     var_label = var
     
 End Function
@@ -458,7 +459,7 @@ End Function
 ' return the label of choice, if not not found return the original choice value
 Function choice_label(question As String, choice As String) As String
 
-    On Error GoTo errhandler
+    On Error GoTo errHandler
     
     Dim ws_sc As Worksheet
     Set ws_sc = ThisWorkbook.sheets("xsurvey_choices")
@@ -467,12 +468,12 @@ Function choice_label(question As String, choice As String) As String
     question_choice = question & choice
     
     last_row_xsurvey_choices = ws_sc.Cells(Rows.count, 1).End(xlUp).Row
-    choice_label = WorksheetFunction.Index(ws_sc.Range("E2:E" & last_row_xsurvey_choices), _
+    choice_label = WorksheetFunction.index(ws_sc.Range("E2:E" & last_row_xsurvey_choices), _
                         WorksheetFunction.Match(question_choice, ws_sc.Range("F2:F" & last_row_xsurvey_choices), 0))
 
     Exit Function
 
-errhandler:
+errHandler:
     choice_label = choice
 
 End Function
@@ -543,7 +544,7 @@ Function check_empty_cells(ws As Worksheet, col_num As Long) As Boolean
     Dim lastRow As Long
     Dim columnToCheck As Integer
     Dim i As Long
-    lastRow = ws.Cells(ws.Rows.count, uuid_coln).End(xlUp).Row
+    lastRow = ws.Cells(ws.Rows.count, find_uuid_coln).End(xlUp).Row
 
     For i = 1 To lastRow
         If IsEmpty(ws.Cells(i, col_num).value) Then
@@ -610,7 +611,7 @@ Function check_null_dis_levels() As String
 End Function
 
 Private Function show_sheet()
-    sheets("dm_backend").Visible = True
+    sheets("indi_list").Visible = True
 End Function
 
 Function ColumnNumberToLetter(colNumber As Integer) As String

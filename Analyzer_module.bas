@@ -49,7 +49,7 @@ Sub do_analize()
             dis_arr = .Range("A2:B" & last_dis)
         End With
 
-        last_row_main_data = main_ws.Cells(Rows.count, uuid_coln).End(xlUp).Row
+        last_row_main_data = main_ws.Cells(Rows.count, find_uuid_coln).End(xlUp).Row
         data_rows = CStr(2) & ":" & CStr(last_row_main_data)
         last_col = main_ws.Cells(1, Columns.count).End(xlToLeft).Column
         last_col_letter = number_to_letter(last_col, main_ws)
@@ -161,7 +161,7 @@ Sub do_analize()
                 keen_ws.Range("A1") = var_arr(i, 1)
                 keen_ws.Rows(data_rows).Clear
     
-                On Error GoTo criticalErrHandler
+                On Error GoTo criticalerrHandler
                 main_rng.AdvancedFilter xlFilterCopy, cr_rng, keen_ws.Range("A1").CurrentRegion
                 On Error GoTo 0
     
@@ -202,7 +202,7 @@ NextIteration:
             wb.Save
             Exit Sub
 
-criticalErrHandler:
+criticalerrHandler:
             Application.ScreenUpdating = True
             Application.DisplayAlerts = True
 
@@ -1063,6 +1063,13 @@ Sub unify_data()
     Dim end_row As Long
     Dim k As Long
     Dim last_dis As Long
+    Dim dis_arr As Variant
+    Dim data_arr As Variant
+    Dim total_sum As Single
+    Dim total_count As Long
+    Dim unique_data_arr As Variant
+    Dim v As Variant
+    Dim keen2_ws As Worksheet
     
     Set ws = sheets("keen")
     ws.Columns("O:AZ").Clear
@@ -1089,16 +1096,6 @@ Sub unify_data()
         Next j
     Next i
     
-    ' Set SELECT_MULTIPLE_COLL = New Collection
-    Dim dis_arr As Variant
-    Dim data_arr As Variant
-    Dim total_sum As Single
-    Dim total_count As Long
-    Dim unique_data_arr As Variant
-    Dim v As Variant
-    Dim keen2_ws As Worksheet
-
-    'Set SELECT_MULTIPLE_COLL = Nothing
     If Not worksheet_exists("keen2") Then
         Call create_sheet(find_main_data, "keen2")
         sheets("keen2").Visible = xlVeryHidden
@@ -1143,48 +1140,35 @@ Function sum_weight_when(arr As Variant, criteria As String, col_index As Long) 
     sum_weight_when = sum
 End Function
 
-Sub check_result_sheet(sheet_name As String)
+Sub check_result_sheet(SHEET_NAME As String)
     Dim wb As Workbook
+    Dim resultSheet As Worksheet
+    Dim i As Integer
+    Dim column_widths As Variant
+    
     Set wb = ActiveWorkbook
     
     If Not worksheet_exists("result") Then
-        Call create_sheet(sheet_name, "result")
-        wb.sheets("result").Cells(1, 1) = "row"
-        wb.sheets("result").Cells(1, 2) = "disaggregation"
-        wb.sheets("result").Cells(1, 3) = "disaggregation value"
-        wb.sheets("result").Cells(1, 4) = "disaggregation label"
-        wb.sheets("result").Cells(1, 5) = "variable"
-        wb.sheets("result").Cells(1, 6) = "variable label"
-        wb.sheets("result").Cells(1, 7) = "valid numbers"
-        wb.sheets("result").Cells(1, 8) = "measurement type"
-        wb.sheets("result").Cells(1, 9) = "measurement value"
-        wb.sheets("result").Cells(1, 10) = "count"
-        wb.sheets("result").Cells(1, 11) = "choice"
-        wb.sheets("result").Cells(1, 12) = "choice label"
-        wb.sheets("result").Cells(1, 13) = "weight"
-        wb.sheets("result").Cells(1, 14) = "hkey"
-        wb.sheets("result").Cells(1, 15) = "hkey order"
-        
-        wb.sheets("result").Columns(1).ColumnWidth = 6
-        wb.sheets("result").Columns(2).ColumnWidth = 15
-        wb.sheets("result").Columns(3).ColumnWidth = 18
-        wb.sheets("result").Columns(4).ColumnWidth = 25
-        wb.sheets("result").Columns(5).ColumnWidth = 15
-        wb.sheets("result").Columns(6).ColumnWidth = 45
-        wb.sheets("result").Columns(7).ColumnWidth = 15
-        wb.sheets("result").Columns(8).ColumnWidth = 15
-        wb.sheets("result").Columns(9).ColumnWidth = 20
-        wb.sheets("result").Columns(10).ColumnWidth = 10
-        wb.sheets("result").Columns(11).ColumnWidth = 15
-        wb.sheets("result").Columns(12).ColumnWidth = 45
-        wb.sheets("result").Columns(13).ColumnWidth = 7
-        wb.sheets("result").Columns(14).ColumnWidth = 45
-        wb.sheets("result").Columns(15).ColumnWidth = 15
+        Call create_sheet(SHEET_NAME, "result")
+        Set resultSheet = wb.sheets("result")
+        With resultSheet
+            .Cells(1, 1).Resize(1, 15).value = Array("row", "disaggregation", "disaggregation value", "disaggregation label", _
+                                                      "variable", "variable label", "valid numbers", "measurement type", _
+                                                      "measurement value", "count", "choice", "choice label", "weight", _
+                                                      "hkey", "hkey order")
+            
+            ' column widths
+            column_widths = Array(6, 15, 18, 25, 15, 45, 15, 15, 20, 10, 15, 45, 7, 45, 15)
+            For i = 1 To 15
+                .Columns(i).ColumnWidth = column_widths(i - 1)
+            Next i
+            
+            .Columns("B:F").NumberFormat = "@"
+            .Columns("K:M").NumberFormat = "@"
+            .Visible = False
+        End With
     End If
-    
-    wb.sheets("result").Columns("B:F").NumberFormat = "@"
-    wb.sheets("result").Columns("K:M").NumberFormat = "@"
-    wb.sheets("result").Visible = False
+
 End Sub
 
 ' check if main data sheet has weight column or not
@@ -1249,9 +1233,6 @@ End Sub
 
 Sub delete_un_selected_choices()
     Application.ScreenUpdating = False
-    
-    Dim t As Double
-    t = Timer
     Dim ws As Worksheet
     Dim dis_ws As Worksheet
     Dim lastRow As Long
@@ -1314,10 +1295,8 @@ Sub delete_un_selected_choices()
     Next cell
     
     Call delete_zero_values(var_arr)
-    
     dis_ws.Columns("K:Q").Clear
     
-    Debug.Print "removed zeros:", Timer - t
 End Sub
 
 Sub delete_zero_values(cr() As String)

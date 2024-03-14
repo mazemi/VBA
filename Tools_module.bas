@@ -262,13 +262,13 @@ Sub make_survey_choice()
     
 End Sub
 
-Sub delete_irrelevant_columns(sheet_name As String)
+Sub delete_irrelevant_columns(SHEET_NAME As String)
     Dim keepColumn As Boolean
     Dim currentColumn As Integer
     Dim columnHeading As String
     Dim temp_ws As Worksheet
 '    Set temp_ws = Worksheets(sheet_name)
-    Set temp_ws = ThisWorkbook.Worksheets(sheet_name)
+    Set temp_ws = ThisWorkbook.Worksheets(SHEET_NAME)
 
     currentColumn = 1
 
