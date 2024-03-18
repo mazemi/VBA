@@ -1,10 +1,8 @@
 Attribute VB_Name = "Info_module"
-Public Const VERSION As String = "2.1"
+Public Const VERSION As String = "2.2"
 
-' *********************************************************
-' Date: 25 Feb 2024
-' improved datamerge by removing non-seleted options.
-' improved charts for overall level.
-' added custom chart for all disaggregation levels.
-' *********************************************************
+' ***************************************************************
+' Date: 17 March 2024
+' added charts for other disaggregation levels rather than "ALL".
+' ***************************************************************
 

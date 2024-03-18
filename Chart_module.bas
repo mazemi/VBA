@@ -10,9 +10,11 @@ Global SHEET_NAME As String
 Global IS_OVERALL As Boolean
 
 Sub generate_multiple_data_chart(dis_level As String, val_collection As Collection, label_collection As Collection)
+    On Error GoTo errhandler
     Dim i As Integer
     Dim count As Integer
     wait_form.main_label = "Please wait ..."
+    wait_form.labelLine.Visible = True
     wait_form.Show vbModeless
     wait_form.Repaint
     
@@ -24,7 +26,6 @@ Sub generate_multiple_data_chart(dis_level As String, val_collection As Collecti
         Debug.Print val_collection.item(i)
         DISAGGREGATION_VALUE = val_collection.item(i)
         DISAGGREGATION_LABEL = label_collection.item(i)
-'        wait_form.main_label = "Please wait ..."
         wait_form.note = "Proccesing " & DISAGGREGATION_LABEL
         wait_form.Repaint
         Call generate_data_chart
@@ -32,10 +33,22 @@ Sub generate_multiple_data_chart(dis_level As String, val_collection As Collecti
     
     Unload wait_form
     
+    Exit Sub
+
+errhandler:
+
+If worksheet_exists("temp_sheet") Then
+    sheets("temp_sheet").Visible = xlSheetHidden
+    sheets("temp_sheet").Delete
+End If
+Application.ScreenUpdating = True
+MsgBox "Oops!, Something went wrong!                       ", vbCritical
+End
+
 End Sub
 
 Sub generate_data_chart()
-'    On Error GoTo errHandler
+    On Error GoTo errhandler
     Application.ScreenUpdating = False
     Dim res_sheet As Worksheet
     Dim temp_ws As Worksheet
@@ -64,6 +77,8 @@ Sub generate_data_chart()
     
     If IS_OVERALL Then
         wait_form.main_label = "Please wait ..."
+        wait_form.labelLine.Visible = True
+        wait_form.note = "Proccesing overall figures"
         wait_form.Show vbModeless
         wait_form.Repaint
     End If
@@ -148,11 +163,8 @@ Sub generate_data_chart()
     End With
     
     temp_ws.Columns("C:C").Cut
-    
     temp_ws.Columns("E:E").Select
-    
     ActiveSheet.Paste
-    
     temp_ws.Columns("C:C").Delete Shift:=xlToLeft
     
     ' sorting
@@ -173,11 +185,8 @@ Sub generate_data_chart()
     Next
     
     temp_ws.Activate
-    
     Call Range("A1").CurrentRegion.Sort(Key1:=Range("E2"), Order1:=xlAscending, Header:=xlYes)
-              
     temp_ws.Rows("1:1").Delete Shift:=xlUp
-
     Call make_seperate_data
     
 extract_avereges:
@@ -214,9 +223,6 @@ extract_avereges:
         res_sheet.ShowAllData
     End If
     
-    Application.DisplayAlerts = False
-
-    Application.DisplayAlerts = True
     sheets("result").Activate
     Call clear_active_filter
     chart_sheet.Activate
@@ -226,12 +232,12 @@ extract_avereges:
     End If
     
     chart_sheet.Columns("A:B").Font.Size = 10
-    
+    Application.DisplayAlerts = True
     Application.ScreenUpdating = True
     
 Exit Sub
 
-errHandler:
+errhandler:
 
 If worksheet_exists("temp_sheet") Then
     sheets("temp_sheet").Visible = xlSheetHidden
@@ -517,7 +523,7 @@ Sub add_barchart(input_rng As Range, title As String, chart_type As String, top 
 End Sub
 
 Sub add_border(rng As Range)
-'    On Error Resume Next
+
     rng.Borders(xlDiagonalDown).LineStyle = xlNone
     rng.Borders(xlDiagonalUp).LineStyle = xlNone
     With rng.Borders(xlEdgeLeft)

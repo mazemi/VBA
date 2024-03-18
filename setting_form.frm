@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} setting_form 
    Caption         =   "Setting"
-   ClientHeight    =   4962
+   ClientHeight    =   5022
    ClientLeft      =   -222
    ClientTop       =   -1032
-   ClientWidth     =   7932
+   ClientWidth     =   7812
    OleObjectBlob   =   "setting_form.frx":0000
    ShowModal       =   0   'False
    StartUpPosition =   1  'CenterOwner
@@ -14,11 +14,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
-
-
-
-
 
 Private Sub CommandSave_Click()
     On Error Resume Next
@@ -204,7 +199,7 @@ Private Sub CommandTools_Click()
         If .Show <> -1 Then
             Exit Sub
         End If
-        FileSelected = .SelectedItems(1)
+        FileSelected = .selectedItems(1)
     End With
     
  Debug.Print FileSelected

@@ -16,7 +16,6 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 
-
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
     DoEvents
     Public_module.CANCEL_PROCESS = True
@@ -49,6 +48,12 @@ Private Sub CommandRunAnalysis_Click()
     
     If sheets("disaggregation_setting").Cells(2, 1) = vbNullString Then
         MsgBox "Please set the disaggregation levels. ", vbInformation
+        Unload analysis_form
+        Exit Sub
+    End If
+    
+    If find_uuid_coln = 0 Then
+        MsgBox "The '_uuid' column dose not exist in your data. ", vbInformation
         Unload analysis_form
         Exit Sub
     End If

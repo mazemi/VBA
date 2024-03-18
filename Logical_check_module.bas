@@ -47,10 +47,9 @@ Sub auto_check()
     
     Call remove_empty_col
     
-    last_dt = ws.Cells(rows.count, uuid_coln).End(xlUp).Row
+    last_dt = ws.Cells(Rows.count, uuid_coln).End(xlUp).Row
     
-    plan_row = plan_ws.Cells(rows.count, 1).End(xlUp).Row
-    
+    plan_row = plan_ws.Cells(Rows.count, 1).End(xlUp).Row
     plan_ws.Range("M1") = Null
     plan_ws.Range("M2") = Null
     plan_ws.Range("M3") = Null
@@ -89,8 +88,8 @@ Sub auto_check()
             If condition1_col <> vbNullString Then
                 Set rng1 = ws.Range(condition1_col & "2:" & condition1_col & last_dt)
                 For Each cel1 In rng1.Cells
-                    If Len(cel1.Value) <> 0 And IsNumeric(cel1.Value) Then
-                        cel1.Value = CSng(cel1.Value)
+                    If Len(cel1.value) <> 0 And IsNumeric(cel1.value) Then
+                        cel1.value = CSng(cel1.value)
                     End If
                 Next cel1
             End If
@@ -101,8 +100,8 @@ Sub auto_check()
             If condition2_col <> vbNullString Then
                 Set rng2 = ws.Range(condition2_col & "2:" & condition2_col & last_dt)
                 For Each cel2 In rng2.Cells
-                    If Len(cel2.Value) <> 0 And IsNumeric(cel2.Value) Then
-                        cel2.Value = CSng(cel2.Value)
+                    If Len(cel2.value) <> 0 And IsNumeric(cel2.value) Then
+                        cel2.value = CSng(cel2.value)
                     End If
                 Next cel2
             End If
@@ -155,7 +154,7 @@ Sub auto_check()
             Set tmp_rng = temp_ws.Range("A1").CurrentRegion
             
             tmp_rng.AdvancedFilter xlFilterCopy, cr_rng, temp_ws.Range("D1").CurrentRegion
-            temp_ws.columns("A:C").Delete Shift:=xlToLeft
+            temp_ws.Columns("A:C").Delete Shift:=xlToLeft
             
             If Not add_to_log Then
                 GoTo resumeLoop
@@ -259,7 +258,6 @@ resumeLoop:
     End If
     
     Application.ScreenUpdating = True
-    Debug.Print "finish autocheck"
     
 End Sub
 
@@ -278,8 +276,8 @@ Function add_to_log() As Boolean
     Set log_ws = sheets("log_book")
     Set temp_ws = sheets("temp_sheet")
 
-    new_log = log_ws.Cells(rows.count, 1).End(xlUp).Row + 1
-    last_temp = temp_ws.Cells(rows.count, 1).End(xlUp).Row
+    new_log = log_ws.Cells(Rows.count, 1).End(xlUp).Row + 1
+    last_temp = temp_ws.Cells(Rows.count, 1).End(xlUp).Row
     
     If last_temp = 1 Then
         temp_ws.Cells.Clear
@@ -318,7 +316,6 @@ Function add_to_log() As Boolean
     End If
     
     temp_ws.Cells.Clear
-    
     add_to_log = True
     
 End Function
@@ -366,9 +363,9 @@ Sub single_check(p_row As Long)
     
     Call remove_empty_col
     
-    last_dt = ws.Cells(rows.count, uuid_coln).End(xlUp).Row
+    last_dt = ws.Cells(Rows.count, uuid_coln).End(xlUp).Row
     
-    plan_row = plan_ws.Cells(rows.count, 1).End(xlUp).Row
+    plan_row = plan_ws.Cells(Rows.count, 1).End(xlUp).Row
     
     ws.Activate
     
@@ -392,8 +389,8 @@ Sub single_check(p_row As Long)
         If condition1_col <> vbNullString Then
             Set rng1 = ws.Range(condition1_col & "2:" & condition1_col & last_dt)
             For Each cel1 In rng1.Cells
-                If Len(cel1.Value) <> 0 And IsNumeric(cel1.Value) Then
-                    cel1.Value = CSng(cel1.Value)
+                If Len(cel1.value) <> 0 And IsNumeric(cel1.value) Then
+                    cel1.value = CSng(cel1.value)
                 End If
             Next cel1
         End If
@@ -404,8 +401,8 @@ Sub single_check(p_row As Long)
         If condition2_col <> vbNullString Then
             Set rng2 = ws.Range(condition2_col & "2:" & condition2_col & last_dt)
             For Each cel2 In rng2.Cells
-                If Len(cel2.Value) <> 0 And IsNumeric(cel2.Value) Then
-                    cel2.Value = CSng(cel2.Value)
+                If Len(cel2.value) <> 0 And IsNumeric(cel2.value) Then
+                    cel2.value = CSng(cel2.value)
                 End If
             Next cel2
         End If
@@ -423,7 +420,7 @@ Sub single_check(p_row As Long)
         rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C")
         
         ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
-        z = ws.AutoFilter.Range.columns(col_n1).SpecialCells(xlCellTypeVisible).Cells.count - 1
+        z = ws.AutoFilter.Range.Columns(col_n1).SpecialCells(xlCellTypeVisible).Cells.count - 1
         Debug.Print "Z: " & z
 
 
@@ -452,16 +449,10 @@ Sub single_check(p_row As Long)
 
         rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
         
-'        rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C")
-        
         rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C"), xlOr, _
             give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
             
         ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
-    
-'        rng.AutoFilter col_n1, give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
-'
-'        ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
         
     ' use advancefilter
     ' case 4
@@ -546,7 +537,7 @@ Private Function give_operator(str As String) As String
     Dim ws As Worksheet
     Set ws = ThisWorkbook.sheets("xlogical_checks")
     
-    Select Case ws.Range(str).Value
+    Select Case ws.Range(str).value
         Case "is equal"
             give_operator = ""
         Case "is not equal"
@@ -570,18 +561,18 @@ Private Function give_operator(str As String) As String
 End Function
 
 Function count_rows() As Long
-    On Error GoTo errHandler
+    On Error GoTo errhandler
     Dim ws As Worksheet
     Dim uuid_col As Long
     Dim rows_n As Long
     uuid_col = gen_column_number("_uuid", find_main_data)
     Set ws = sheets(find_main_data)
-    rows_n = ws.AutoFilter.Range.columns(uuid_col).SpecialCells(xlCellTypeVisible).Cells.count
+    rows_n = ws.AutoFilter.Range.Columns(uuid_col).SpecialCells(xlCellTypeVisible).Cells.count
     Debug.Print rows_n
     count_rows = rows_n
     Exit Function
     
-errHandler:
+errhandler:
     count_rows = 0
 
 End Function
@@ -623,16 +614,21 @@ Sub export_plan()
     Set wbSource = ThisWorkbook
     Set wsSource = ThisWorkbook.sheets("xlogical_checks")
     
-    wsSource.columns("M:N").Clear
+    wsSource.Columns("M:N").Clear
     
-    last_row = wsSource.Cells(rows.count, 1).End(xlUp).Row
+    last_row = wsSource.Cells(Rows.count, 1).End(xlUp).Row
 
     path = Application.GetSaveAsFilename( _
            FileFilter:="Plan Files (*.plan), *.plan", _
            title:="Save the cleaning plan", _
            InitialFileName:="logical_ckeck")
              
-    If path = "" Then End
+    Debug.Print path
+     
+    If path = "False" Then
+        Application.DisplayAlerts = True
+        End
+    End If
     
     Workbooks.Add
     

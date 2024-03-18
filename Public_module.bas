@@ -241,7 +241,6 @@ Function sheet_list() As Collection
     Set sheets = New Collection
     Dim ws As Worksheet
     For Each ws In ActiveWorkbook.Worksheets
-        ' add the worksheet name to the collection
         sheets.Add ws.Name
     Next ws
     Set sheet_list = sheets
@@ -291,14 +290,11 @@ Function replace_char(str As String)
     Dim char_set As String
     
     new_str = str
-    ' char_set = "!,@,#,$,%,^,&,*,{,[,],},~,`"
     char_set = "!,@,#,%,^,&,*,~,`"
     
     For Each char In Split(char_set, ",")
         new_str = Replace(new_str, char, "_")
     Next
-    
-'    Debug.Print new_str
 
     replace_char = new_str
     
@@ -374,12 +370,8 @@ Sub no_value_col()
         sheets("temp_sheet").Range("A1") = "Column"
         sheets("temp_sheet").Range("B1") = "Value"
         For j = 1 To colle.count
-
-            ' Debug.Print number_to_letter(colle.item(j), dt_ws), dt_ws.Cells(1, colle.item(j))
-            ' Debug.Print dt_ws.Cells(1, colle.item(j))
             sheets("temp_sheet").Range("A" & j + 1) = number_to_letter(colle.item(j), dt_ws)
             sheets("temp_sheet").Range("B" & j + 1) = dt_ws.Cells(1, colle.item(j))
-
         Next j
         
         With empty_col_form.ListBoxEmptyCols
@@ -434,7 +426,7 @@ End Sub
 
 ' return the label of main measurement
 Function var_label(var As String) As String
-    On Error GoTo errHandler
+    On Error GoTo errhandler
     
     Dim last_row_survey As Long
     Dim v_label As String
@@ -451,7 +443,7 @@ Function var_label(var As String) As String
     End If
     Exit Function
                 
-errHandler:
+errhandler:
     var_label = var
     
 End Function
@@ -459,7 +451,7 @@ End Function
 ' return the label of choice, if not not found return the original choice value
 Function choice_label(question As String, choice As String) As String
 
-    On Error GoTo errHandler
+    On Error GoTo errhandler
     
     Dim ws_sc As Worksheet
     Set ws_sc = ThisWorkbook.sheets("xsurvey_choices")
@@ -473,7 +465,7 @@ Function choice_label(question As String, choice As String) As String
 
     Exit Function
 
-errHandler:
+errhandler:
     choice_label = choice
 
 End Function
@@ -483,7 +475,6 @@ Sub extract_choice(str As String)
     Dim ws As Worksheet
     Dim rng As Range
     
-    ' check if tools exist
     If ThisWorkbook.Worksheets("xsurvey").Range("A1") = vbNullString Then
         MsgBox "Please import the KOBO tools.    ", vbInformation
         End
@@ -644,3 +635,18 @@ Sub ListAllSheets()
         Debug.Print ws.Name
     Next ws
 End Sub
+
+Sub ListNonActiveWorkbooks()
+    Dim wb As Workbook
+    Dim i As Integer
+    
+    i = 1
+    For Each wb In Workbooks
+'        If Not wb Is ThisWorkbook Then
+        If Not wb Is ActiveWorkbook Then
+            Debug.Print wb.Name
+            i = i + 1
+        End If
+    Next wb
+End Sub
+

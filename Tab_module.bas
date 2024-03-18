@@ -169,7 +169,8 @@ End Sub
 'Callback for AllFigures onAction
 Sub Figures(control As IRibbonControl)
     On Error Resume Next
-    Call all_result_data
+    chart_form.Show
+'    Call generate_data_chart
 End Sub
 
 'Callback for SingleChart onAction

@@ -263,56 +263,61 @@ Sub calculate_numeric()
                 weight_arr(j - 1) = arr(j, 2)
             Next j
 
-            n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-            result_sheet.Cells(n, 1) = n - 1
-            result_sheet.Cells(n, 2) = "ALL"
-            result_sheet.Cells(n, 3) = "ALL"
-            result_sheet.Cells(n, 4) = "ALL"
-            result_sheet.Cells(n, 5) = arr(1, 1)
-            result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-            result_sheet.Cells(n, 7) = UBound(arr, 1) - 1
-            result_sheet.Cells(n, 8) = "average"
-            result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.sum(simple_arr) / WorksheetFunction.sum(weight_arr), 1)
-            result_sheet.Cells(n, 13) = "w"
-        
-            n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-            result_sheet.Cells(n, 1) = n - 1
-            result_sheet.Cells(n, 2) = "ALL"
-            result_sheet.Cells(n, 3) = "ALL"
-            result_sheet.Cells(n, 4) = "ALL"
-            result_sheet.Cells(n, 5) = arr(1, 1)
-            result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-            result_sheet.Cells(n, 7) = UBound(arr, 1) - 1
-            result_sheet.Cells(n, 8) = "median"
-            result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.median(simple_arr), 1)
-            result_sheet.Cells(n, 13) = "w"
+            With result_sheet
+                n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                .Cells(n, 1) = n - 1
+                .Cells(n, 2) = "ALL"
+                .Cells(n, 3) = "ALL"
+                .Cells(n, 4) = "ALL"
+                .Cells(n, 5) = arr(1, 1)
+                .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                .Cells(n, 7) = UBound(arr, 1) - 1
+                .Cells(n, 8) = "average"
+                .Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.sum(simple_arr) / WorksheetFunction.sum(weight_arr), 1)
+                .Cells(n, 13) = "w"
+            
+                n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                .Cells(n, 1) = n - 1
+                .Cells(n, 2) = "ALL"
+                .Cells(n, 3) = "ALL"
+                .Cells(n, 4) = "ALL"
+                .Cells(n, 5) = arr(1, 1)
+                .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                .Cells(n, 7) = UBound(arr, 1) - 1
+                .Cells(n, 8) = "median"
+                .Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.median(simple_arr), 1)
+                .Cells(n, 13) = "w"
+            End With
+
         
         ElseIf dis_arr2(i, 1) = "ALL" And dis_arr2(i, 2) = "no" Then
             For j = 2 To UBound(arr, 1)
                 simple_arr(j - 1) = arr(j, 1)
             Next j
-        
-            n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-            result_sheet.Cells(n, 1) = n - 1
-            result_sheet.Cells(n, 2) = "ALL"
-            result_sheet.Cells(n, 3) = "ALL"
-            result_sheet.Cells(n, 4) = "ALL"
-            result_sheet.Cells(n, 5) = arr(1, 1)
-            result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-            result_sheet.Cells(n, 7) = UBound(arr, 1) - 1
-            result_sheet.Cells(n, 8) = "average"
-            result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.Average(simple_arr), 1)
+            With result_sheet
+                n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                .Cells(n, 1) = n - 1
+                .Cells(n, 2) = "ALL"
+                .Cells(n, 3) = "ALL"
+                .Cells(n, 4) = "ALL"
+                .Cells(n, 5) = arr(1, 1)
+                .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                .Cells(n, 7) = UBound(arr, 1) - 1
+                .Cells(n, 8) = "average"
+                .Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.Average(simple_arr), 1)
+    
+                n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                .Cells(n, 1) = n - 1
+                .Cells(n, 2) = "ALL"
+                .Cells(n, 3) = "ALL"
+                .Cells(n, 4) = "ALL"
+                .Cells(n, 5) = arr(1, 1)
+                .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                .Cells(n, 7) = UBound(arr, 1) - 1
+                .Cells(n, 8) = "median"
+                .Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.median(simple_arr), 1)
+            End With
 
-            n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-            result_sheet.Cells(n, 1) = n - 1
-            result_sheet.Cells(n, 2) = "ALL"
-            result_sheet.Cells(n, 3) = "ALL"
-            result_sheet.Cells(n, 4) = "ALL"
-            result_sheet.Cells(n, 5) = arr(1, 1)
-            result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-            result_sheet.Cells(n, 7) = UBound(arr, 1) - 1
-            result_sheet.Cells(n, 8) = "median"
-            result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.median(simple_arr), 1)
         
         ElseIf dis_arr2(i, 1) <> "ALL" And dis_arr2(i, 2) = "yes" Then
             col_n = gen_column_number(CStr(dis_arr2(i, 1)), "keen")
@@ -340,30 +345,33 @@ Sub calculate_numeric()
                         k = k + 1
                     End If
                 Next j
-            
-                n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                result_sheet.Cells(n, 1) = n - 1
-                result_sheet.Cells(n, 2) = dis_arr2(i, 1)
-                result_sheet.Cells(n, 3) = v
-                result_sheet.Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
-                result_sheet.Cells(n, 5) = arr(1, 1)
-                result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                result_sheet.Cells(n, 7) = dis_value_count
-                result_sheet.Cells(n, 8) = "average"
-                result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.sum(simple_arr) / WorksheetFunction.sum(weight_arr), 1)
-                result_sheet.Cells(n, 13) = "w"
-            
-                n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                result_sheet.Cells(n, 1) = n - 1
-                result_sheet.Cells(n, 2) = dis_arr2(i, 1)
-                result_sheet.Cells(n, 3) = v
-                result_sheet.Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
-                result_sheet.Cells(n, 5) = arr(1, 1)
-                result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                result_sheet.Cells(n, 7) = dis_value_count
-                result_sheet.Cells(n, 8) = "median"
-                result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.median(simple_arr), 1)
-                result_sheet.Cells(n, 13) = "w"
+                
+                With result_sheet
+                    n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                    .Cells(n, 1) = n - 1
+                    .Cells(n, 2) = dis_arr2(i, 1)
+                    .Cells(n, 3) = v
+                    .Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
+                    .Cells(n, 5) = arr(1, 1)
+                    .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                    .Cells(n, 7) = dis_value_count
+                    .Cells(n, 8) = "average"
+                    .Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.sum(simple_arr) / WorksheetFunction.sum(weight_arr), 1)
+                    .Cells(n, 13) = "w"
+                
+                    n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                    .Cells(n, 1) = n - 1
+                    .Cells(n, 2) = dis_arr2(i, 1)
+                    .Cells(n, 3) = v
+                    .Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
+                    .Cells(n, 5) = arr(1, 1)
+                    .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                    .Cells(n, 7) = dis_value_count
+                    .Cells(n, 8) = "median"
+                    .Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.median(simple_arr), 1)
+                    .Cells(n, 13) = "w"
+                End With
+
             Next v
         
         ElseIf dis_arr2(i, 1) <> "ALL" And dis_arr2(i, 2) = "no" Then
@@ -387,29 +395,30 @@ Sub calculate_numeric()
                         k = k + 1
                     End If
                 Next j
-            
-                n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                result_sheet.Cells(n, 1) = n - 1
-                result_sheet.Cells(n, 2) = dis_arr2(i, 1)
-                result_sheet.Cells(n, 3) = v
-                result_sheet.Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
-                result_sheet.Cells(n, 5) = arr(1, 1)
-                result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                result_sheet.Cells(n, 7) = dis_value_count
-                result_sheet.Cells(n, 8) = "average"
-                result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.Average(simple_arr), 1)
                 
-                n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                result_sheet.Cells(n, 1) = n - 1
-                result_sheet.Cells(n, 2) = dis_arr2(i, 1)
-                result_sheet.Cells(n, 3) = v
-                result_sheet.Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
-                result_sheet.Cells(n, 5) = arr(1, 1)
-                result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                result_sheet.Cells(n, 7) = dis_value_count
-                result_sheet.Cells(n, 8) = "median"
-                result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.median(simple_arr), 1)
-            
+                With result_sheet
+                    n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                    .Cells(n, 1) = n - 1
+                    .Cells(n, 2) = dis_arr2(i, 1)
+                    .Cells(n, 3) = v
+                    .Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
+                    .Cells(n, 5) = arr(1, 1)
+                    .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                    .Cells(n, 7) = dis_value_count
+                    .Cells(n, 8) = "average"
+                    .Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.Average(simple_arr), 1)
+                    
+                    n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                    .Cells(n, 1) = n - 1
+                    .Cells(n, 2) = dis_arr2(i, 1)
+                    .Cells(n, 3) = v
+                    .Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
+                    .Cells(n, 5) = arr(1, 1)
+                    .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                    .Cells(n, 7) = dis_value_count
+                    .Cells(n, 8) = "median"
+                    .Cells(n, 9) = Application.WorksheetFunction.Round(WorksheetFunction.median(simple_arr), 1)
+                End With
             Next v
         
         End If
@@ -507,22 +516,22 @@ Sub calculate_nominal()
                     End If
                 Next j
         
-                '            Debug.Print v, data_count, sum_weight, sum_weight_in_var, UBound(arr, 1) - 1
-                n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                result_sheet.Cells(n, 1) = n - 1
-                result_sheet.Cells(n, 2) = "ALL"
-                result_sheet.Cells(n, 3) = "ALL"
-                result_sheet.Cells(n, 4) = "ALL"
-                result_sheet.Cells(n, 5) = arr(1, 1)
-                result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                result_sheet.Cells(n, 7) = UBound(arr, 1) - 1
-                result_sheet.Cells(n, 8) = "percentage"
-                result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(sum_weight_in_var / sum_weight * 100, 1)
-                result_sheet.Cells(n, 10) = data_count
-                result_sheet.Cells(n, 11) = v
-                result_sheet.Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(v))
-                result_sheet.Cells(n, 13) = "w"
-
+                With result_sheet
+                    n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                    .Cells(n, 1) = n - 1
+                    .Cells(n, 2) = "ALL"
+                    .Cells(n, 3) = "ALL"
+                    .Cells(n, 4) = "ALL"
+                    .Cells(n, 5) = arr(1, 1)
+                    .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                    .Cells(n, 7) = UBound(arr, 1) - 1
+                    .Cells(n, 8) = "percentage"
+                    .Cells(n, 9) = Application.WorksheetFunction.Round(sum_weight_in_var / sum_weight * 100, 1)
+                    .Cells(n, 10) = data_count
+                    .Cells(n, 11) = v
+                    .Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(v))
+                    .Cells(n, 13) = "w"
+                End With
             Next v
  
         ElseIf dis_arr2(i, 1) = "ALL" And dis_arr2(i, 2) = "no" Then
@@ -536,21 +545,21 @@ Sub calculate_nominal()
         
             For Each v In unique_data_arr
                 data_count = count_in_array(data_arr, v)
-                '            Debug.Print v, data_count, UBound(arr, 1) - 1
-                n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                result_sheet.Cells(n, 1) = n - 1
-                result_sheet.Cells(n, 2) = "ALL"
-                result_sheet.Cells(n, 3) = "ALL"
-                result_sheet.Cells(n, 4) = "ALL"
-                result_sheet.Cells(n, 5) = arr(1, 1)
-                result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                result_sheet.Cells(n, 7) = UBound(arr, 1) - 1
-                result_sheet.Cells(n, 8) = "percentage"
-                result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(data_count / (UBound(arr, 1) - 1) * 100, 1)
-                result_sheet.Cells(n, 10) = data_count
-                result_sheet.Cells(n, 11) = v
-                result_sheet.Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(v))
-     
+                With result_sheet
+                    n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                    .Cells(n, 1) = n - 1
+                    .Cells(n, 2) = "ALL"
+                    .Cells(n, 3) = "ALL"
+                    .Cells(n, 4) = "ALL"
+                    .Cells(n, 5) = arr(1, 1)
+                    .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                    .Cells(n, 7) = UBound(arr, 1) - 1
+                    .Cells(n, 8) = "percentage"
+                    .Cells(n, 9) = Application.WorksheetFunction.Round(data_count / (UBound(arr, 1) - 1) * 100, 1)
+                    .Cells(n, 10) = data_count
+                    .Cells(n, 11) = v
+                    .Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(v))
+                End With
             Next v
         
         ElseIf dis_arr2(i, 1) <> "ALL" And dis_arr2(i, 2) = "yes" Then
@@ -583,7 +592,6 @@ Sub calculate_nominal()
                         k = k + 1
                     End If
                 Next j
-                '            Debug.Print v, dis_value_count, sum_weight
             
                 temp_arr = Split(Mkr & Join(small_arr, Mkr & Del & Mkr) & Mkr, Del)
                 'Count the items (Surrounded by markers) directly
@@ -598,21 +606,22 @@ Sub calculate_nominal()
                     Next j
             
                     choice_count = UBound(Filter(temp_arr, Mkr & CStr(p) & Mkr, True, 1)) + 1
-                    '                Debug.Print p, choice_count, " ", sum_weight_in_var
-                    n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                    result_sheet.Cells(n, 1) = n - 1
-                    result_sheet.Cells(n, 2) = dis_arr2(i, 1)
-                    result_sheet.Cells(n, 3) = v
-                    result_sheet.Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
-                    result_sheet.Cells(n, 5) = arr(1, 1)
-                    result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                    result_sheet.Cells(n, 7) = dis_value_count
-                    result_sheet.Cells(n, 8) = "percentage"
-                    result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(sum_weight_in_var / sum_weight * 100, 1)
-                    result_sheet.Cells(n, 10) = choice_count
-                    result_sheet.Cells(n, 11) = p
-                    result_sheet.Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(p))
-                    result_sheet.Cells(n, 13) = "w"
+                    With result_sheet
+                        n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                        .Cells(n, 1) = n - 1
+                        .Cells(n, 2) = dis_arr2(i, 1)
+                        .Cells(n, 3) = v
+                        .Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
+                        .Cells(n, 5) = arr(1, 1)
+                        .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                        .Cells(n, 7) = dis_value_count
+                        .Cells(n, 8) = "percentage"
+                        .Cells(n, 9) = Application.WorksheetFunction.Round(sum_weight_in_var / sum_weight * 100, 1)
+                        .Cells(n, 10) = choice_count
+                        .Cells(n, 11) = p
+                        .Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(p))
+                        .Cells(n, 13) = "w"
+                    End With
                 Next p
 
             Next v
@@ -653,20 +662,21 @@ Sub calculate_nominal()
   
                 For Each p In small_unique_arr
                     choice_count = UBound(Filter(temp_arr, Mkr & CStr(p) & Mkr, True, 1)) + 1
-                    '                Debug.Print p, choice_count
-                    n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                    result_sheet.Cells(n, 1) = n - 1
-                    result_sheet.Cells(n, 2) = dis_arr2(i, 1)
-                    result_sheet.Cells(n, 3) = v
-                    result_sheet.Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
-                    result_sheet.Cells(n, 5) = arr(1, 1)
-                    result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                    result_sheet.Cells(n, 7) = dis_value_count
-                    result_sheet.Cells(n, 8) = "percentage"
-                    result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(choice_count / dis_value_count * 100, 1)
-                    result_sheet.Cells(n, 10) = choice_count
-                    result_sheet.Cells(n, 11) = p
-                    result_sheet.Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(p))
+                    With result_sheet
+                        n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                        .Cells(n, 1) = n - 1
+                        .Cells(n, 2) = dis_arr2(i, 1)
+                        .Cells(n, 3) = v
+                        .Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
+                        .Cells(n, 5) = arr(1, 1)
+                        .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                        .Cells(n, 7) = dis_value_count
+                        .Cells(n, 8) = "percentage"
+                        .Cells(n, 9) = Application.WorksheetFunction.Round(choice_count / dis_value_count * 100, 1)
+                        .Cells(n, 10) = choice_count
+                        .Cells(n, 11) = p
+                        .Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(p))
+                    End With
                 Next p
 
             Next v
@@ -772,22 +782,22 @@ Sub calculate_nominal_multipe()
                     End If
                 Next j
         
-                '            Debug.Print v, data_count, sum_weight, sum_weight_in_var, UBound(arr, 1) - 1
-                n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                result_sheet.Cells(n, 1) = n - 1
-                result_sheet.Cells(n, 2) = "ALL"
-                result_sheet.Cells(n, 3) = "ALL"
-                result_sheet.Cells(n, 4) = "ALL"
-                result_sheet.Cells(n, 5) = arr(1, 1)
-                result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                result_sheet.Cells(n, 7) = keen2_rng.Rows.count - 1
-                result_sheet.Cells(n, 8) = "percentage"
-                result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(sum_weight_in_var / sum_weight * 100, 1)
-                result_sheet.Cells(n, 10) = data_count
-                result_sheet.Cells(n, 11) = v
-                result_sheet.Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(v))
-                result_sheet.Cells(n, 13) = "w"
-
+                With result_sheet
+                    n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                    .Cells(n, 1) = n - 1
+                    .Cells(n, 2) = "ALL"
+                    .Cells(n, 3) = "ALL"
+                    .Cells(n, 4) = "ALL"
+                    .Cells(n, 5) = arr(1, 1)
+                    .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                    .Cells(n, 7) = keen2_rng.Rows.count - 1
+                    .Cells(n, 8) = "percentage"
+                    .Cells(n, 9) = Application.WorksheetFunction.Round(sum_weight_in_var / sum_weight * 100, 1)
+                    .Cells(n, 10) = data_count
+                    .Cells(n, 11) = v
+                    .Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(v))
+                    .Cells(n, 13) = "w"
+                End With
             Next v
  
         ElseIf dis_arr2(i, 1) = "ALL" And dis_arr2(i, 2) = "no" Then
@@ -801,21 +811,21 @@ Sub calculate_nominal_multipe()
         
             For Each v In unique_data_arr
                 data_count = count_in_array(data_arr, v)
-                '            Debug.Print v, data_count, UBound(arr, 1) - 1
-                n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                result_sheet.Cells(n, 1) = n - 1
-                result_sheet.Cells(n, 2) = "ALL"
-                result_sheet.Cells(n, 3) = "ALL"
-                result_sheet.Cells(n, 4) = "ALL"
-                result_sheet.Cells(n, 5) = arr(1, 1)
-                result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                result_sheet.Cells(n, 7) = keen2_rng.Rows.count - 1
-                result_sheet.Cells(n, 8) = "percentage"
-                result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(data_count / (keen2_rng.Rows.count - 1) * 100, 1)
-                result_sheet.Cells(n, 10) = data_count
-                result_sheet.Cells(n, 11) = v
-                result_sheet.Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(v))
-     
+                With result_sheet
+                    n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                    .Cells(n, 1) = n - 1
+                    .Cells(n, 2) = "ALL"
+                    .Cells(n, 3) = "ALL"
+                    .Cells(n, 4) = "ALL"
+                    .Cells(n, 5) = arr(1, 1)
+                    .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                    .Cells(n, 7) = keen2_rng.Rows.count - 1
+                    .Cells(n, 8) = "percentage"
+                    .Cells(n, 9) = Application.WorksheetFunction.Round(data_count / (keen2_rng.Rows.count - 1) * 100, 1)
+                    .Cells(n, 10) = data_count
+                    .Cells(n, 11) = v
+                    .Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(v))
+                End With
             Next v
         
         ElseIf dis_arr2(i, 1) <> "ALL" And dis_arr2(i, 2) = "yes" Then
@@ -846,11 +856,9 @@ Sub calculate_nominal_multipe()
                 For j = 2 To UBound(arr, 1)
                     If v = arr(j, col_n) Then
                         small_arr(k + 1) = arr(j, 1)
-                        ' sum_weight = sum_weight + arr(j, 2)
                         k = k + 1
                     End If
                 Next j
-                '            Debug.Print "hoho!", dis_arr2(i, 1), col_n, v, dis_value_count, sum_weight
             
                 temp_arr = Split(Mkr & Join(small_arr, Mkr & Del & Mkr) & Mkr, Del)
                 'Count the items (Surrounded by markers) directly
@@ -868,21 +876,22 @@ Sub calculate_nominal_multipe()
                     Next j
             
                     choice_count = UBound(Filter(temp_arr, Mkr & CStr(p) & Mkr, True, 1)) + 1
-                    '                Debug.Print p, choice_count, " ", sum_weight_in_var
-                    n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                    result_sheet.Cells(n, 1) = n - 1
-                    result_sheet.Cells(n, 2) = dis_arr2(i, 1)
-                    result_sheet.Cells(n, 3) = v
-                    result_sheet.Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
-                    result_sheet.Cells(n, 5) = arr(1, 1)
-                    result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                    result_sheet.Cells(n, 7) = dis_value_count2
-                    result_sheet.Cells(n, 8) = "percentage"
-                    result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(sum_weight_in_var / sum_weight * 100, 1)
-                    result_sheet.Cells(n, 10) = choice_count
-                    result_sheet.Cells(n, 11) = p
-                    result_sheet.Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(p))
-                    result_sheet.Cells(n, 13) = "w"
+                    With result_sheet
+                        n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                        .Cells(n, 1) = n - 1
+                        .Cells(n, 2) = dis_arr2(i, 1)
+                        .Cells(n, 3) = v
+                        .Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
+                        .Cells(n, 5) = arr(1, 1)
+                        .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                        .Cells(n, 7) = dis_value_count2
+                        .Cells(n, 8) = "percentage"
+                        .Cells(n, 9) = Application.WorksheetFunction.Round(sum_weight_in_var / sum_weight * 100, 1)
+                        .Cells(n, 10) = choice_count
+                        .Cells(n, 11) = p
+                        .Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(p))
+                        .Cells(n, 13) = "w"
+                    End With
                 Next p
 
             Next v
@@ -923,20 +932,21 @@ Sub calculate_nominal_multipe()
   
                 For Each p In small_unique_arr
                     choice_count = UBound(Filter(temp_arr, Mkr & CStr(p) & Mkr, True, 1)) + 1
-                    '                Debug.Print p, choice_count
-                    n = result_sheet.Cells(Rows.count, 1).End(xlUp).Row + 1
-                    result_sheet.Cells(n, 1) = n - 1
-                    result_sheet.Cells(n, 2) = dis_arr2(i, 1)
-                    result_sheet.Cells(n, 3) = v
-                    result_sheet.Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
-                    result_sheet.Cells(n, 5) = arr(1, 1)
-                    result_sheet.Cells(n, 6) = var_label(CStr(arr(1, 1)))
-                    result_sheet.Cells(n, 7) = dis_value_count2
-                    result_sheet.Cells(n, 8) = "percentage"
-                    result_sheet.Cells(n, 9) = Application.WorksheetFunction.Round(choice_count / dis_value_count2 * 100, 1)
-                    result_sheet.Cells(n, 10) = choice_count
-                    result_sheet.Cells(n, 11) = p
-                    result_sheet.Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(p))
+                    With result_sheet
+                        n = .Cells(Rows.count, 1).End(xlUp).Row + 1
+                        .Cells(n, 1) = n - 1
+                        .Cells(n, 2) = dis_arr2(i, 1)
+                        .Cells(n, 3) = v
+                        .Cells(n, 4) = choice_label(CStr(dis_arr2(i, 1)), CStr(v))
+                        .Cells(n, 5) = arr(1, 1)
+                        .Cells(n, 6) = var_label(CStr(arr(1, 1)))
+                        .Cells(n, 7) = dis_value_count2
+                        .Cells(n, 8) = "percentage"
+                        .Cells(n, 9) = Application.WorksheetFunction.Round(choice_count / dis_value_count2 * 100, 1)
+                        .Cells(n, 10) = choice_count
+                        .Cells(n, 11) = p
+                        .Cells(n, 12) = choice_label(CStr(arr(1, 1)), CStr(p))
+                    End With
                 Next p
 
             Next v

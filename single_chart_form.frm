@@ -14,11 +14,15 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-
 Option Explicit
 
+Private Sub CommandBack_Click()
+    Unload Me
+    chart_form.Show
+End Sub
+
 Private Sub CommandRun_Click()
-    On Error GoTo errhandler
+    On Error GoTo erHandler
     Application.ScreenUpdating = False
     Dim SelectedItemIndex As Integer
     Dim i As Integer
@@ -110,7 +114,7 @@ Private Sub CommandRun_Click()
     Application.ScreenUpdating = True
     Exit Sub
     
-errhandler:
+erHandler:
     MsgBox " Oops!, Something went wrong!  ", vbInformation
     Unload single_chart_form
 
@@ -357,7 +361,7 @@ Private Sub UserForm_Initialize()
     Me.TextBoxSearch.BorderStyle = 1
     With Me.ListBoxVars
         .BorderStyle = 1
-        .ColumnWidths = "100,170"
+        .columnWidths = "100,170"
     End With
     
     For Each cell In rng.Rows
