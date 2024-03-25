@@ -72,7 +72,7 @@ Private Sub CommandAdd_Click()
     log_ws.Cells(1, new_col) = Me.ComboQuestion.value
     
     For j = 2 To last_log
-        res = Application.Index(dt_ws.Range(question_col_letter & "2:" & question_col_letter & last_dt), _
+        res = Application.index(dt_ws.Range(question_col_letter & "2:" & question_col_letter & last_dt), _
                                 Application.Match(log_ws.Cells(j, 1), _
                                                   dt_ws.Range(uuid_col_letter & "2:" & uuid_col_letter & last_dt), 0))
                                            

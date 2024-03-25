@@ -14,12 +14,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-
-
-
-
-
-
 Private Sub CommandAdd_Click()
     On Error Resume Next
     dt_sheet = SaveRegistrySetting("ramSetting", "dataReg", Me.ComboSheets.value)
@@ -33,6 +27,9 @@ End Sub
 Private Sub UserForm_Initialize()
     On Error Resume Next
     Dim dt As String
+    Dim sheet_li As Collection
+    Dim sh As Variant
+    
     dt = ""
     dt = GetRegistrySetting("ramSetting", "dataReg")
 
@@ -41,18 +38,12 @@ Private Sub UserForm_Initialize()
             Me.ComboSheets.Text = dt
         End If
     End If
-    
-    Dim sheet_li As Collection
-    Set sheet_li = sheet_list                    'Get the collection of worksheet names
-    Dim sh As Variant                            'name of a sheet
+ 
+    Set sheet_li = sheet_list
+
     For Each sh In sheet_li
-        If ActiveWorkbook.Worksheets(CStr(sh)).Visible Then
-            If CStr(sh) <> "result" And CStr(sh) <> "log_book" And CStr(sh) <> "analysis_list" And _
-               CStr(sh) <> "disaggregation_setting" And CStr(sh) <> "overall" And CStr(sh) <> "survey" And _
-                CStr(sh) <> "keen" And CStr(sh) <> "indi_list" And CStr(sh) <> "temp_sheet" And _
-               CStr(sh) <> "choices" And CStr(sh) <> "xsurvey_choices" And CStr(sh) <> "datamerge" And CStr(sh) <> "dm_backend" Then
-                Me.ComboSheets.AddItem sh
-            End If
+        If ActiveWorkbook.Worksheets(CStr(sh)).Visible And Not IsInArray(CStr(sh), InitializeExcludedSheets) And left(CStr(sh), 6) <> "chart-" Then
+            Me.ComboSheets.AddItem sh
         End If
     Next sh
     

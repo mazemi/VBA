@@ -244,7 +244,7 @@ Private Sub UserForm_Initialize()
         .BorderStyle = 1
         .ColumnHeads = True
         .columnCount = dis_rng.Columns.count
-        .ColumnWidths = "140,10"
+        .columnWidths = "140,10"
         .RowSource = dis_rng.Parent.Name & "!" & dis_rng.Resize(dis_rng.Rows.count - 1).Offset(1).Address
     End With
 
@@ -324,19 +324,17 @@ Private Sub ComboSheets_Change()
 
 End Sub
 
-Private Sub PopulateComboBox(sheet_name As String, con As String)
+Private Sub PopulateComboBox(SHEET_NAME As String, con As String)
     '    On Error Resume Next
     Dim header_arr() As Variant
     Dim c As control
     Dim ws As Worksheet
-    Set ws = ActiveWorkbook.sheets(sheet_name)
+    Set ws = ActiveWorkbook.sheets(SHEET_NAME)
        
     header_arr = ws.Range(ws.Cells(1, 1), ws.Cells(1, 1).End(xlToRight)).Value2
     
     Dim not_for_dis As New Collection
     
-    '    Set not_for_dis = not_good_dis
-
     For Each c In Me.Controls
         If c.Name = con Then
             c.Clear
@@ -360,7 +358,7 @@ Sub referesh_list()
         .BorderStyle = 1
         .ColumnHeads = True
         .columnCount = dis_rng.Columns.count
-        .ColumnWidths = "140,10"
+        .columnWidths = "140,10"
         .RowSource = dis_rng.Parent.Name & "!" & dis_rng.Resize(dis_rng.Rows.count - 1).Offset(1).Address
     End With
 End Sub

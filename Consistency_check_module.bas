@@ -12,6 +12,7 @@ Sub consistency_check()
 
     wait_form.main_label = "Please wait ..."
     wait_form.Show vbModeless
+    wait_form.labelLine.Visible = True
     wait_form.Repaint
     
     Application.ScreenUpdating = False
@@ -46,7 +47,8 @@ Sub consistency_check()
     
     For i = 11 To last_question
         DoEvents
-        Application.StatusBar = tmp_ws.Cells(i, 1)
+        wait_form.note = "Proccesing " & tmp_ws.Cells(i, 1)
+'        Application.StatusBar = tmp_ws.Cells(i, 1)
         SKIP_QUESTION = False
         If no_value(tmp_ws.Cells(i, 1)) Then GoTo resume_loop
         
@@ -276,7 +278,6 @@ Private Sub tool_value_choice(q_name As String)
     Set temp_ws = sheets("temp_sheet")
     
     temp_ws.Range("A6") = q_name
-    
     temp_ws.Range("C1") = "choice"
     
     tool_ws.Range("A1").CurrentRegion.AdvancedFilter Action:=xlFilterCopy, _

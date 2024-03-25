@@ -31,7 +31,6 @@ Private Sub ComboBoxDis_Change()
     Set ws = sheets("indi_list")
     
     ws.Range("K:L").Clear
-    
     ws.Range("I1") = "disaggregation"
     ws.Range("K1") = "disaggregation value"
     ws.Range("L1") = "disaggregation label"
@@ -69,7 +68,6 @@ Private Sub CommandNext_Click()
     Dim selected_indexes As Collection
     Dim selected_values As New Collection
     Dim selected_labels As New Collection
-    
     Dim index As Variant
 
     If Me.ComboBoxDis.value <> "" And count_selected_items(Me.ListBoxVars) > 0 Then

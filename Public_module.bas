@@ -602,7 +602,7 @@ Function check_null_dis_levels() As String
 End Function
 
 Private Function show_sheet()
-    sheets("indi_list").Visible = True
+    sheets("dissagregation_setting").Visible = True
 End Function
 
 Function ColumnNumberToLetter(colNumber As Integer) As String
@@ -648,5 +648,57 @@ Sub ListNonActiveWorkbooks()
             i = i + 1
         End If
     Next wb
+End Sub
+
+Sub ExportAllModulesAndForms()
+    Dim VBComp As Object
+    Dim VBProj As Object
+    Dim FileName As String
+    Dim filePath As String
+    
+    filePath = ActiveWorkbook.path
+    
+    Set VBProj = ThisWorkbook.VBProject
+    For Each VBComp In VBProj.VBComponents
+        If VBComp.Type = 1 Then 'Standard module
+            FileName = filePath & "\" & VBComp.Name & ".bas"
+            VBComp.Export FileName
+        ElseIf VBComp.Type = 2 Then 'Class module
+            FileName = filePath & "\" & VBComp.Name & ".cls"
+            VBComp.Export FileName
+        ElseIf VBComp.Type = 3 Then 'UserForm
+            FileName = filePath & "\" & VBComp.Name & ".frm"
+            VBComp.Export FileName
+        End If
+    Next VBComp
+    MsgBox "All modules and forms exported successfully!", vbInformation
+End Sub
+
+Sub ImportAllModulesAndForms()
+    Dim strFolder As String
+    Dim strFile As String
+    Dim VBProj As Object
+    Dim VBComp As Object
+    Dim FileName As String
+    Dim filePath As String
+    
+    strFolder = ActiveWorkbook.path & "\"
+    
+    If Dir(strFolder, vbDirectory) = "" Then
+        MsgBox "Folder not found!", vbExclamation
+        Exit Sub
+    End If
+    
+    Set VBProj = ThisWorkbook.VBProject
+    
+    strFile = Dir(strFolder & "*.*")
+    Do While strFile <> ""
+        If Right(strFile, 4) = ".bas" Or Right(strFile, 4) = ".cls" Or Right(strFile, 4) = ".frm" Then
+            VBProj.VBComponents.Import strFolder & strFile
+        End If
+        strFile = Dir
+    Loop
+    
+    MsgBox "All modules and forms imported successfully!", vbInformation
 End Sub
 

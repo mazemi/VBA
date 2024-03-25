@@ -137,7 +137,7 @@ Private Sub UserForm_Initialize()
 
     With Me.ListBoxVars
         .BorderStyle = 1
-        .ColumnWidths = "100,170"
+        .columnWidths = "100,170"
     End With
     
     Set ws = sheets("indi_list")

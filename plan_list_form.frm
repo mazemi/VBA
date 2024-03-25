@@ -15,8 +15,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-
-
 Private Sub CommandDelete_Click()
     If Me.ListPlan.List(0) = "NO CEALNING PLAN!" Then
         Exit Sub

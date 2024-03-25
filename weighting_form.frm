@@ -95,6 +95,13 @@ Private Sub CommandTestStrata_Click()
     Call unmatched_strata
     Call UserForm_Initialize
     
+    Application.DisplayAlerts = False
+    
+    If worksheet_exists("temp_sheet") Then
+        sheets("temp_sheet").Visible = xlSheetHidden
+        sheets("temp_sheet").Delete
+    End If
+     
     sheets(Public_module.SAMPLE_SHEET).Activate
     Application.DisplayAlerts = True
     Application.ScreenUpdating = True
@@ -154,6 +161,15 @@ Private Sub CommandWeight_Click()
     
     Call calculate_weight
     
+    Application.DisplayAlerts = False
+    
+    If worksheet_exists("temp_sheet") Then
+        sheets("temp_sheet").Visible = xlSheetHidden
+        sheets("temp_sheet").Delete
+    End If
+    
+    Application.DisplayAlerts = True
+    
     Me.CommandWeight.Caption = "Prosseccing ..."
     DoEvents
     Unload Me
@@ -168,24 +184,16 @@ End Sub
 Private Sub UserForm_Initialize()
     On Error Resume Next
     Dim sheet_li As Collection
-    Set sheet_li = sheet_list                    'Get the collection of worksheet names
+    Set sheet_li = sheet_list
     Dim dt As String
     Dim smp As String
-    Dim sh As Variant                            'name of a sheet
+    Dim sh As Variant
+    
     For Each sh In sheet_li
-        If ActiveWorkbook.Worksheets(CStr(sh)).Visible Then
-        
-            If CStr(sh) <> "result" And CStr(sh) <> "log_book" And CStr(sh) <> "analysis_list" And _
-                CStr(sh) <> "disaggregation_setting" And CStr(sh) <> "overall" And CStr(sh) <> "survey" And _
-                CStr(sh) <> "keen" And CStr(sh) <> "indi_list" And CStr(sh) <> "temp_sheet" And _
-                CStr(sh) <> "choices" And CStr(sh) <> "xsurvey_choices" And CStr(sh) <> "datamerge" And CStr(sh) <> "dm_backend" Then
-                Me.CombData.AddItem sh
-                Me.ComboSampling.AddItem sh
-            End If
-        
+        If ActiveWorkbook.Worksheets(CStr(sh)).Visible And Not IsInArray(CStr(sh), InitializeExcludedSheets) And left(CStr(sh), 6) <> "chart-" Then
+            Me.ComboSampling.AddItem sh
         End If
     Next sh
-    On Error Resume Next
     
     dt = GetRegistrySetting("ramSetting", "dataReg")
     smp = GetRegistrySetting("ramSetting", "samplingReg")
@@ -204,12 +212,12 @@ Private Sub UserForm_Initialize()
        
 End Sub
 
-Private Sub PopulateComboBox(sheet_name As String, con As String)
+Private Sub PopulateComboBox(SHEET_NAME As String, con As String)
     On Error Resume Next
     Dim header_arr() As Variant
     Dim c As control
     Dim ws As Worksheet
-    Set ws = ActiveWorkbook.sheets(sheet_name)
+    Set ws = ActiveWorkbook.sheets(SHEET_NAME)
     
     ' array of header (list of questions)
     header_arr = ws.Range(ws.Cells(1, 1), ws.Cells(1, 1).End(xlToRight)).Value2

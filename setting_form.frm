@@ -202,6 +202,12 @@ Private Sub CommandTools_Click()
         FileSelected = .selectedItems(1)
     End With
     
+    ' temprory snippet for disaggregation_setting
+    If worksheet_exists("dissagregation_setting") Then
+        sheets("dissagregation_setting").Visible = xlSheetHidden
+        sheets("dissagregation_setting").Delete
+    End If
+        
  Debug.Print FileSelected
     DoEvents
     Me.bar.Width = 10
@@ -232,7 +238,7 @@ Private Sub CommandTools_Click()
     tool_path = SaveRegistrySetting("ramSetting", "koboToolReg", FileSelected)
     Me.tooLabel = "Integrated Tool: " & vbCrLf & GetRegistrySetting("ramSetting", "koboToolReg")
     
-    ActiveWorkbook.Save
+    ThisWorkbook.Save
     Me.Label_import.Caption = "imported"
     Me.bar.Visible = False
     Application.ScreenUpdating = True

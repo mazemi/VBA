@@ -50,7 +50,6 @@ Sub auto_check()
     last_dt = ws.Cells(Rows.count, uuid_coln).End(xlUp).Row
     
     plan_row = plan_ws.Cells(Rows.count, 1).End(xlUp).Row
-    
     plan_ws.Range("M1") = Null
     plan_ws.Range("M2") = Null
     plan_ws.Range("M3") = Null
@@ -259,7 +258,6 @@ resumeLoop:
     End If
     
     Application.ScreenUpdating = True
-    Debug.Print "finish autocheck"
     
 End Sub
 
@@ -318,7 +316,6 @@ Function add_to_log() As Boolean
     End If
     
     temp_ws.Cells.Clear
-    
     add_to_log = True
     
 End Function
@@ -452,16 +449,10 @@ Sub single_check(p_row As Long)
 
         rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
         
-'        rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C")
-        
         rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C"), xlOr, _
             give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
             
         ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
-    
-'        rng.AutoFilter col_n1, give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
-'
-'        ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
         
     ' use advancefilter
     ' case 4
@@ -632,9 +623,12 @@ Sub export_plan()
            title:="Save the cleaning plan", _
            InitialFileName:="logical_ckeck")
              
-    If path = False Then End
-    
     Debug.Print path
+     
+    If path = "False" Then
+        Application.DisplayAlerts = True
+        End
+    End If
     
     Workbooks.Add
     

@@ -106,9 +106,9 @@ errHandlerArray:
     
 End Sub
 
-Sub create_log_sheet(sheet_name)
+Sub create_log_sheet(SHEET_NAME)
     Dim validationList As String
-    sheets.Add(after:=sheets(sheet_name)).Name = "log_book"
+    sheets.Add(after:=sheets(SHEET_NAME)).Name = "log_book"
     
     With sheets("log_book")
         ' new columns
@@ -118,13 +118,11 @@ Sub create_log_sheet(sheet_name)
         .Range("D1").value = "old.value"
         .Range("E1").value = "new.value"
         .Range("F1").value = "changed"
-        ' set columns widths:
         .Columns("A:A").ColumnWidth = 40
         .Columns("B:B").ColumnWidth = 30
         .Columns("C:L").ColumnWidth = 15
     End With
     
-    ' Define the validation list items
     validationList = "yes,no"
 
     sheets("log_book").Range("F2:F" & Rows.count).Validation.Delete
@@ -139,7 +137,6 @@ Sub create_log_sheet(sheet_name)
         .ShowError = False
     End With
     
-    'freeze top row:
     With ActiveWindow
         .SplitColumn = 0
         .SplitRow = 1

@@ -9,6 +9,9 @@ Sub generate_strata()
     Dim main_ws As Worksheet
     Dim last_main_strata As Long
     Dim last_smp_strata As Long
+    Dim ws As Worksheet
+    
+    Set ws = sheets("temp_sheet")
     
     Set main_ws = sheets(Public_module.DATA_SHEET)
     
@@ -16,29 +19,29 @@ Sub generate_strata()
         Call create_sheet(main_ws.Name, "temp_sheet")
     End If
     
-    sheets("temp_sheet").Cells.Clear
+    ws.Cells.Clear
 
     main_strata_col_number = gen_column_number(Public_module.DATA_STRATA, Public_module.DATA_SHEET)
-    sheets(Public_module.DATA_SHEET).Columns(main_strata_col_number).Copy Destination:=sheets("temp_sheet").Columns(1)
-    sheets("temp_sheet").Columns(1).RemoveDuplicates Columns:=1, Header:=xlNo
+    sheets(Public_module.DATA_SHEET).Columns(main_strata_col_number).Copy Destination:=ws.Columns(1)
+    ws.Columns(1).RemoveDuplicates Columns:=1, Header:=xlNo
 
     samp_strata_col_number = gen_column_number(Public_module.SAMPLE_STRATA, Public_module.SAMPLE_SHEET)
-    sheets(Public_module.SAMPLE_SHEET).Columns(samp_strata_col_number).Copy Destination:=sheets("temp_sheet").Columns(2)
-    sheets("temp_sheet").Columns(2).RemoveDuplicates Columns:=1, Header:=xlNo
+    sheets(Public_module.SAMPLE_SHEET).Columns(samp_strata_col_number).Copy Destination:=ws.Columns(2)
+    ws.Columns(2).RemoveDuplicates Columns:=1, Header:=xlNo
     
-    last_main_strata = sheets("temp_sheet").Cells(Rows.count, 1).End(xlUp).Row
-    last_smp_strata = sheets("temp_sheet").Cells(Rows.count, 2).End(xlUp).Row
+    last_main_strata = ws.Cells(Rows.count, 1).End(xlUp).Row
+    last_smp_strata = ws.Cells(Rows.count, 2).End(xlUp).Row
     
-    sheets("temp_sheet").Range("C2:C" & last_main_strata).Formula = "=A2 & ""A"""
-    sheets("temp_sheet").Range("D2:D" & last_smp_strata).Formula = "=B2 & ""A"""
+    ws.Range("C2:C" & last_main_strata).Formula = "=A2 & ""A"""
+    ws.Range("D2:D" & last_smp_strata).Formula = "=B2 & ""A"""
     
-    sheets("temp_sheet").Columns("C:D").Select
+    ws.Columns("C:D").Select
     Selection.Copy
     Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
         :=False, Transpose:=False
 
     Application.CutCopyMode = False
-    sheets("temp_sheet").Columns("A:B").Delete Shift:=xlToLeft
+    ws.Columns("A:B").Delete Shift:=xlToLeft
     
 End Sub
 
@@ -53,15 +56,18 @@ Sub unmatched_strata()
     Dim main_strata As Variant
     Dim smp_strata As Variant
     Dim i As Variant
+    Dim ws As Worksheet
+    
+    ws = sheets("temp_sheet")
     
     msg_title = "The following strata dose not exist in the sampling frame." & vbCrLf & _
                 "Please check the data and sampling framework for below codes:" & vbCrLf
     
-    last_main_strata = sheets("temp_sheet").Cells(Rows.count, 1).End(xlUp).Row
-    last_smp_strata = sheets("temp_sheet").Cells(Rows.count, 2).End(xlUp).Row
+    last_main_strata = ws.Cells(Rows.count, 1).End(xlUp).Row
+    last_smp_strata = ws.Cells(Rows.count, 2).End(xlUp).Row
 
-    main_strata = sheets("temp_sheet").Range("A2:A" & last_main_strata).Value2
-    smp_strata = sheets("temp_sheet").Range("B2:B" & last_smp_strata).Value2
+    main_strata = ws.Range("A2:A" & last_main_strata).Value2
+    smp_strata = ws.Range("B2:B" & last_smp_strata).Value2
     
     Set col = unmatched_elements(main_strata, smp_strata, False)
     
@@ -80,7 +86,7 @@ Sub unmatched_strata()
     Application.DisplayAlerts = False
             
     If worksheet_exists("temp_sheet") Then
-        sheets("temp_sheet").Delete
+        ws.Delete
     End If
     
     Application.DisplayAlerts = True
@@ -151,13 +157,9 @@ Sub calculate_weight()
     new_col_number_dt = dt_ws.Cells(1, Columns.count).End(xlToLeft).Column + 1
     new_col_dt = Split(dt_ws.Cells(, new_col_number_dt).Address, "$")(1)
     
-    ' last rows
     last_row = samp_ws.Cells(Rows.count, 1).End(xlUp).Row
-'    last_row = samp_ws.UsedRange.rows(samp_ws.UsedRange.rows.count).row
     last_row_dt = dt_ws.UsedRange.Rows(dt_ws.UsedRange.Rows.count).Row
     
-    'new codes:
-    ' ********** in the sampling sheet
     Dim row_number As Long
     
     ' new strata in the sampling frame
@@ -180,7 +182,7 @@ Sub calculate_weight()
     total_population = WorksheetFunction.sum(samp_ws.Columns(sample_population_number))
     total_survey = WorksheetFunction.sum(samp_ws.Columns(new_col_number + 1))
      
-     ' add weight0 and sum_weight0
+    ' add weight0 and sum_weight0
     Dim w0 As Double
     samp_ws.Cells(1, new_col_number + 2) = "weight0"
     samp_ws.Cells(1, new_col_number + 3) = "sum_weight0"
@@ -208,9 +210,6 @@ Sub calculate_weight()
         samp_ws.Cells(row_number, new_col_number + 4) = correction_coefficient * samp_ws.Cells(row_number, new_col_number + 2)
     Next row_number
     
-    ' ********** in the main dataset
-    
-    ' target column letteres in the sampling sheet
     new_col = Split(samp_ws.Cells(, new_col_number).Address, "$")(1)
     last_col = Split(samp_ws.Cells(, new_col_number + 4).Address, "$")(1)
     befor_weight_col = Split(samp_ws.Cells(, new_col_number + 3).Address, "$")(1)
@@ -222,7 +221,6 @@ Sub calculate_weight()
     dt_ws.Cells(1, weight_col_number).value = "weight"
     Dim target_rng As Range
     
-    ' columns("E:H")
     Set target_rng = samp_ws.Columns(new_col & ":" & last_col)
     Dim i As Variant
     
@@ -231,7 +229,6 @@ Sub calculate_weight()
             target_rng, 5, False)
     Next
     
-    ' delete temperory columns
     samp_ws.Columns(new_col & ":" & befor_weight_col).Delete Shift:=xlToLeft
     dt_ws.Columns(new_col_dt & ":" & new_col_dt).Delete Shift:=xlToLeft
 
