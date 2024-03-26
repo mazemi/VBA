@@ -171,7 +171,7 @@ Sub data_injection(question As String)
     
     last_row = temp_ws.Cells(Rows.count, 7).End(xlUp).Row
     
-    temp_ws.Range("E1:E" & last_row).RemoveDuplicates Columns:=1, Header:=xlYes
+    temp_ws.Range("E1:E" & last_row).RemoveDuplicates Columns:=1, header:=xlYes
 
     last_choice = temp_ws.Cells(Rows.count, 5).End(xlUp).Row
     

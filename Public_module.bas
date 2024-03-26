@@ -642,7 +642,6 @@ Sub ListNonActiveWorkbooks()
     
     i = 1
     For Each wb In Workbooks
-'        If Not wb Is ThisWorkbook Then
         If Not wb Is ActiveWorkbook Then
             Debug.Print wb.Name
             i = i + 1
@@ -657,40 +656,43 @@ Sub ExportAllModulesAndForms()
     Dim filePath As String
     
     filePath = ActiveWorkbook.path
+    filePath = filePath & "\codes\"
+    
+    Call CheckAndCreateDirectory(filePath)
     
     Set VBProj = ThisWorkbook.VBProject
     For Each VBComp In VBProj.VBComponents
         If VBComp.Type = 1 Then 'Standard module
-            FileName = filePath & "\" & VBComp.Name & ".bas"
+            FileName = filePath & VBComp.Name & ".bas"
             VBComp.Export FileName
         ElseIf VBComp.Type = 2 Then 'Class module
-            FileName = filePath & "\" & VBComp.Name & ".cls"
+            FileName = filePath & VBComp.Name & ".cls"
             VBComp.Export FileName
         ElseIf VBComp.Type = 3 Then 'UserForm
-            FileName = filePath & "\" & VBComp.Name & ".frm"
+            FileName = filePath & VBComp.Name & ".frm"
             VBComp.Export FileName
         End If
     Next VBComp
     MsgBox "All modules and forms exported successfully!", vbInformation
 End Sub
 
-Sub ImportAllModulesAndForms()
+Sub iinitialTheApp()
     Dim strFolder As String
     Dim strFile As String
     Dim VBProj As Object
     Dim VBComp As Object
     Dim FileName As String
+    
     Dim filePath As String
-    
-    strFolder = ActiveWorkbook.path & "\"
-    
+    filePath = ThisWorkbook.path
+    strFolder = ThisWorkbook.path & "\codes\"
     If Dir(strFolder, vbDirectory) = "" Then
         MsgBox "Folder not found!", vbExclamation
         Exit Sub
     End If
     
     Set VBProj = ThisWorkbook.VBProject
-    
+
     strFile = Dir(strFolder & "*.*")
     Do While strFile <> ""
         If Right(strFile, 4) = ".bas" Or Right(strFile, 4) = ".cls" Or Right(strFile, 4) = ".frm" Then
@@ -698,7 +700,35 @@ Sub ImportAllModulesAndForms()
         End If
         strFile = Dir
     Loop
-    
+    Call CreateMainSheets
     MsgBox "All modules and forms imported successfully!", vbInformation
 End Sub
+
+Sub CreateMainSheets()
+    Dim ws As Worksheet
+    
+    Set ws = wb.sheets(1)
+    ws.Name = "xsurvey"
+    
+    Set ws = ThisWorkbook.sheets.Add(after:=ThisWorkbook.sheets(ThisWorkbook.sheets.count))
+    ws.Name = "xchoices"
+    
+    Set ws = ThisWorkbook.sheets.Add(after:=ThisWorkbook.sheets(ThisWorkbook.sheets.count))
+    ws.Name = "xsurvey_choices"
+
+    Set ws = ThisWorkbook.sheets.Add(after:=ThisWorkbook.sheets(ThisWorkbook.sheets.count))
+    ws.Name = "xlogical_checks"
+End Sub
+
+Sub CheckAndCreateDirectory(pathDir As String)
+    Dim myPath As String
+    Dim checkDir As String
+    
+    checkDir = Dir(pathDir, vbDirectory)
+    
+    If checkDir = "" Then
+        MkDir pathDir
+    End If
+End Sub
+
 

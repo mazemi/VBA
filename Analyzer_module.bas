@@ -184,17 +184,18 @@ Sub do_analize()
                 If var_arr(i, 2) = "select_multiple" Then
                     Call calculate_nominal_multipe
                 End If
-    
-                
+                    
 NextIteration:
             Next i
 
             last_row_result = result_sheet.Cells(Rows.count, 1).End(xlUp).Row
 
-
             Call delete_un_selected_choices
-
-
+            
+            If check_gender_column Then
+                Call gender_disaggregation
+            End If
+            
             If last_row_result > 2 Then
                 Call make_header_order
             End If
@@ -1224,7 +1225,7 @@ Sub make_header_order()
     ws.Cells.Clear
     
     ws.Range("A1:A" & last_result).Value2 = res_ws.Range("N1:N" & last_result).Value2
-    ws.Range("A1").CurrentRegion.RemoveDuplicates Columns:=1, Header:=xlYes
+    ws.Range("A1").CurrentRegion.RemoveDuplicates Columns:=1, header:=xlYes
     
     last_header = ws.Cells(ws.Rows.count, "A").End(xlUp).Row
      
@@ -1278,10 +1279,12 @@ Sub delete_un_selected_choices()
         Exit Sub
     End If
     
-    var_rng.RemoveDuplicates Columns:=1, Header:=xlYes
+    var_rng.RemoveDuplicates Columns:=1, header:=xlYes
     
     Set var_rng = dis_ws.Range("P1").CurrentRegion
+    
     var_counter = 0
+    
     For Each cell In var_rng
         dis_ws.Cells(cell.Row, "Q") = Application.WorksheetFunction.CountIf(choice_rng, cell)
         If dis_ws.Cells(cell.Row, "Q") > 10 Then
@@ -1289,7 +1292,12 @@ Sub delete_un_selected_choices()
         End If
     Next cell
     
-    Debug.Print var_counter
+    Debug.Print "var_counter: " & var_counter
+    
+    If var_counter = 0 Then
+        Debug.Print "exit function"
+        Exit Sub
+    End If
     
     Dim var_arr() As String
     Dim j As Integer
@@ -1358,9 +1366,253 @@ Private Sub not_processed()
     Dim str As String
     Dim lines() As String
     Dim lastLine As String
-    
     lines = Split(analysis_form.TextInfo, vbCrLf)
     lastLine = lines(LBound(lines))
     analysis_form.TextInfo.value = Replace(analysis_form.TextInfo, lastLine, lastLine & " !")
 End Sub
+
+Private Sub gender_disaggregation()
+
+    Dim ws As Worksheet
+    Dim g_ws As Worksheet
+    Dim i As Long
+    Dim j As Long
+    Dim colNums(1 To 8) As Long
+    Dim sumCol(1 To 8) As Long
+    Dim totalRange As Range
+    Dim lastRowMain As Long
+    Dim totalFemale As Double
+    Dim totalMale As Double
+    Dim totalSum As Double
+    Dim female As Double
+    Dim male As Double
+    
+    WITH_WEIGHT = False
+    
+    Set ws = sheets(find_main_data)
+    lastRowMain = ws.Cells(ws.Rows.count, find_uuid_coln).End(xlUp).Row
+    
+    If Not worksheet_exists("gender_summary") Then
+        Call create_sheet("analysis_list", "gender_summary")
+    End If
+            
+    Set g_ws = sheets("gender_summary")
+    g_ws.Cells.Clear
+
+    colNums(1) = gen_column_number("new_born_female", find_main_data)
+    colNums(2) = gen_column_number("new_born_male", find_main_data)
+    colNums(3) = gen_column_number("girls_6_17", find_main_data)
+    colNums(4) = gen_column_number("boys_6_17", find_main_data)
+    colNums(5) = gen_column_number("adult_18_59_female", find_main_data)
+    colNums(6) = gen_column_number("adult_18_59_male", find_main_data)
+    colNums(7) = gen_column_number("elders_60_abv_female", find_main_data)
+    colNums(8) = gen_column_number("elders_60_abv_male", find_main_data)
+    
+    Debug.Print "WITH_WEIGHT: " & WITH_WEIGHT
+    
+    If WITH_WEIGHT Then
+        Dim values As Variant
+        Dim wcol As Long
+        wcol = gen_column_number("weight", find_main_data)
+        values = ws.Range(ws.Cells(2, colNums(1)), ws.Cells(lastRowMain, colNums(8))).value
+        For i = 1 To UBound(values, 1)
+            For j = 1 To UBound(values, 2)
+                values(i, j) = values(i, j) * ws.Cells(i + 1, wcol).value
+            Next j
+        Next i
+        g_ws.Range("A2").Resize(UBound(values, 1), UBound(values, 2)).value = values
+    Else
+        For i = 1 To 8
+            ws.Columns(colNums(i)).Copy g_ws.Columns(i)
+        Next i
+    End If
+    
+    Set totalRange = g_ws.Range("A1:H" & lastRowMain)
+    
+    sumCol(1) = Application.WorksheetFunction.sum(g_ws.Range("A1:A" & lastRowMain))
+    sumCol(2) = Application.WorksheetFunction.sum(g_ws.Range("B1:B" & lastRowMain))
+    sumCol(3) = Application.WorksheetFunction.sum(g_ws.Range("C1:C" & lastRowMain))
+    sumCol(4) = Application.WorksheetFunction.sum(g_ws.Range("D1:D" & lastRowMain))
+    sumCol(5) = Application.WorksheetFunction.sum(g_ws.Range("E1:E" & lastRowMain))
+    sumCol(6) = Application.WorksheetFunction.sum(g_ws.Range("F1:F" & lastRowMain))
+    sumCol(7) = Application.WorksheetFunction.sum(g_ws.Range("G1:G" & lastRowMain))
+    sumCol(8) = Application.WorksheetFunction.sum(g_ws.Range("H1:H" & lastRowMain))
+    
+    totalFemale = sumCol(1) + sumCol(3) + sumCol(5) + sumCol(7)
+    totalMale = sumCol(2) + sumCol(4) + sumCol(6) + sumCol(8)
+    totalSum = totalFemale + totalMale
+    
+    female = Application.WorksheetFunction.Round(100 * totalFemale / totalSum, 1)
+    male = Application.WorksheetFunction.Round(100 * totalMale / totalSum, 1)
+    
+    g_ws.Range("K1:L1").value = Array("Male", CStr(male) & "%")
+    g_ws.Range("N1:O1").value = Array("Female", CStr(female) & "%")
+    g_ws.Range("K3:K6").value = Application.Transpose(Array("0y-5y", "6y-17y", "18y-59y", "60y+"))
+    g_ws.Range("N3:N6").value = Application.Transpose(Array("0y-5y", "6y-17y", "18y-59y", "60y+"))
+    
+    g_ws.Range("L3:L6").value = Application.Transpose(Array( _
+                                        CStr(Application.WorksheetFunction.Round(100 * sumCol(2) / totalSum, 1)) & "%", _
+                                        CStr(Application.WorksheetFunction.Round(100 * sumCol(4) / totalSum, 1)) & "%", _
+                                        CStr(Application.WorksheetFunction.Round(100 * sumCol(6) / totalSum, 1)) & "%", _
+                                        CStr(Application.WorksheetFunction.Round(100 * sumCol(8) / totalSum, 1)) & "%"))
+                                        
+    g_ws.Range("O3:O6").value = Application.Transpose(Array( _
+                                        CStr(Application.WorksheetFunction.Round(100 * sumCol(1) / totalSum, 1)) & "%", _
+                                        CStr(Application.WorksheetFunction.Round(100 * sumCol(3) / totalSum, 1)) & "%", _
+                                        CStr(Application.WorksheetFunction.Round(100 * sumCol(5) / totalSum, 1)) & "%", _
+                                        CStr(Application.WorksheetFunction.Round(100 * sumCol(7) / totalSum, 1)) & "%"))
+    
+    Call format_gender_summary
+'    g_ws.Range("F1").value = "WEIGHT: " & WITH_WEIGHT
+End Sub
+
+Sub format_gender_summary()
+    On Error Resume Next
+    Dim ws As Worksheet
+    Dim rng1 As Range
+    Dim rng2 As Range
+    
+    Set ws = sheets("gender_summary")
+    
+    ws.Columns("A:J").Delete Shift:=xlToLeft
+    
+    ws.Columns("B:B").ColumnWidth = 20
+    ws.Columns("C:C").ColumnWidth = 5
+    ws.Columns("E:E").ColumnWidth = 20
+    
+    With ws.Range("A1:E1").Font
+        .Bold = True
+    End With
+    
+    Set rng1 = ws.Range("B3:B6")
+    Set rng2 = ws.Range("E3:E6")
+    
+    rng1.FormatConditions.AddDatabar
+    rng1.FormatConditions(rng1.FormatConditions.count).ShowValue = True
+    rng1.FormatConditions(rng1.FormatConditions.count).SetFirstPriority
+    With rng1.FormatConditions(1)
+        .MinPoint.Modify newtype:=xlConditionValueAutomaticMin
+        .MaxPoint.Modify newtype:=xlConditionValueAutomaticMax
+    End With
+    With rng1.FormatConditions(1).BarColor
+        .Color = 2668287
+        .TintAndShade = 0
+    End With
+    rng1.FormatConditions(1).BarFillType = xlDataBarFillSolid
+    rng1.FormatConditions(1).Direction = xlContext
+    rng1.FormatConditions(1).NegativeBarFormat.ColorType = xlDataBarColor
+    With rng1.FormatConditions(1).AxisColor
+        .Color = 0
+        .TintAndShade = 0
+    End With
+    With rng1.FormatConditions(1).NegativeBarFormat.Color
+        .Color = 255
+        .TintAndShade = 0
+    End With
+    
+    rng2.FormatConditions.AddDatabar
+    rng2.FormatConditions(rng2.FormatConditions.count).ShowValue = True
+    rng2.FormatConditions(rng2.FormatConditions.count).SetFirstPriority
+    With rng2.FormatConditions(1)
+        .MinPoint.Modify newtype:=xlConditionValueAutomaticMin
+        .MaxPoint.Modify newtype:=xlConditionValueAutomaticMax
+    End With
+    With rng2.FormatConditions(1).BarColor
+        .Color = 2668287
+        .TintAndShade = 0
+    End With
+    rng2.FormatConditions(1).BarFillType = xlDataBarFillSolid
+    rng2.FormatConditions(1).Direction = xlContext
+    rng2.FormatConditions(1).NegativeBarFormat.ColorType = xlDataBarColor
+    With rng2.FormatConditions(1).AxisColor
+        .Color = 0
+        .TintAndShade = 0
+    End With
+    With rng2.FormatConditions(1).NegativeBarFormat.Color
+        .Color = 255
+        .TintAndShade = 0
+    End With
+    
+    With ws.Range("A3:E3")
+        With .Borders(xlEdgeTop)
+            .LineStyle = xlContinuous
+            .ColorIndex = 0
+            .TintAndShade = 0
+            .Weight = xlThin
+        End With
+    End With
+    
+    With ws.Range("A6:E6")
+        With .Borders(xlEdgeBottom)
+            .LineStyle = xlContinuous
+            .ColorIndex = 0
+            .TintAndShade = 0
+            .Weight = xlThin
+        End With
+    End With
+    
+    ws.Columns("C:C").Clear
+    
+    ws.Rows("1:2").Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+    ws.Range("A1:E1").Merge
+    If WITH_WEIGHT Then
+        ws.Range("A1").value = "Gender Demographics (weighted)"
+    Else
+        ws.Range("A1").value = "Gender Demographics"
+    End If
+    
+    
+    With ws.Range("A1").Font
+        .Bold = True
+        .Size = 18
+        .Color = RGB(150, 150, 150)
+    End With
+    
+    With ws.Range("A3:E8").Font
+        .Size = 10
+    End With
+    
+    With ws.Range("B3:B8")
+        .Style = "Percent"
+        .NumberFormat = "0.0%"
+    End With
+    
+    With ws.Range("E3:E8")
+        .Style = "Percent"
+        .NumberFormat = "0.0%"
+    End With
+    
+    On Error GoTo 0
+End Sub
+
+Private Function check_gender_column() As Boolean
+    Dim ws As Worksheet
+    Dim header As Range
+    Dim columnHeaders As Variant
+    Dim columnHeader As Variant
+    Dim missingHeaders As String
+
+    ' these colums are for gender sub catagories:
+    columnHeaders = Array("new_born_female", "new_born_male", _
+                          "girls_6_17", "boys_6_17", _
+                          "adult_18_59_female", "adult_18_59_male", _
+                          "elders_60_abv_female", "elders_60_abv_male")
+    
+    Set ws = sheets(find_main_data)
+    
+    For Each columnHeader In columnHeaders
+        Set header = ws.Rows(1).Find(columnHeader, LookIn:=xlValues, LookAt:=xlWhole)
+        If header Is Nothing Then
+            missingHeaders = missingHeaders & columnHeader & vbCrLf
+        End If
+    Next columnHeader
+
+    If missingHeaders <> "" Then
+        Debug.Print " missing:" & vbCrLf & missingHeaders
+        check_gender_column = False
+    Else
+        check_gender_column = True
+    End If
+    
+End Function
 

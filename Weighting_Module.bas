@@ -23,11 +23,11 @@ Sub generate_strata()
 
     main_strata_col_number = gen_column_number(Public_module.DATA_STRATA, Public_module.DATA_SHEET)
     sheets(Public_module.DATA_SHEET).Columns(main_strata_col_number).Copy Destination:=ws.Columns(1)
-    ws.Columns(1).RemoveDuplicates Columns:=1, Header:=xlNo
+    ws.Columns(1).RemoveDuplicates Columns:=1, header:=xlNo
 
     samp_strata_col_number = gen_column_number(Public_module.SAMPLE_STRATA, Public_module.SAMPLE_SHEET)
     sheets(Public_module.SAMPLE_SHEET).Columns(samp_strata_col_number).Copy Destination:=ws.Columns(2)
-    ws.Columns(2).RemoveDuplicates Columns:=1, Header:=xlNo
+    ws.Columns(2).RemoveDuplicates Columns:=1, header:=xlNo
     
     last_main_strata = ws.Cells(Rows.count, 1).End(xlUp).Row
     last_smp_strata = ws.Cells(Rows.count, 2).End(xlUp).Row

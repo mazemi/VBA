@@ -57,6 +57,7 @@ Private Sub CommandRun_Click()
     Next i
     
     If SelectedItemIndex = -1 Then
+        MsgBox "Please select one variable from the list and then click 'Generate Table'.", vbInformation
         Exit Sub
     End If
     
@@ -376,6 +377,10 @@ Private Sub UserForm_Initialize()
     For Each cell In dis_rng
         Me.ComboBoxDis.AddItem cell.value
     Next cell
+    
+    If dis_rng.Rows.count = 1 Then
+        Me.ComboBoxDis.value = ws.Range("G1").value
+    End If
     
     For Each cell In dis_rng
         If cell.value <> "ALL" Then

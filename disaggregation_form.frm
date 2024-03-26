@@ -16,6 +16,9 @@ Attribute VB_Exposed = False
 
 
 
+
+
+
 Sub set_indicator_validator()
 '    On Error Resume Next
     Dim dt_name As String

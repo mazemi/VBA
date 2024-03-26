@@ -19,6 +19,9 @@ Attribute VB_Exposed = False
 
 
 
+
+
+
 Private Sub CommandRun_Click()
     If Me.OptionWrongValue = True Then
         Public_module.ISSUE_TEXT = "Wrong value"

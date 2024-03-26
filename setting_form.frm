@@ -15,6 +15,9 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
+
+
 Private Sub CommandSave_Click()
     On Error Resume Next
     Dim current_dt_name As String
@@ -107,6 +110,7 @@ Private Sub LabelReset_Click()
         End If
         
         If worksheet_exists("dm_backend") Then
+            sheets("dm_backend").Visible = xlSheetHidden
             sheets("dm_backend").Delete
         End If
         
@@ -180,15 +184,28 @@ Private Sub PopulateComboBox()
     
 End Sub
 
+Private Function GetFileSystemObject() As Object
+    Static objFSO As Object
+    
+    If objFSO Is Nothing Then
+        On Error Resume Next
+        Set objFSO = CreateObject("Scripting.FileSystemObject")
+        On Error GoTo 0
+    End If
+    
+    Set GetFileSystemObject = objFSO
+End Function
 
 Private Sub CommandTools_Click()
     
     On Error GoTo errhandler
     Me.Label_import.Visible = False
     Application.ScreenUpdating = False
-    
-    Dim objFSO As New FileSystemObject
+    Dim objFSO As Object
+    Dim myFile As Object
     Dim FileSelected As String
+    
+    Set objFSO = GetFileSystemObject()
 
     Set myFile = Application.FileDialog(msoFileDialogOpen)
     With myFile
@@ -199,10 +216,10 @@ Private Sub CommandTools_Click()
         If .Show <> -1 Then
             Exit Sub
         End If
-        FileSelected = .selectedItems(1)
+        FileSelected = .SelectedItems(1)
     End With
     
-    ' temprory snippet for disaggregation_setting
+    ' temporary snippet for disaggregation_setting
     If worksheet_exists("dissagregation_setting") Then
         sheets("dissagregation_setting").Visible = xlSheetHidden
         sheets("dissagregation_setting").Delete

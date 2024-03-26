@@ -14,6 +14,9 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
+
+
 Option Explicit
 
 Private Sub ComboBoxDis_Change()
@@ -78,7 +81,8 @@ Private Sub CommandNext_Click()
             selected_values.Add Me.ListBoxVars.List(index, 0)
             selected_labels.Add Me.ListBoxVars.List(index, 1)
         Next index
-        
+    ElseIf count_selected_items(Me.ListBoxVars) = 0 Then
+        MsgBox "Please select up to three disaggregation values from the list and then click 'Generate Chart'.", vbInformation
     End If
     Unload Me
     Call generate_multiple_data_chart(Me.ComboBoxDis.value, selected_values, selected_labels)
@@ -201,7 +205,7 @@ Sub sort_disaggregation()
         .SortFields.Clear
         .SortFields.Add key:=ws.Range("K2:K" & lastRow), Order:=xlAscending
         .SetRange sortRange
-        .Header = xlNo
+        .header = xlNo
         .MatchCase = False
         .Orientation = xlTopToBottom
         .SortMethod = xlPinYin

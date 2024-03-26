@@ -15,6 +15,9 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
+
+
 Option Explicit
 
 Private Sub ComboOp1_Change()
@@ -206,7 +209,7 @@ End Sub
 Sub remove_duplicated_plan()
     Dim last_row  As Long
     last_row = ThisWorkbook.sheets("xlogical_checks").Cells(Rows.count, 1).End(xlUp).Row
-    ThisWorkbook.sheets("xlogical_checks").Range("$A$1:$H$" & last_row).RemoveDuplicates Columns:=Array(1, 2, 3, 4, 5, 6, 7, 8), Header:=xlNo
+    ThisWorkbook.sheets("xlogical_checks").Range("$A$1:$H$" & last_row).RemoveDuplicates Columns:=Array(1, 2, 3, 4, 5, 6, 7, 8), header:=xlNo
 End Sub
 
 Private Sub OptionAnd_Click()

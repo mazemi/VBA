@@ -577,7 +577,7 @@ Sub check_choice_duplicates()
        
     If has_duplicate Then
         Set rng = ws.Range("M1").CurrentRegion
-        rng.RemoveDuplicates Columns:=Array(1, 2), Header:=xlNo
+        rng.RemoveDuplicates Columns:=Array(1, 2), header:=xlNo
         Set rng = ws.Range("M1").CurrentRegion
      
         For k = 1 To rng.Rows.count

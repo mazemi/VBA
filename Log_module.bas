@@ -198,7 +198,7 @@ Sub remove_duplicate_log()
     Dim row_col As Long
     
     Application.CutCopyMode = False
-    sheets("log_book").Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2), Header:=xlYes
+    sheets("log_book").Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2), header:=xlYes
     sheets("log_book").Range("A1").CurrentRegion.RemoveDuplicates
     row_col = gen_column_number("row", "log_book")
     

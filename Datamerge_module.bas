@@ -28,7 +28,7 @@ Sub generate_datamerge()
     Set ws = sheets("result")
     
     Set rng = ws.Range("A1").CurrentRegion
-    rng.Sort Key1:=ws.Range("A1"), Order1:=xlAscending, Header:=xlYes
+    rng.Sort Key1:=ws.Range("A1"), Order1:=xlAscending, header:=xlYes
 
     Call make_dis_level
     Call make_header
@@ -86,7 +86,7 @@ Sub make_dis_level()
     res_ws.Columns("B:D").Copy Destination:=dm_ws.Columns("A:C")
     Application.CutCopyMode = False
     
-    dm_ws.Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2, 3), Header:=xlYes
+    dm_ws.Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2, 3), header:=xlYes
     last_row = dm_ws.Cells(Rows.count, "A").End(xlUp).Row
     
     Set tmp_collection = unique_values(dm_ws.Range("A2:A" & last_row))
@@ -99,13 +99,15 @@ Sub make_dis_level()
         Next v
     Next cel
     
-    
     uuid_col = gen_column_number("_uuid", find_main_data)
     
     last_row_dt = dt_ws.Cells(Rows.count, uuid_col).End(xlUp).Row
     dt = find_main_data
 
     If dm_ws.Range("A3") = vbNullString Then
+        dm_ws.Rows("1:3").Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+        dm_ws.Range("D4") = "count"
+        dm_ws.Range("D5") = last_row_dt - 1
         Exit Sub
     End If
         
@@ -134,8 +136,8 @@ Sub make_dis_level()
     Next i
     
     Set rng = dm_ws.Range("A1").CurrentRegion
-    rng.Sort Key1:=dm_ws.Range("F2:F" & last_row), Order1:=xlAscending, Header:=xlYes
-    rng.Sort Key1:=dm_ws.Range("E2:E" & last_row), Order1:=xlAscending, Header:=xlYes
+    rng.Sort Key1:=dm_ws.Range("F2:F" & last_row), Order1:=xlAscending, header:=xlYes
+    rng.Sort Key1:=dm_ws.Range("E2:E" & last_row), Order1:=xlAscending, header:=xlYes
     
     dm_ws.Columns("E:F").Delete
     dm_ws.Range("D1") = "count"
@@ -170,12 +172,12 @@ Sub make_header()
     Set ws = sheets("temp_sheet")
     
     Set rng = res_ws.Range("A1").CurrentRegion
-    rng.Sort Key1:=res_ws.Range("A1"), Order1:=xlAscending, Header:=xlYes
+    rng.Sort Key1:=res_ws.Range("A1"), Order1:=xlAscending, header:=xlYes
     
     ws.Columns("A:B").NumberFormat = "@"
     res_ws.Range("E:E,H:H,K:K").Copy Destination:=ws.Cells(1, "A")
 
-    ws.Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2, 3), Header:=xlYes
+    ws.Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2, 3), header:=xlYes
     
     last_row = ws.Cells(Rows.count, 1).End(xlUp).Row
     ws.Range("D2:D" & last_row).Formula = "=IF(C2="""",A2& ""-value-"" &A2,A2& ""-value-"" &C2)"
@@ -331,9 +333,9 @@ Public Sub populate_indicators()
     With indi_ws
         .Cells.Clear
         .Columns("A:B").value = ws.Columns("E:F").value
-        .Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2), Header:=xlYes
+        .Range("A1").CurrentRegion.RemoveDuplicates Columns:=Array(1, 2), header:=xlYes
         .Columns("G").value = ws.Columns("B").value
-        .Range("G1").CurrentRegion.RemoveDuplicates Columns:=1, Header:=xlYes
+        .Range("G1").CurrentRegion.RemoveDuplicates Columns:=1, header:=xlYes
         .Rows("1:1").Delete Shift:=xlUp
     End With
 End Sub

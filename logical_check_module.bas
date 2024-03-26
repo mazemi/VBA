@@ -416,7 +416,7 @@ Sub single_check(p_row As Long)
             GoTo resumeLoop
         End If
         
-        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, header:=xlYes
         rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C")
         
         ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
@@ -432,7 +432,7 @@ Sub single_check(p_row As Long)
             GoTo resumeLoop
         End If
         
-        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, header:=xlYes
         rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C"), xlAnd, _
             give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
             
@@ -447,7 +447,7 @@ Sub single_check(p_row As Long)
             GoTo resumeLoop
         End If
 
-        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, header:=xlYes
         
         rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C"), xlOr, _
             give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
@@ -472,10 +472,10 @@ Sub single_check(p_row As Long)
         Set cr_rng = plan_ws.Range("M1").CurrentRegion
         rng.AdvancedFilter xlFilterInPlace, cr_rng
         
-        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, header:=xlYes
         ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
         
-        rng.Sort Key1:=rng.Cells(1, col_n2), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n2), Order1:=xlAscending, header:=xlYes
         ws.Range(ws.Cells(2, col_n2), ws.Cells(last_dt, col_n2)).SpecialCells(xlCellTypeVisible).Select
   
     ' use advancefilter
@@ -496,10 +496,10 @@ Sub single_check(p_row As Long)
         Set cr_rng = plan_ws.Range("M1").CurrentRegion
         rng.AdvancedFilter xlFilterInPlace, cr_rng
 
-        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, header:=xlYes
         ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
 
-        rng.Sort Key1:=rng.Cells(1, col_n2), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n2), Order1:=xlAscending, header:=xlYes
         ws.Range(ws.Cells(2, col_n2), ws.Cells(last_dt, col_n2)).SpecialCells(xlCellTypeVisible).Select
 
     End If

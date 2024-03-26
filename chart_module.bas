@@ -41,6 +41,7 @@ If worksheet_exists("temp_sheet") Then
     sheets("temp_sheet").Visible = xlSheetHidden
     sheets("temp_sheet").Delete
 End If
+
 Application.ScreenUpdating = True
 MsgBox "Oops!, Something went wrong!                       ", vbCritical
 End
@@ -115,7 +116,6 @@ Sub generate_data_chart()
         res_sheet.Range("$A$1:$M$" & last_row_result).AutoFilter Field:=3, Criteria1:=DISAGGREGATION_VALUE
     End If
     
-
     res_sheet.Range("$A$1:$M$" & last_row_result).AutoFilter Field:=8, Criteria1:="percentage"
     res_sheet.Columns("E:L").Copy
     
@@ -143,7 +143,7 @@ Sub generate_data_chart()
                                                   
                                             
     With temp_ws.AutoFilter.Sort
-        .Header = xlYes
+        .header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom
         .SortMethod = xlPinYin
@@ -155,7 +155,7 @@ Sub generate_data_chart()
                                             Order:=xlAscending, DataOption:=xlSortNormal
 
     With temp_ws.AutoFilter.Sort
-        .Header = xlYes
+        .header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom
         .SortMethod = xlPinYin
@@ -185,7 +185,7 @@ Sub generate_data_chart()
     Next
     
     temp_ws.Activate
-    Call Range("A1").CurrentRegion.Sort(Key1:=Range("E2"), Order1:=xlAscending, Header:=xlYes)
+    Call Range("A1").CurrentRegion.Sort(Key1:=Range("E2"), Order1:=xlAscending, header:=xlYes)
     temp_ws.Rows("1:1").Delete Shift:=xlUp
     Call make_seperate_data
     
@@ -337,7 +337,6 @@ End Sub
 
 Sub make_seperate_data()
 
-'    On Error Resume Next
     Dim chart_sheet As Worksheet
     Dim t_sheet As Worksheet
     Dim last_row_overall As Long

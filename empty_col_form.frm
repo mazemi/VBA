@@ -20,6 +20,9 @@ Attribute VB_Exposed = False
 
 
 
+
+
+
 Private Sub ListBoxEmptyCols_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     On Error Resume Next
     Dim ws As Worksheet
