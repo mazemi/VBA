@@ -10,7 +10,7 @@ Global SHEET_NAME As String
 Global IS_OVERALL As Boolean
 
 Sub generate_multiple_data_chart(dis_level As String, val_collection As Collection, label_collection As Collection)
-    On Error GoTo errhandler
+    On Error GoTo errHandler
     Dim i As Integer
     Dim count As Integer
     wait_form.main_label = "Please wait ..."
@@ -35,7 +35,7 @@ Sub generate_multiple_data_chart(dis_level As String, val_collection As Collecti
     
     Exit Sub
 
-errhandler:
+errHandler:
 
 If worksheet_exists("temp_sheet") Then
     sheets("temp_sheet").Visible = xlSheetHidden
@@ -49,7 +49,7 @@ End
 End Sub
 
 Sub generate_data_chart()
-    On Error GoTo errhandler
+    On Error GoTo errHandler
     Application.ScreenUpdating = False
     Dim res_sheet As Worksheet
     Dim temp_ws As Worksheet
@@ -237,7 +237,7 @@ extract_avereges:
     
 Exit Sub
 
-errhandler:
+errHandler:
 
 If worksheet_exists("temp_sheet") Then
     sheets("temp_sheet").Visible = xlSheetHidden

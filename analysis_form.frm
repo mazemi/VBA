@@ -35,7 +35,7 @@ Private Sub CommandRunAnalysis_Click()
     Dim uuid_col As Long
     Dim start_time As Double
     start_time = Timer
-    On Error GoTo errhandler
+    On Error GoTo errHandler
     
     If Not worksheet_exists("disaggregation_setting") Then
         MsgBox "Please set the disaggregation levels. ", vbInformation
@@ -82,6 +82,8 @@ Private Sub CommandRunAnalysis_Click()
         Exit Sub
     End If
     
+    Call save_as_xlsx
+    
     uuid_col = gen_column_number("_uuid", find_main_data)
     
     If uuid_col = 0 Then
@@ -115,7 +117,7 @@ Private Sub CommandRunAnalysis_Click()
     
     Exit Sub
 
-errhandler:
+errHandler:
 
     Call remove_tmp
     MsgBox " Oops!, Something went wrong! Pleass check properly your main dataset, disaggregation levels and analysis variables.  ", vbInformation
@@ -129,7 +131,13 @@ errhandler:
 End Sub
 
 Private Sub UserForm_Initialize()
-
+    
+    With Me
+        .StartUpPosition = 0
+        .left = Application.left + (0.5 * Application.Width) - (0.5 * .Width)
+        .top = Application.top + (0.5 * Application.Height) - (0.5 * .Height)
+    End With
+      
     If Not worksheet_exists("disaggregation_setting") Then
         MsgBox "Please set the disaggregation levels. ", vbInformation
         Unload analysis_form
@@ -159,5 +167,20 @@ Private Sub UserForm_Initialize()
     Me.CommandRunAnalysis.BackStyle = fmSpecialEffectFlat
 End Sub
 
-
+Sub save_as_xlsx()
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim currentFilePath As String
+    Dim newFilePath As String
+    
+    Set wb = ActiveWorkbook
+    
+    If LCase(Right(wb.FullName, 3)) = "csv" Then
+        currentFilePath = wb.FullName
+        newFilePath = left(currentFilePath, Len(currentFilePath) - 3) & "xlsx"
+        wb.SaveAs FileName:=newFilePath, FileFormat:=xlOpenXMLWorkbook
+'        wb.Close False
+        Debug.Print "File saved as XLSX format"
+    End If
+End Sub
 

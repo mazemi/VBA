@@ -426,7 +426,7 @@ End Sub
 
 ' return the label of main measurement
 Function var_label(var As String) As String
-    On Error GoTo errhandler
+    On Error GoTo errHandler
     
     Dim last_row_survey As Long
     Dim v_label As String
@@ -443,7 +443,7 @@ Function var_label(var As String) As String
     End If
     Exit Function
                 
-errhandler:
+errHandler:
     var_label = var
     
 End Function
@@ -451,7 +451,7 @@ End Function
 ' return the label of choice, if not not found return the original choice value
 Function choice_label(question As String, choice As String) As String
 
-    On Error GoTo errhandler
+    On Error GoTo errHandler
     
     Dim ws_sc As Worksheet
     Set ws_sc = ThisWorkbook.sheets("xsurvey_choices")
@@ -465,7 +465,7 @@ Function choice_label(question As String, choice As String) As String
 
     Exit Function
 
-errhandler:
+errHandler:
     choice_label = choice
 
 End Function
@@ -730,5 +730,6 @@ Sub CheckAndCreateDirectory(pathDir As String)
         MkDir pathDir
     End If
 End Sub
+
 
 

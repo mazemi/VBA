@@ -1,5 +1,5 @@
 Attribute VB_Name = "Info_module"
-Public Const VERSION As String = "RAM 2.2"
+Public Const VERSION As String = "2.2"
 
 ' ***************************************************************
 ' Date: 27 March 2024

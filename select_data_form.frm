@@ -29,6 +29,13 @@ End Sub
 
 Private Sub UserForm_Initialize()
     On Error Resume Next
+
+    With Me
+        .StartUpPosition = 0
+        .left = Application.left + (0.5 * Application.Width) - (0.5 * .Width)
+        .top = Application.top + (0.5 * Application.Height) - (0.5 * .Height)
+    End With
+    
     Dim dt As String
     Dim sheet_li As Collection
     Dim sh As Variant

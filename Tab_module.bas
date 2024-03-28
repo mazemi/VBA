@@ -2,7 +2,7 @@ Attribute VB_Name = "Tab_module"
 
 'Callback for KOBOSetting onAction
 Sub KOBOSetting(control As IRibbonControl)
-    On Error Resume Next
+'    On Error Resume Next
     setting_form.Show
 End Sub
 

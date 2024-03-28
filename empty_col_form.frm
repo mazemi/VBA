@@ -19,10 +19,6 @@ Attribute VB_Exposed = False
 
 
 
-
-
-
-
 Private Sub ListBoxEmptyCols_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     On Error Resume Next
     Dim ws As Worksheet
@@ -47,4 +43,12 @@ Private Sub ListBoxEmptyCols_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     
 End Sub
 
-
+Private Sub UserForm_Initialize()
+    On Error Resume Next
+    
+    With Me
+        .StartUpPosition = 0
+        .left = Application.left + (0.5 * Application.Width) - (0.5 * .Width)
+        .top = Application.top + (0.5 * Application.Height) - (0.5 * .Height)
+    End With
+End Sub

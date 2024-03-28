@@ -16,8 +16,19 @@ Attribute VB_Exposed = False
 
 
 
+Private Sub UserForm_Initialize()
+    On Error Resume Next
+    
+    With Me
+        .StartUpPosition = 0
+        .left = Application.left + (0.5 * Application.Width) - (0.5 * .Width)
+        .top = Application.top + (0.5 * Application.Height) - (0.5 * .Height)
+    End With
+End Sub
+
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
     On Error Resume Next
+    
     If CloseMode = vbFormControlMenu Then
         Cancel = True
     End If

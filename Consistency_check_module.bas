@@ -1,9 +1,13 @@
 Attribute VB_Name = "Consistency_check_module"
 Option Explicit
+
+
+
+
 Global SKIP_QUESTION As Boolean
 
 Sub consistency_check()
-    On Error GoTo errhandler
+    On Error GoTo errHandler
     Application.DisplayAlerts = False
     Dim t As Date
     Dim last_question As Long
@@ -72,7 +76,7 @@ resume_loop:
     Application.DisplayAlerts = True
     Exit Sub
     
-errhandler:
+errHandler:
 
     If worksheet_exists("temp_sheet") Then
         sheets("temp_sheet").Visible = xlSheetHidden

@@ -206,7 +206,15 @@ Sub add_all_indicators()
 End Sub
 
 Private Sub UserForm_Initialize()
+    
     On Error GoTo err_handler
+
+    With Me
+        .StartUpPosition = 0
+        .left = Application.left + (0.5 * Application.Width) - (0.5 * .Width)
+        .top = Application.top + (0.5 * Application.Height) - (0.5 * .Height)
+    End With
+    
     Application.ScreenUpdating = False
     Dim disaggregation_ws As Worksheet, dis_rng As Range
     Dim sheet_li As Collection

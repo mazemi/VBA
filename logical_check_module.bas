@@ -561,7 +561,7 @@ Private Function give_operator(str As String) As String
 End Function
 
 Function count_rows() As Long
-    On Error GoTo errhandler
+    On Error GoTo errHandler
     Dim ws As Worksheet
     Dim uuid_col As Long
     Dim rows_n As Long
@@ -572,7 +572,7 @@ Function count_rows() As Long
     count_rows = rows_n
     Exit Function
     
-errhandler:
+errHandler:
     count_rows = 0
 
 End Function

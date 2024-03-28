@@ -21,6 +21,9 @@ Attribute VB_Exposed = False
 
 Option Explicit
 
+
+
+
 Private Sub ListBoxVars_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
 '    On Error Resume Next
     Dim i As Long
@@ -121,6 +124,13 @@ End Sub
 
 Private Sub UserForm_Initialize()
     On Error Resume Next
+
+    With Me
+        .StartUpPosition = 0
+        .left = Application.left + (0.5 * Application.Width) - (0.5 * .Width)
+        .top = Application.top + (0.5 * Application.Height) - (0.5 * .Height)
+    End With
+    
     If Not worksheet_exists("datamerge") And Not worksheet_exists("overall") Then
         MsgBox "The datamerge or overall sheets do not exist!   ", vbInformation
         Unload Me

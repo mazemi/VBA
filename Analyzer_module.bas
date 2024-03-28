@@ -1387,8 +1387,6 @@ Private Sub gender_disaggregation()
     Dim female As Double
     Dim male As Double
     
-    WITH_WEIGHT = False
-    
     Set ws = sheets(find_main_data)
     lastRowMain = ws.Cells(ws.Rows.count, find_uuid_coln).End(xlUp).Row
     
@@ -1615,4 +1613,6 @@ Private Function check_gender_column() As Boolean
     End If
     
 End Function
+
+
 

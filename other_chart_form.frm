@@ -83,6 +83,7 @@ Private Sub CommandNext_Click()
         Next index
     ElseIf count_selected_items(Me.ListBoxVars) = 0 Then
         MsgBox "Please select up to three disaggregation values from the list and then click 'Generate Chart'.", vbInformation
+        Exit Sub
     End If
     Unload Me
     Call generate_multiple_data_chart(Me.ComboBoxDis.value, selected_values, selected_labels)
@@ -130,6 +131,13 @@ End Function
 
 Private Sub UserForm_Initialize()
     On Error Resume Next
+
+    With Me
+        .StartUpPosition = 0
+        .left = Application.left + (0.5 * Application.Width) - (0.5 * .Width)
+        .top = Application.top + (0.5 * Application.Height) - (0.5 * .Height)
+    End With
+    
     Dim ws_res As Worksheet
     Dim ws As Worksheet
     Dim rng As Range

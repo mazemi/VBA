@@ -62,11 +62,11 @@ Private Sub clear_sheet()
 End Sub
 
 Sub check_uuid()
-    On Error GoTo errhandler:
+    On Error GoTo errHandler:
     col = WorksheetFunction.Match("_uuid", sheets(ActiveSheet.Name).Rows(1), 0)
     Exit Sub
 
-errhandler:
+errHandler:
     MsgBox "_uuid column dose not exist.     ", vbInformation
     End
 End Sub
@@ -85,7 +85,7 @@ Sub partial_time_check(start_point As Long, end_point As Long)
     Dim ws As Worksheet
     Counter = 0
 
-    On Error GoTo errhandler:
+    On Error GoTo errHandler:
     Call check_uuid
     progress_form.LabelTitle.Caption = "Time Checking till: " & end_point
     progress_form.Show
@@ -175,7 +175,7 @@ Sub partial_time_check(start_point As Long, end_point As Long)
     
     Exit Sub
     
-errhandler:
+errHandler:
 
     If worksheet_exists("temp_sheet") Then
         Application.DisplayAlerts = False

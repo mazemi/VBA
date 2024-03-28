@@ -17,11 +17,6 @@ Attribute VB_Exposed = False
 
 
 
-
-
-
-
-
 Private Sub CommandRun_Click()
     If Me.OptionWrongValue = True Then
         Public_module.ISSUE_TEXT = "Wrong value"
@@ -55,6 +50,13 @@ Private Sub OptionWrongValue_Click()
 End Sub
 
 Private Sub UserForm_Initialize()
+
+    With Me
+        .StartUpPosition = 0
+        .left = Application.left + (0.5 * Application.Width) - (0.5 * .Width)
+        .top = Application.top + (0.5 * Application.Height) - (0.5 * .Height)
+    End With
+    
     Public_module.PATTERN_CHECK_ACTION = False
     Me.TextOther.Enabled = False
     Me.OptionWrongValue = True

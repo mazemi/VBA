@@ -3,7 +3,7 @@ Option Explicit
 
 Sub replace_log()
 
-    On Error GoTo errhandler
+    On Error GoTo errHandler
     Application.ScreenUpdating = False
     Dim ws_main As Worksheet
     Dim ws_log As Worksheet
@@ -147,7 +147,7 @@ Sub replace_log()
     Application.StatusBar = False
     Exit Sub
     
-errhandler:
+errHandler:
     MsgBox "The log replacement failed! Pleae check your logbook and main data set and the integrated tool, then try again.", vbInformation
     Exit Sub
     

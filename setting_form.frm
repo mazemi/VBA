@@ -128,11 +128,22 @@ Private Sub LabelReset_Click()
     Application.ScreenUpdating = True
     
     Me.ComboData = ""
-    Call UserForm_Initialize
+    
+    MsgBox "The application has been reset successfully.", vbInformation
+    
+    Unload Me
+
 
 End Sub
 
 Private Sub UserForm_Initialize()
+
+    With Me
+        .StartUpPosition = 0
+        .left = Application.left + (0.5 * Application.Width) - (0.5 * .Width)
+        .top = Application.top + (0.5 * Application.Height) - (0.5 * .Height)
+    End With
+    
     Dim dt_sheet As String
     Me.Label_import.Visible = False
     Me.TextUser.value = GetRegistrySetting("ramSetting", "koboUserReg")
@@ -198,7 +209,7 @@ End Function
 
 Private Sub CommandTools_Click()
     
-    On Error GoTo errhandler
+    On Error GoTo errHandler
     Me.Label_import.Visible = False
     Application.ScreenUpdating = False
     Dim objFSO As Object
@@ -222,7 +233,9 @@ Private Sub CommandTools_Click()
     ' temporary snippet for disaggregation_setting
     If worksheet_exists("dissagregation_setting") Then
         sheets("dissagregation_setting").Visible = xlSheetHidden
+        Application.DisplayAlerts = False
         sheets("dissagregation_setting").Delete
+        Application.DisplayAlerts = True
     End If
         
  Debug.Print FileSelected
@@ -261,7 +274,7 @@ Private Sub CommandTools_Click()
     Application.ScreenUpdating = True
     Exit Sub
 
-errhandler:
+errHandler:
         Me.Label_import.Visible = False
         MsgBox "Something went wrong!   " & vbCrLf & _
         "Please select a valid KOBO tool.   ", vbCritical
