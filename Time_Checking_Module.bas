@@ -1,91 +1,71 @@
 Attribute VB_Name = "Time_Checking_Module"
+Sub time_check()
 
-Private Sub csv_import(path As String)
     On Error Resume Next
+    Application.DisplayAlerts = False
+    Set CURRENT_WORK_BOOK = ActiveWorkbook
+    Dim s_collection As New Collection
+    Dim e_collection As New Collection
+    Dim record_count As Long
+    Dim ws As Worksheet
     
-    Dim ws As Worksheet, strFile As String
-    Set ws = CURRENT_WORK_BOOK.sheets("temp_sheet")
-
-    With ws.QueryTables.Add(Connection:="TEXT;" & path, Destination:=ws.Range("A1"))
-        .Name = "qt"
-        .TextFileParseType = xlDelimited
-        .TextFileCommaDelimiter = True
-        .Refresh
-    End With
-
-    For Each cn In CURRENT_WORK_BOOK.Connections
-        Set cn = Nothing
-        cn.Delete
-    Next cn
+    sheets(find_main_data).Select
+    Call remove_auto_filter
     
-    For Each qt In ws.QueryTables
-        Set qt = Nothing
-        qt.Delete
-    Next qt
+    uuid_col = column_letter("_uuid")
+    uuid_col_number = column_number("_uuid")
+    record_count = sheets(find_main_data).Cells(Rows.count, uuid_col_number).End(xlUp).Row
     
-End Sub
-
-Private Sub remove_rows()
-    On Error Resume Next
-
-    With CURRENT_WORK_BOOK.sheets("temp_sheet").Cells(1, 1).CurrentRegion
-        .AutoFilter 1, "<>*question*"            'Filter for any instance of ""<>*question*" in column A (1)
-        .Offset(1).EntireRow.Delete
-        .AutoFilter
-    End With
-    
-End Sub
-
-Private Function add_calculation()
-    On Error Resume Next
-   
-    If WorksheetFunction.CountA(CURRENT_WORK_BOOK.sheets("temp_sheet").UsedRange) = 0 And CURRENT_WORK_BOOK.sheets("temp_sheet").Shapes.count = 0 Then
-        add_calculation = -1
-        Exit Function
-    End If
-
-    CURRENT_WORK_BOOK.sheets("temp_sheet").Range("E2").FormulaR1C1 = "=(RC[-1]-RC[-2])/1000"
-    
-    lRow = CURRENT_WORK_BOOK.sheets("temp_sheet").Cells(Rows.count, 1).End(xlUp).Row
-
-    CURRENT_WORK_BOOK.sheets("temp_sheet").Range("E2").AutoFill Destination:=CURRENT_WORK_BOOK.sheets("temp_sheet").Range("E2:E" & CStr(lRow))
-    
-    add_calculation = Application.sum(CURRENT_WORK_BOOK.sheets("temp_sheet").Columns("E:E")) / 60
-    
-End Function
-
-Private Sub clear_sheet()
-    On Error Resume Next
-
-    CURRENT_WORK_BOOK.sheets("temp_sheet").Cells.ClearContents
-    
-End Sub
-
-Sub check_uuid()
-    On Error GoTo errHandler:
-    col = WorksheetFunction.Match("_uuid", sheets(ActiveSheet.Name).Rows(1), 0)
-    Exit Sub
-
-errHandler:
-    MsgBox "_uuid column dose not exist.     ", vbInformation
-    End
-End Sub
-Function is_divisible(X As Long, d As Long) As Boolean
-    On Error Resume Next
-    If (X Mod d) = 0 Then
-        is_divisible = True
+    If record_count < 1010 Then
+        Call partial_time_check(2, record_count)
     Else
-        is_divisible = False
-    End If
-End Function
+        parts = Application.WorksheetFunction.RoundDown(record_count / 1000, 0)
+        
+        For i = 1 To parts
+            If i = 1 Then
+                s_collection.Add 2
+                e_collection.Add 1000
+            Else
+                s_collection.Add (i - 1) * 1000 + 1
+                e_collection.Add i * 1000
+            End If
+        Next
 
+        s_collection.Add parts * 1000 + 1
+        e_collection.Add record_count
+
+    End If
+               
+    For i = 1 To e_collection.count
+        Call partial_time_check(s_collection(i), e_collection(i))
+    Next
+    
+    Call add_auto_filter
+    
+    Set ws = sheets(find_main_data)
+    new_col = ws.Cells(1, Columns.count).End(xlToLeft).Column
+    
+    If new_col > 10 Then
+        ActiveWindow.ScrollColumn = new_col - 7
+    ElseIf new_col > 3 Then
+        ActiveWindow.ScrollColumn = new_col - 3
+    Else
+        ActiveWindow.ScrollColumn = new_col
+    End If
+    
+    ActiveWindow.ScrollRow = 1
+    
+    Unload progress_form
+    
+    Application.DisplayAlerts = True
+End Sub
 
 Sub partial_time_check(start_point As Long, end_point As Long)
     On Error Resume Next
     Dim ws As Worksheet
     Counter = 0
 
-    On Error GoTo errHandler:
+    On Error GoTo ErrorHandler:
     Call check_uuid
     progress_form.LabelTitle.Caption = "Time Checking till: " & end_point
     progress_form.Show
@@ -147,7 +127,7 @@ Sub partial_time_check(start_point As Long, end_point As Long)
         End If
         progress_form.bar.Width = CDec((iCell.Row - start_point) / progress_value)
         DoEvents
-        Call csv_import(base_path & iCell & "\audit.csv")
+        Call csv_audit_import(base_path & iCell & "\audit.csv")
         Call remove_rows
         
         Duration = add_calculation()
@@ -170,12 +150,11 @@ Sub partial_time_check(start_point As Long, end_point As Long)
     Application.DisplayAlerts = False
     sheets("temp_sheet").Delete
     Application.DisplayAlerts = True
-     
     Application.ScreenUpdating = True
     
     Exit Sub
     
-errHandler:
+ErrorHandler:
 
     If worksheet_exists("temp_sheet") Then
         Application.DisplayAlerts = False
@@ -185,44 +164,84 @@ errHandler:
     
 End Sub
 
-Sub time_check()
+Private Sub csv_audit_import(path As String)
     On Error Resume Next
-    Set CURRENT_WORK_BOOK = ActiveWorkbook
-    Dim s_collection As New Collection
-    Dim e_collection As New Collection
-    Dim record_count As Long
     
-    sheets(find_main_data).Select
-    uuid_col = column_letter("_uuid")
-    uuid_col_number = column_number("_uuid")
-    record_count = sheets(find_main_data).Cells(Rows.count, uuid_col_number).End(xlUp).Row
+    Dim ws As Worksheet, strFile As String
+    Set ws = CURRENT_WORK_BOOK.sheets("temp_sheet")
+
+    With ws.QueryTables.Add(Connection:="TEXT;" & path, Destination:=ws.Range("A1"))
+        .Name = "qt"
+        .TextFileParseType = xlDelimited
+        .TextFileCommaDelimiter = True
+        .Refresh
+    End With
+
+    For Each cn In CURRENT_WORK_BOOK.Connections
+        Set cn = Nothing
+        cn.Delete
+    Next cn
     
-    If record_count < 1010 Then
-        Call partial_time_check(2, record_count)
-    Else
-        parts = Application.WorksheetFunction.RoundDown(record_count / 1000, 0)
-        
-        For i = 1 To parts
-            If i = 1 Then
-                s_collection.Add 2
-                e_collection.Add 1000
-            Else
-                s_collection.Add (i - 1) * 1000 + 1
-                e_collection.Add i * 1000
-            End If
-        Next
-
-        s_collection.Add parts * 1000 + 1
-        e_collection.Add record_count
-
-    End If
-               
-    For i = 1 To e_collection.count
-        Call partial_time_check(s_collection(i), e_collection(i))
-    Next
+    For Each qt In ws.QueryTables
+        Set qt = Nothing
+        qt.Delete
+    Next qt
     
-    Unload progress_form
-
 End Sub
+
+Private Sub remove_rows()
+    On Error Resume Next
+
+    With CURRENT_WORK_BOOK.sheets("temp_sheet").Cells(1, 1).CurrentRegion
+        .AutoFilter 1, "<>*question*"            'Filter for any instance of ""<>*question*" in column A (1)
+        .Offset(1).EntireRow.Delete
+        .AutoFilter
+    End With
+    
+End Sub
+
+Private Function add_calculation()
+    On Error Resume Next
+   
+    With CURRENT_WORK_BOOK.sheets("temp_sheet")
+        If WorksheetFunction.CountA(.UsedRange) = 0 And .Shapes.count = 0 Then
+            add_calculation = -1
+            Exit Function
+        End If
+    
+        .Range("E2").FormulaR1C1 = "=(RC[-1]-RC[-2])/1000"
+        lRow = .Cells(Rows.count, 1).End(xlUp).Row
+        .Range("E2").AutoFill Destination:=.Range("E2:E" & CStr(lRow))
+        add_calculation = Application.sum(.Columns("E:E")) / 60
+    End With
+End Function
+
+Private Sub clear_sheet()
+    On Error Resume Next
+    CURRENT_WORK_BOOK.sheets("temp_sheet").Cells.ClearContents
+End Sub
+
+Sub check_uuid()
+    On Error GoTo ErrorHandler:
+    col = WorksheetFunction.Match("_uuid", sheets(ActiveSheet.Name).Rows(1), 0)
+    Exit Sub
+
+ErrorHandler:
+    MsgBox "_uuid column dose not exist.     ", vbInformation
+    End
+End Sub
+Function is_divisible(X As Long, d As Long) As Boolean
+    On Error Resume Next
+    If (X Mod d) = 0 Then
+        is_divisible = True
+    Else
+        is_divisible = False
+    End If
+End Function
+
+
+
+
+
 
 

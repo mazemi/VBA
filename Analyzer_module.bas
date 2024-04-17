@@ -161,7 +161,7 @@ Sub do_analize()
                 keen_ws.Range("A1") = var_arr(i, 1)
                 keen_ws.Rows(data_rows).Clear
     
-                On Error GoTo criticalerrHandler
+                On Error GoTo criticalErrorHandler
                 main_rng.AdvancedFilter xlFilterCopy, cr_rng, keen_ws.Range("A1").CurrentRegion
                 On Error GoTo 0
     
@@ -203,13 +203,12 @@ NextIteration:
             wb.Save
             Exit Sub
 
-criticalerrHandler:
-            Application.ScreenUpdating = True
-            Application.DisplayAlerts = True
+criticalErrorHandler:
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
 
-            End
-
-        End Sub
+    End
+End Sub
 
 Sub calculate_numeric()
     On Error GoTo ErrorHandler
@@ -1590,7 +1589,7 @@ Private Function check_gender_column() As Boolean
     Dim columnHeader As Variant
     Dim missingHeaders As String
 
-    ' these colums are for gender sub catagories:
+    ' these colums are for gender-age sub catagories:
     columnHeaders = Array("new_born_female", "new_born_male", _
                           "girls_6_17", "boys_6_17", _
                           "adult_18_59_female", "adult_18_59_male", _

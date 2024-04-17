@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} chart_form 
    Caption         =   "Chart Wizard"
-   ClientHeight    =   3996
+   ClientHeight    =   4368
    ClientLeft      =   96
    ClientTop       =   432
    ClientWidth     =   7800
@@ -13,6 +13,8 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+
 
 
 
@@ -80,9 +82,9 @@ Private Sub UserForm_Initialize()
 End Sub
 
 Function overal_chart_check() As Boolean
-    On Error GoTo erHandler
+    On Error GoTo ErrorHandler
     If Not worksheet_exists("result") Then
-        MsgBox "There is no analysis results, please analyze the data first.", vbInformation
+        MsgBox "Please first analyze the data, then try to generate charts", vbInformation
         overal_chart_check = False
         Exit Function
     End If
@@ -112,7 +114,7 @@ Function overal_chart_check() As Boolean
     overal_chart_check = True
     Exit Function
     
-erHandler:
+ErrorHandler:
 
     MsgBox "Please first analyze the data with 'ALL' disaggrigation level." & vbCrLf & _
         "Then try to generate charts for overall data NOTE2.", vbInformation
@@ -121,9 +123,9 @@ erHandler:
 End Function
 
 Function other_chart_check() As Boolean
-    On Error GoTo erHandler
+    On Error GoTo ErrorHandler
     If Not worksheet_exists("result") Then
-        MsgBox "There is no analysis results, please analyze the data first.", vbInformation
+        MsgBox "Please first analyze the data, then try to generate charts", vbInformation
         other_chart_check = False
         Exit Function
     End If
@@ -153,7 +155,7 @@ Function other_chart_check() As Boolean
     other_chart_check = True
     Exit Function
     
-erHandler:
+ErrorHandler:
 
     MsgBox "Please first analyze the data with desired disaggrigations level." & vbCrLf & _
         "Then try to generate charts. NOTE2.", vbInformation

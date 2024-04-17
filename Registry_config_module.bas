@@ -14,8 +14,8 @@ Error_Handler_Exit:
 Error_Handler:
     MsgBox "The following error has occurred" & vbCrLf & vbCrLf & _
            "Error Source: SaveRegistrySetting" & vbCrLf & _
-           "Error Number: " & err.Number & vbCrLf & _
-           "Error Description: " & err.Description & _
+           "Error Number: " & Err.Number & vbCrLf & _
+           "Error Description: " & Err.Description & _
            Switch(Erl = 0, "", Erl <> 0, vbCrLf & "Line No: " & Erl) _
            , vbOKOnly + vbCritical, "An Error has Occurred!"
     Resume Error_Handler_Exit
@@ -35,8 +35,8 @@ Error_Handler_Exit:
 Error_Handler:
     MsgBox "The following error has occurred" & vbCrLf & vbCrLf & _
            "Error Source: GetRegistrySetting" & vbCrLf & _
-           "Error Number: " & err.Number & vbCrLf & _
-           "Error Description: " & err.Description & _
+           "Error Number: " & Err.Number & vbCrLf & _
+           "Error Description: " & Err.Description & _
            Switch(Erl = 0, "", Erl <> 0, vbCrLf & "Line No: " & Erl) _
            , vbOKOnly + vbCritical, "An Error has Occurred!"
     Resume Error_Handler_Exit
@@ -65,8 +65,8 @@ Error_Handler_Exit:
 Error_Handler:
     MsgBox "The following error has occurred" & vbCrLf & vbCrLf & _
            "Error Source: GetAllRegistrySettings" & vbCrLf & _
-           "Error Number: " & err.Number & vbCrLf & _
-           "Error Description: " & err.Description & _
+           "Error Number: " & Err.Number & vbCrLf & _
+           "Error Description: " & Err.Description & _
            Switch(Erl = 0, "", Erl <> 0, vbCrLf & "Line No: " & Erl) _
            , vbOKOnly + vbCritical, "An Error has Occurred!"
     Resume Error_Handler_Exit
@@ -89,11 +89,11 @@ Error_Handler_Exit:
     Exit Function
 
 Error_Handler:
-    If err.Number <> 5 Then
+    If Err.Number <> 5 Then
         MsgBox "The following error has occurred" & vbCrLf & vbCrLf & _
                "Error Source: DeleteRegistrySetting" & vbCrLf & _
-               "Error Number: " & err.Number & vbCrLf & _
-               "Error Description: " & err.Description & _
+               "Error Number: " & Err.Number & vbCrLf & _
+               "Error Description: " & Err.Description & _
                Switch(Erl = 0, "", Erl <> 0, vbCrLf & "Line No: " & Erl) _
                , vbOKOnly + vbCritical, "An Error has Occurred!"
     End If

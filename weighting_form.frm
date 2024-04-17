@@ -25,6 +25,8 @@ Attribute VB_Exposed = False
 
 
 
+
+
 Private Sub CommandTestStrata_Click()
     On Error Resume Next
     Application.DisplayAlerts = False
@@ -111,7 +113,7 @@ Private Sub CommandTestStrata_Click()
 End Sub
 
 Private Sub CommandWeight_Click()
-    On Error GoTo errHandler
+    On Error GoTo ErrorHandler
     If Me.CombData.value = "" Or Me.ComboSampling.value = "" Or Me.ComboDataStrata.value = "" Or _
         Me.ComboSamplingStrata.value = "" Or Me.ComboPopulation.value = "" Then
         MsgBox "Please set up all the parameteres.          ", vbExclamation
@@ -178,7 +180,7 @@ Private Sub CommandWeight_Click()
     Unload Me
     Exit Sub
     
-errHandler:
+ErrorHandler:
     MsgBox "Weighting failed!, please check the sampling framework and your dataset and set the parameters properly.", vbInformation
     Unload Me
     

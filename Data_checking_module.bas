@@ -78,7 +78,7 @@ Sub pattern_check(auto_checking As Boolean)
                 log_ws.Cells(newRow, "D").value = main_ws.Cells(row_item, data_col_number)
     
                 ' add new columns from setting:
-                On Error GoTo errHandlerArray:
+                On Error GoTo ErrorHandlerArray:
 
             End If
         Next row_item
@@ -99,7 +99,7 @@ Sub pattern_check(auto_checking As Boolean)
     Application.ScreenUpdating = True
     Exit Sub
     
-errHandlerArray:
+ErrorHandlerArray:
     MsgBox "There is an issue.                       ", vbCritical
            
     Application.ScreenUpdating = True
@@ -178,19 +178,25 @@ End Function
 Sub find_duplicate()
     On Error Resume Next
     Application.ScreenUpdating = False
-    Call check_uuid
     Dim ws As Worksheet
-    Set ws = sheets(find_main_data)
-    Call clear_filter(ws)
     Dim lastRow As Long
-
+   
+    Set ws = sheets(find_main_data)
+    
+    Call check_uuid
+    Call clear_filter(ws)
+     
     lastRow = ws.UsedRange.Rows(ws.UsedRange.Rows.count).Row
 
     uuid_col_letter = column_letter("_uuid")
 
     new_col = ws.Cells(1, Columns.count).End(xlToLeft).Column + 1
     new_col_letter = Split(Cells(1, new_col).Address, "$")(1)
-
+    
+    If ws.Cells(1, new_col) <> vbNullString Then
+        Columns(new_col).Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    End If
+    
     ws.Range(new_col_letter & 1).value = "check_duplicate"
     For m = 2 To lastRow
         If Application.WorksheetFunction.CountIf(ws.Range(uuid_col_letter & "2:" & uuid_col_letter & lastRow), _
@@ -200,8 +206,25 @@ Sub find_duplicate()
             ws.Range(new_col_letter & m).value = "ok"
         End If
     Next m
-
+    
     Application.ScreenUpdating = True
+    
+    If new_col > 10 Then
+        ActiveWindow.ScrollColumn = new_col - 7
+    ElseIf new_col > 3 Then
+        ActiveWindow.ScrollColumn = new_col - 3
+    Else
+        ActiveWindow.ScrollColumn = new_col
+    End If
+    
+    ActiveWindow.ScrollRow = 1
+    
+    ws.Range(new_col_letter & 1).ColumnWidth = 18
+    ws.Range(new_col_letter & 1).Activate
+
+    Call remove_auto_filter
+    Call add_auto_filter
+    
 End Sub
 
 Sub calulate_quartiles()
@@ -252,14 +275,66 @@ Sub calulate_quartiles()
 
 Handle_Error:
 
-    Select Case err.Number
+    Select Case Err.Number
     Case 1004
         MsgBox "Quartile can not be calculated!    ", vbExclamation
-        err.Clear
+        Err.Clear
     Case Else
         MsgBox "Quartile can not be calculated!    ", vbExclamation
     End Select
 
 End Sub
 
+Sub no_value_col()
+    On Error Resume Next
+    Dim dt_ws As Worksheet
+    Dim i As Long
+    Dim last_col As Long
+    Dim colle As New Collection
+    Dim str As String
+    Dim rng As Range
+    
+    Set dt_ws = sheets(find_main_data)
+    
+    last_col = dt_ws.Cells(1, Columns.count).End(xlToLeft).Column
+    
+    For i = 1 To last_col
+        If WorksheetFunction.CountA(dt_ws.Columns(i)) = 1 Or WorksheetFunction.CountA(dt_ws.Columns(i)) = 0 Then
+            colle.Add i
+        End If
+    Next
+
+    If colle.count > 0 Then
+    
+        If Not worksheet_exists("temp_sheet") Then
+            Call create_sheet(find_main_data, "temp_sheet")
+            sheets("temp_sheet").Visible = False
+        End If
+        
+        With sheets("temp_sheet")
+            .Cells.Clear
+            .Range("A1") = "Column"
+            .Range("B1") = "Value"
+            For j = 1 To colle.count
+                .Range("A" & j + 1) = number_to_letter(colle.item(j), dt_ws)
+                .Range("B" & j + 1) = dt_ws.Cells(1, colle.item(j))
+            Next j
+        End With
+        
+        With empty_col_form.ListBoxEmptyCols
+            .ColumnHeads = True
+            .columnCount = 2
+            .columnWidths = "60;140"
+        End With
+        
+        Set rng = sheets("temp_sheet").Range("A1").CurrentRegion
+        empty_col_form.ListBoxEmptyCols.RowSource = _
+            rng.Parent.Name & "!" & rng.Resize(rng.Rows.count - 1).Offset(1).Address
+        empty_col_form.Show
+    
+    Else
+        MsgBox "No empty column.   ", vbInformation
+    End If
+    Debug.Print empty_col_form.ListBoxEmptyCols.Height
+End Sub
 

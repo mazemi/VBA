@@ -19,6 +19,8 @@ Attribute VB_Exposed = False
 
 
 
+
+
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
     DoEvents
     Public_module.CANCEL_PROCESS = True
@@ -35,7 +37,7 @@ Private Sub CommandRunAnalysis_Click()
     Dim uuid_col As Long
     Dim start_time As Double
     start_time = Timer
-    On Error GoTo errHandler
+    On Error GoTo ErrorHandler
     
     If Not worksheet_exists("disaggregation_setting") Then
         MsgBox "Please set the disaggregation levels. ", vbInformation
@@ -117,7 +119,7 @@ Private Sub CommandRunAnalysis_Click()
     
     Exit Sub
 
-errHandler:
+ErrorHandler:
 
     Call remove_tmp
     MsgBox " Oops!, Something went wrong! Pleass check properly your main dataset, disaggregation levels and analysis variables.  ", vbInformation

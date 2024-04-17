@@ -1,6 +1,6 @@
 Attribute VB_Name = "Download_media_module"
 Sub download_audit()
-    On Error GoTo errHandler:
+    On Error GoTo ErrorHandler:
     Dim FileUrl As String
     Dim audit_url As String
     Dim objXmlHttpReq As Object
@@ -95,7 +95,7 @@ NextIteration:
     MsgBox "Audit files downloaded!            ", vbInformation
     Exit Sub
 
-errHandler:
+ErrorHandler:
         MsgBox "There is an issue, please check your KOBO account and audit URL!      ", vbCritical
         Application.StatusBar = False
          Set objXmlHttpReq = Nothing

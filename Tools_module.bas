@@ -1,178 +1,182 @@
-Attribute VB_Name = "tools_module"
+Attribute VB_Name = "Tools_module"
 Option Explicit
 
-Sub import_survey(tools_path As String)
-    On Error Resume Next
-    DoEvents
-    setting_form.bar.Width = 20
-    Application.DisplayAlerts = False
-    Dim wb As Workbook
-    Dim ImportWorkbook As Workbook
-    Dim i As Long
-    Dim label_col As Long
-    Dim rng As Range
+Sub newImportTool(the_path As String, sheetName As String)
+    Dim externalWorkbook As Workbook
+    Dim sourceSheet As Worksheet
+    Dim targetSheet As Worksheet
+    Dim headerArr As Variant
+    Dim sourceData As Variant
+    Dim targetData As Variant
+    Dim sourceHeaderRow As Range
+    Dim headerIndex As Long
+    Dim lastRow As Long
+    Dim requiredColumns As Variant
+    Dim headerData() As Variant
     
-    Set wb = ThisWorkbook
-    wb.sheets("xsurvey").Cells.Clear
-
-    Set ImportWorkbook = Workbooks.Open(Filename:=tools_path)
-    
-    If (ImportWorkbook.Worksheets("survey").AutoFilterMode And ImportWorkbook.Worksheets("survey").FilterMode) Or _
-       ImportWorkbook.Worksheets("survey").FilterMode Then
-        ImportWorkbook.Worksheets("survey").ShowAllData
+    If sheetName = "survey" Then
+        requiredColumns = Array("type", "name", "label::english")
+    Else
+        requiredColumns = Array("list_name", "name", "label::english")
     End If
-    
-    ImportWorkbook.Worksheets("survey").Cells.NumberFormat = "@"
-    
-    ImportWorkbook.Worksheets("survey").UsedRange.Copy
-    wb.Worksheets("xsurvey").Range("A1").PasteSpecial _
-        Paste:=xlPasteValuesAndNumberFormats, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
-
-    ImportWorkbook.Close
-    DoEvents
-    setting_form.bar.Width = 25
-    
-    Call convert_to_lower(wb.sheets("xsurvey"))
-    Call delete_irrelevant_columns("xsurvey")
-    
-    ' trime all three columns
-    For i = 1 To 3
-        Set rng = Columns(i)
-        rng.value = Application.Trim(rng)
-    Next i
-
-    label_col = this_gen_column_number("label::english", "xsurvey")
-     
-    If label_col > 0 Then
-        wb.sheets("xsurvey").Cells(1, label_col).value = "label"
-    End If
-    
-   
-    If wb.sheets("xsurvey").Range("A1") <> "type" Or wb.sheets("xsurvey").Range("B1") <> "name" Or _
-        wb.sheets("xsurvey").Range("C1") <> "label" Then
-        Call xsurvey_column_order
         
+    Set externalWorkbook = Workbooks.Open(the_path)
+    Set sourceSheet = externalWorkbook.sheets(sheetName)
+    Set sourceHeaderRow = sourceSheet.Rows(1)
+    headerArr = sourceHeaderRow.value
+    
+    ReDim headerData(1 To 1, 1 To UBound(headerArr, 2)) As Variant
+    Dim i As Long
+    For i = 1 To UBound(headerArr, 2)
+        headerData(1, i) = LCase(Trim(headerArr(1, i)))
+    Next i
+    
+    headerIndex = Application.Match(requiredColumns(0), headerData, 0)
+    
+    If Not IsError(headerIndex) Then
+        lastRow = sourceSheet.Cells(sourceSheet.Rows.count, headerIndex).End(xlUp).Row
+        sourceData = sourceSheet.Range(sourceSheet.Cells(1, headerIndex), sourceSheet.Cells(lastRow, headerIndex)).value
+        
+        Set targetSheet = ThisWorkbook.sheets("x" & sheetName)
+        targetSheet.Cells.Clear
+        targetSheet.Cells(1, 1).Resize(lastRow, 1).value = sourceData
+        
+    Else
+        Debug.Print "Column 1 not found."
     End If
     
-'    wb.sheets("xsurvey").columns("B").NumberFormat = "@"
+    headerIndex = Application.Match(requiredColumns(1), headerData, 0)
     
-    If wb.sheets("xsurvey").Range("A1") <> "type" Or wb.sheets("xsurvey").Range("B1") <> "name" Or _
-        wb.sheets("xsurvey").Range("C1") <> "label" Then
-        MsgBox "Please check the survey sheet of the tool.", vbInformation
-        End
+    If Not IsError(headerIndex) Then
+        sourceData = sourceSheet.Range(sourceSheet.Cells(1, headerIndex), sourceSheet.Cells(lastRow, headerIndex)).value
+        targetSheet.Cells(1, 2).Resize(lastRow, 1).value = sourceData
+    Else
+        Debug.Print "Column 2 not found."
     End If
     
-End Sub
-
-Sub xsurvey_column_order()
-    Dim search As Range
-    Dim cnt As Integer
-    Dim colOrder As Variant
-    Dim indx As Integer
+    headerIndex = 0
     
-    colOrder = Array("type", "name", "label")
-    
-    cnt = 1
-    
-    For indx = LBound(colOrder) To UBound(colOrder)
-        Set search = Rows("1:1").Find(colOrder(indx), LookIn:=xlValues, LookAt:=xlWhole, _
-            SearchOrder:=xlByColumns, SearchDirection:=xlNext, MatchCase:=False)
-        If Not search Is Nothing Then
-            If search.Column <> cnt Then
-                search.EntireColumn.Cut
-                ThisWorkbook.sheets("xsurvey").Columns(cnt).Insert Shift:=xlToRight
-                Application.CutCopyMode = False
-            End If
-        cnt = cnt + 1
+    For i = 1 To UBound(headerData, 2)
+        If left(headerData(1, i), 14) = requiredColumns(2) Then
+            headerIndex = i
+            Exit For
         End If
-    Next indx
-End Sub
-
-Sub import_choices(tools_path As String)
-
-    Dim wb As Workbook
-    Set wb = ThisWorkbook
-    Dim ImportWorkbook As Workbook
-    Dim i As Long
-    Dim label_col As Long
-
-    ThisWorkbook.sheets("xchoices").Cells.Clear
-        
-    Set ImportWorkbook = Workbooks.Open(Filename:=tools_path)
-    
-    If (ImportWorkbook.Worksheets("choices").AutoFilterMode And ImportWorkbook.Worksheets("choices").FilterMode) Or _
-       ImportWorkbook.Worksheets("choices").FilterMode Then
-        ImportWorkbook.Worksheets("choices").ShowAllData
-    End If
-    
-    ImportWorkbook.Worksheets("choices").Cells.NumberFormat = "@"
-    
-    ImportWorkbook.Worksheets("choices").UsedRange.Copy
-    wb.Worksheets("xchoices").Range("A1").PasteSpecial Paste:=xlPasteValuesAndNumberFormats, SkipBlanks:=False
-
-    ImportWorkbook.Close
-    DoEvents
-    setting_form.bar.Width = 35
-    
-'    ThisWorkbook.sheets("xchoices").Cells.NumberFormat = "@"
-    Call convert_to_lower(wb.sheets("xchoices"))
-    Call delete_irrelevant_columns("xchoices")
-    
-    ' trime all three columns:
-    Dim rng As Range
-    
-    For i = 1 To 3
-        Set rng = Columns(i)
-        rng.value = Application.Trim(rng)
     Next i
-
-    label_col = this_gen_column_number("label::english", "xchoices")
-     
-    If label_col > 0 Then
-        wb.sheets("xchoices").Cells(1, label_col).value = "label"
+    
+    If headerIndex = 0 Then
+        For i = 1 To UBound(headerData, 2)
+            If left(headerData(1, i), 5) = "label" Then
+                headerIndex = i
+                Exit For
+            End If
+        Next i
     End If
       
-    If wb.sheets("xchoices").Range("A1") <> "list_name" Or wb.sheets("xchoices").Range("B1") <> "name" Or _
-        wb.sheets("xchoices").Range("C1") <> "label" Then
-        Call xchoices_column_order
-        
+    If Not IsError(headerIndex) Then
+        sourceData = sourceSheet.Range(sourceSheet.Cells(1, headerIndex), sourceSheet.Cells(lastRow, headerIndex)).value
+        targetSheet.Cells(1, 3).Resize(lastRow, 1).value = sourceData
+    Else
+        Debug.Print "Column 3 not found."
     End If
     
-'    ThisWorkbook.sheets("xchoices").columns("B").NumberFormat = "@"
+    externalWorkbook.Close SaveChanges:=False
+    targetSheet.Range("C1") = "label"
     
-    If wb.sheets("xchoices").Range("A1") <> "list_name" Or wb.sheets("xchoices").Range("B1") <> "name" Or _
-        wb.sheets("xchoices").Range("C1") <> "label" Then
-        MsgBox "Please check the choices sheet of the tool.", vbInformation
-        End
-    End If
-    
+    Call DeleteEmptyRows("x" & sheetName)
+
 End Sub
 
-Sub xchoices_column_order()
-    Dim search As Range
-    Dim cnt As Integer
-    Dim colOrder As Variant
-    Dim indx As Integer
+Sub DeleteEmptyRows(xsheet As String)
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
     
-    colOrder = Array("list_name", "name", "label")
+    Set ws = ThisWorkbook.sheets(xsheet)
+    lastRow = ws.Cells(ws.Rows.count, "A").End(xlUp).Row
     
-    cnt = 1
-    
-    For indx = LBound(colOrder) To UBound(colOrder)
-        Set search = Rows("1:1").Find(colOrder(indx), LookIn:=xlValues, LookAt:=xlWhole, SearchOrder:=xlByColumns, SearchDirection:=xlNext, MatchCase:=False)
-        If Not search Is Nothing Then
-            If search.Column <> cnt Then
-                search.EntireColumn.Cut
-                ThisWorkbook.sheets("xchoices").Columns(cnt).Insert Shift:=xlToRight
-                Application.CutCopyMode = False
-            End If
-        cnt = cnt + 1
+    For i = lastRow To 1 Step -1
+        If Application.WorksheetFunction.CountA(ws.Rows(i)) = 0 Then
+            ws.Rows(i).Delete
         End If
-    Next indx
+    Next i
+End Sub
+
+Sub make_survey_choice_new()
+    
+    Dim s_ws As Worksheet, c_ws As Worksheet, sc_ws As Worksheet
+    Dim s_rng As Range, c_rng As Range
+    Dim last_row_survey As Long, last_row_choice As Long
+    Dim i As Long, j As Long, new_row As Long, last_row As Long
+    Dim question As Range
+    Dim question_label As String
+    Dim the_list As String
+    Dim choice_list As Range
+    Dim choice_value As String, choice_label As String
+
+    Set s_ws = ThisWorkbook.sheets("xsurvey")
+    Set c_ws = ThisWorkbook.sheets("xchoices")
+    Set sc_ws = ThisWorkbook.sheets("xsurvey_choices")
+
+    last_row_survey = s_ws.Cells(s_ws.Rows.count, 1).End(xlUp).Row
+    last_row_choice = c_ws.Cells(c_ws.Rows.count, 1).End(xlUp).Row
+    
+    Set s_rng = s_ws.Range("A2:C" & last_row_survey)
+    Set c_rng = c_ws.Range("A2:C" & last_row_choice)
+    
+    sc_ws.Cells.Clear
+    
+    With sc_ws.Range("A1:F1")
+        .value = Array("type", "question", "question_label", "choice", "choice_label", "question_choice")
+        .NumberFormat = "@"
+    End With
+
+    new_row = 1
+    
+    For Each question In s_rng.Columns(2).Cells
+        i = i + 1
+        question_label = s_rng.Cells(i, 3).value
+        
+        If question_type(CStr(question)) Like "integer|decimal|calculate" Then
+            new_row = new_row + 1
+            With sc_ws.Rows(new_row)
+                .Cells(1).value = question_type(CStr(question))
+                .Cells(2).value = question.value
+                .Cells(3).value = question_label
+            End With
+        ElseIf left(question_type(CStr(question)), 7) = "select_" Then
+            the_list = show_list_name(CStr(question))
+            For Each choice_list In c_rng.Columns(1).Cells
+                j = j + 1
+                If the_list = choice_list.value Then
+                    choice_value = c_rng.Cells(j, 2).value
+                    choice_label = c_rng.Cells(j, 3).value
+                    new_row = new_row + 1
+                    With sc_ws.Rows(new_row)
+                        .Cells(1).value = question_type(CStr(question))
+                        .Cells(2).value = question.value
+                        .Cells(3).value = question_label
+                        .Cells(4).value = choice_value
+                        .Cells(5).value = choice_label
+                    End With
+                End If
+            Next choice_list
+        End If
+    Next question
+    
+    last_row = sc_ws.Cells(sc_ws.Rows.count, 1).End(xlUp).Row
+    
+    ' Concatenate type and question_label to create question_choice
+    With sc_ws.Range("F2:F" & last_row)
+        .Formula = "=A2&C2"
+        .value = .value
+    End With
+
+    Call check_choice_duplicates
+
 End Sub
 
 Sub make_survey_choice()
-    
+    Dim s_ws As Worksheet, c_ws As Worksheet, sc_ws As Worksheet
     Dim s_rng As Range, c_rng As Range
     Dim last_row_survey As Long
     Dim last_row_choice As Long
@@ -188,23 +192,24 @@ Sub make_survey_choice()
     Dim chioce_label As String
     Dim last_row As Long
 
-    last_row_survey = ThisWorkbook.sheets("xsurvey").Cells(Rows.count, 1).End(xlUp).Row
-    last_row_choice = ThisWorkbook.sheets("xchoices").Cells(Rows.count, 1).End(xlUp).Row
-    Debug.Print last_row_survey, last_row_choice
-    Set s_rng = ThisWorkbook.sheets("xsurvey").Range("A2:C" & last_row_survey)
+    Set s_ws = ThisWorkbook.sheets("xsurvey")
+    Set c_ws = ThisWorkbook.sheets("xchoices")
+    Set sc_ws = ThisWorkbook.sheets("xsurvey_choices")
 
-    Set c_rng = ThisWorkbook.sheets("xchoices").Range("A2:C" & last_row_choice)
+    last_row_survey = s_ws.Cells(s_ws.Rows.count, 1).End(xlUp).Row
+    last_row_choice = c_ws.Cells(c_ws.Rows.count, 1).End(xlUp).Row
     
-    ThisWorkbook.sheets("xsurvey_choices").Cells.Clear
-    ThisWorkbook.sheets("xsurvey_choices").Cells.NumberFormat = "@"
-    ThisWorkbook.sheets("xsurvey_choices").Cells(1, 1) = "type"
-    ThisWorkbook.sheets("xsurvey_choices").Cells(1, 2) = "question"
-    ThisWorkbook.sheets("xsurvey_choices").Cells(1, 3) = "question_label"
-    ThisWorkbook.sheets("xsurvey_choices").Cells(1, 4) = "choice"
-    ThisWorkbook.sheets("xsurvey_choices").Cells(1, 5) = "choice_label"
-    ThisWorkbook.sheets("xsurvey_choices").Cells(1, 6) = "question_choice"
+    Set s_rng = s_ws.Range("A2:C" & last_row_survey)
+    Set c_rng = c_ws.Range("A2:C" & last_row_choice)
     
-    last_row_xsurvey_choices = ThisWorkbook.sheets("xsurvey_choices").Cells(Rows.count, 1).End(xlUp).Row
+    sc_ws.Cells.Clear
+    
+    With sc_ws.Range("A1:F1")
+        .value = Array("type", "question", "question_label", "choice", "choice_label", "question_choice")
+        .NumberFormat = "@"
+    End With
+    
+    last_row_xsurvey_choices = sc_ws.Cells(Rows.count, 1).End(xlUp).Row
     
     i = 0
     
@@ -217,9 +222,11 @@ Sub make_survey_choice()
         If question_type(CStr(question)) = "integer" Or question_type(CStr(question)) = "decimal" Or _
             question_type(CStr(question)) = "calculate" Then
             new_row = new_row + 1
-            ThisWorkbook.sheets("xsurvey_choices").Cells(new_row, 1) = question_type(CStr(question))
-            ThisWorkbook.sheets("xsurvey_choices").Cells(new_row, 2) = question
-            ThisWorkbook.sheets("xsurvey_choices").Cells(new_row, 3) = question_label
+            With sc_ws
+                .Cells(new_row, 1) = question_type(CStr(question))
+                .Cells(new_row, 2) = question
+                .Cells(new_row, 3) = question_label
+            End With
     
         ElseIf left(question_type(CStr(question)), 7) = "select_" Then
             the_list = show_list_name(CStr(question))
@@ -230,12 +237,13 @@ Sub make_survey_choice()
                     chioce_value = c_rng.Columns(2).Rows(j)
                     chioce_label = c_rng.Columns(3).Rows(j)
                     new_row = new_row + 1
-                    
-                    ThisWorkbook.sheets("xsurvey_choices").Cells(new_row, 1) = question_type(CStr(question))
-                    ThisWorkbook.sheets("xsurvey_choices").Cells(new_row, 2) = question
-                    ThisWorkbook.sheets("xsurvey_choices").Cells(new_row, 3) = question_label
-                    ThisWorkbook.sheets("xsurvey_choices").Cells(new_row, 4) = chioce_value
-                    ThisWorkbook.sheets("xsurvey_choices").Cells(new_row, 5) = chioce_label
+                    With sc_ws
+                        .Cells(new_row, 1) = question_type(CStr(question))
+                        .Cells(new_row, 2) = question
+                        .Cells(new_row, 3) = question_label
+                        .Cells(new_row, 4) = chioce_value
+                        .Cells(new_row, 5) = chioce_label
+                    End With
                 End If
         
             Next choice_list
@@ -244,60 +252,18 @@ Sub make_survey_choice()
         
     Next question
     
-    ' final steps
-    last_row = ThisWorkbook.Worksheets("xsurvey_choices").Cells(Rows.count, 1).End(xlUp).Row
+    last_row = sc_ws.Cells(Rows.count, 1).End(xlUp).Row
     
-    ' make question_choice concatonation
-    ThisWorkbook.Worksheets("xsurvey_choices").Columns("F:F").NumberFormat = "General"
-    ThisWorkbook.Worksheets("xsurvey_choices").Range("F2").FormulaR1C1 = "=RC[-4]&RC[-2]"
-    ThisWorkbook.Worksheets("xsurvey_choices").Range("F2").AutoFill _
-            Destination:=ThisWorkbook.Worksheets("xsurvey_choices").Range("F2:F" & last_row)
-
-    ThisWorkbook.Worksheets("xsurvey_choices").Columns("F:F").Copy
-    ThisWorkbook.Worksheets("xsurvey_choices").Columns("F:F").PasteSpecial _
-            Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+    With sc_ws.Range("F2:F" & last_row)
+        .NumberFormat = "General"
+        .Formula = "=B2&D2"
+        .value = .value
+    End With
+    
     Application.CutCopyMode = False
      
     Call check_choice_duplicates
     
-End Sub
-
-Sub delete_irrelevant_columns(SHEET_NAME As String)
-    Dim keepColumn As Boolean
-    Dim currentColumn As Integer
-    Dim columnHeading As String
-    Dim temp_ws As Worksheet
-'    Set temp_ws = Worksheets(sheet_name)
-    Set temp_ws = ThisWorkbook.Worksheets(SHEET_NAME)
-
-    currentColumn = 1
-
-    While currentColumn <= temp_ws.UsedRange.Columns.count
-        columnHeading = temp_ws.UsedRange.Cells(1, currentColumn).value
-        
-        ' check whether to keep the column
-        keepColumn = False
-        If columnHeading = "list_name" Then keepColumn = True
-        If columnHeading = "type" Then keepColumn = True
-        If columnHeading = "name" Then keepColumn = True
-        If columnHeading = "label::english" Then
-            keepColumn = True
-        Else
-            If columnHeading = "label" Then keepColumn = True
-        End If
-        
-        If keepColumn Then
-            'if yes then skip to the next column
-            currentColumn = currentColumn + 1
-        Else
-            'if no delete the column
-            temp_ws.Columns(currentColumn).Delete
-        End If
-
-        'lastly an escape in case the sheet has no columns left
-        If (temp_ws.UsedRange.Address = "$A$1") And (temp_ws.Range("$A$1").Text = "") Then Exit Sub
-    Wend
-
 End Sub
 
 Function match_type(col_name As String) As String
@@ -363,8 +329,6 @@ Sub add_question_label(question_name As String)
         old_col = gen_column_number(question_name & "_label", main_ws.Name)
         question_col_number = gen_column_number(question_name, main_ws.Name)
         
-       Debug.Print old_col
-        
         If old_col <> 0 Then
             main_ws.Columns(old_col).Delete Shift:=xlToLeft
         End If
@@ -400,6 +364,8 @@ Sub add_question_label(question_name As String)
         SourceRange.SpecialCells(xlCellTypeVisible).Copy DestSheet.Range("A1")
         SourceRange.AutoFilter
         Application.CutCopyMode = False
+
+        Set SourceRange = Nothing
 
         main_ws.Select
         
@@ -442,6 +408,7 @@ Sub add_label()
     Dim last_col As Long
     Dim selectedRange As Range
     Dim data_col_number As Long
+    Dim header_value As String
     
     Set selectedRange = Application.Selection
     
@@ -457,10 +424,9 @@ Sub add_label()
     End If
     
     data_col_number = selectedRange.Column
-    Application.Cells(1, data_col_number).Select
-    Set selectedRange = Application.Selection
+    header_value = ActiveSheet.Cells(1, data_col_number).value
+    Call add_question_label(header_value)
     
-    Call add_question_label(selectedRange.value)
     Application.ScreenUpdating = True
 End Sub
 
@@ -504,22 +470,6 @@ Function show_list_name(col_name As String) As Variant
         show_list_name = ""
     End If
 End Function
-
-Sub convert_to_lower(ws As Worksheet)
-    Dim rng As Range
-    Dim cell As Range
-
-    Set rng = ws.Range("1:1")
-
-    For Each cell In rng
-        cell.value = LCase(cell.value)
-        cell.value = Trim(cell.value)
-        
-        If left(cell.value, 14) = "label::english" Then
-             cell.value = "label::english"
-        End If
-    Next cell
-End Sub
 
 Sub check_choice_duplicates()
     Dim ws As Worksheet
@@ -577,7 +527,7 @@ Sub check_choice_duplicates()
        
     If has_duplicate Then
         Set rng = ws.Range("M1").CurrentRegion
-        rng.RemoveDuplicates Columns:=Array(1, 2), Header:=xlNo
+        rng.RemoveDuplicates Columns:=Array(1, 2), header:=xlNo
         Set rng = ws.Range("M1").CurrentRegion
      
         For k = 1 To rng.Rows.count

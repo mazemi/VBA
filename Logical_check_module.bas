@@ -1,4 +1,4 @@
-Attribute VB_Name = "logical_check_module"
+Attribute VB_Name = "Logical_check_module"
 Option Explicit
 
 Sub auto_check()
@@ -50,12 +50,7 @@ Sub auto_check()
     last_dt = ws.Cells(Rows.count, uuid_coln).End(xlUp).Row
     
     plan_row = plan_ws.Cells(Rows.count, 1).End(xlUp).Row
-    plan_ws.Range("M1") = Null
-    plan_ws.Range("M2") = Null
-    plan_ws.Range("M3") = Null
-    plan_ws.Range("N1") = Null
-    plan_ws.Range("N2") = Null
-    plan_ws.Range("N3") = Null
+    plan_ws.Range("M1:N3") = Null
         
     ws.Activate
     
@@ -235,13 +230,7 @@ Sub auto_check()
         End If
         
 resumeLoop:
-
-        plan_ws.Range("M1") = Null
-        plan_ws.Range("M2") = Null
-        plan_ws.Range("M3") = Null
-        plan_ws.Range("N1") = Null
-        plan_ws.Range("N2") = Null
-        plan_ws.Range("N3") = Null
+        plan_ws.Range("M1:N3") = Null
     
     Next
     
@@ -416,7 +405,7 @@ Sub single_check(p_row As Long)
             GoTo resumeLoop
         End If
         
-        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, header:=xlYes
         rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C")
         
         ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
@@ -432,7 +421,7 @@ Sub single_check(p_row As Long)
             GoTo resumeLoop
         End If
         
-        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, header:=xlYes
         rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C"), xlAnd, _
             give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
             
@@ -447,7 +436,7 @@ Sub single_check(p_row As Long)
             GoTo resumeLoop
         End If
 
-        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, header:=xlYes
         
         rng.AutoFilter col_n1, give_operator("B" & p_row) & plan_ws.Cells(p_row, "C"), xlOr, _
             give_operator("F" & p_row) & plan_ws.Cells(p_row, "G")
@@ -472,10 +461,10 @@ Sub single_check(p_row As Long)
         Set cr_rng = plan_ws.Range("M1").CurrentRegion
         rng.AdvancedFilter xlFilterInPlace, cr_rng
         
-        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, header:=xlYes
         ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
         
-        rng.Sort Key1:=rng.Cells(1, col_n2), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n2), Order1:=xlAscending, header:=xlYes
         ws.Range(ws.Cells(2, col_n2), ws.Cells(last_dt, col_n2)).SpecialCells(xlCellTypeVisible).Select
   
     ' use advancefilter
@@ -496,18 +485,15 @@ Sub single_check(p_row As Long)
         Set cr_rng = plan_ws.Range("M1").CurrentRegion
         rng.AdvancedFilter xlFilterInPlace, cr_rng
 
-        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n1), Order1:=xlAscending, header:=xlYes
         ws.Range(ws.Cells(2, col_n1), ws.Cells(last_dt, col_n1)).SpecialCells(xlCellTypeVisible).Select
 
-        rng.Sort Key1:=rng.Cells(1, col_n2), Order1:=xlAscending, Header:=xlYes
+        rng.Sort Key1:=rng.Cells(1, col_n2), Order1:=xlAscending, header:=xlYes
         ws.Range(ws.Cells(2, col_n2), ws.Cells(last_dt, col_n2)).SpecialCells(xlCellTypeVisible).Select
 
     End If
 
-    plan_ws.Range("M1") = Null
-    plan_ws.Range("M2") = Null
-    plan_ws.Range("N1") = Null
-    plan_ws.Range("N2") = Null
+    plan_ws.Range("M1:N2") = Null
     plan_ws.Range("N3") = Null
             
 resumeLoop:
@@ -561,7 +547,7 @@ Private Function give_operator(str As String) As String
 End Function
 
 Function count_rows() As Long
-    On Error GoTo errhandler
+    On Error GoTo ErrorHandler
     Dim ws As Worksheet
     Dim uuid_col As Long
     Dim rows_n As Long
@@ -572,7 +558,7 @@ Function count_rows() As Long
     count_rows = rows_n
     Exit Function
     
-errhandler:
+ErrorHandler:
     count_rows = 0
 
 End Function

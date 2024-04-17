@@ -225,12 +225,23 @@ Sub clear_filter(ws As Worksheet)
     
 End Sub
 
+Sub add_auto_filter()
+    If Not ActiveSheet.AutoFilterMode Then
+        ActiveSheet.Range("A1").AutoFilter
+    End If
+End Sub
+
+Sub remove_auto_filter()
+    If ActiveSheet.AutoFilterMode Then
+        ActiveSheet.AutoFilterMode = False
+    End If
+End Sub
+
 Sub clear_active_filter()
     On Error Resume Next
     If (ActiveSheet.AutoFilterMode And ActiveSheet.FilterMode) Or ActiveSheet.FilterMode Then
         ActiveSheet.ShowAllData
     End If
-
 End Sub
 
 ' This function returns a collection of worksheet names in the workbook
@@ -340,57 +351,6 @@ Sub remove_empty_col()
     Next j
 End Sub
 
-Sub no_value_col()
-    On Error Resume Next
-    Dim dt_ws As Worksheet
-    Dim i As Long
-    Dim last_col As Long
-    Dim colle As New Collection
-    Dim str As String
-    Dim rng As Range
-    
-    Set dt_ws = sheets(find_main_data)
-    
-    last_col = dt_ws.Cells(1, Columns.count).End(xlToLeft).Column
-    
-    For i = 1 To last_col
-        If WorksheetFunction.CountA(dt_ws.Columns(i)) = 1 Or WorksheetFunction.CountA(dt_ws.Columns(i)) = 0 Then
-            colle.Add i
-        End If
-    Next
-
-    If colle.count > 0 Then
-    
-        If Not worksheet_exists("temp_sheet") Then
-            Call create_sheet(find_main_data, "temp_sheet")
-            sheets("temp_sheet").Visible = False
-        End If
-        
-        sheets("temp_sheet").Cells.Clear
-        sheets("temp_sheet").Range("A1") = "Column"
-        sheets("temp_sheet").Range("B1") = "Value"
-        For j = 1 To colle.count
-            sheets("temp_sheet").Range("A" & j + 1) = number_to_letter(colle.item(j), dt_ws)
-            sheets("temp_sheet").Range("B" & j + 1) = dt_ws.Cells(1, colle.item(j))
-        Next j
-        
-        With empty_col_form.ListBoxEmptyCols
-            .ColumnHeads = True
-            .columnCount = 2
-            .columnWidths = "60;140"
-        End With
-        
-        Set rng = sheets("temp_sheet").Range("A1").CurrentRegion
-        empty_col_form.ListBoxEmptyCols.RowSource = _
-            rng.Parent.Name & "!" & rng.Resize(rng.Rows.count - 1).Offset(1).Address
-        empty_col_form.Show
-    
-    Else
-        MsgBox "No empty column.   ", vbInformation
-    End If
- 
-End Sub
-
 Function no_value(question As String) As Boolean
 
     Dim dt_ws As Worksheet
@@ -426,7 +386,7 @@ End Sub
 
 ' return the label of main measurement
 Function var_label(var As String) As String
-    On Error GoTo errHandler
+    On Error GoTo ErrorHandler
     
     Dim last_row_survey As Long
     Dim v_label As String
@@ -443,7 +403,7 @@ Function var_label(var As String) As String
     End If
     Exit Function
                 
-errHandler:
+ErrorHandler:
     var_label = var
     
 End Function
@@ -451,7 +411,7 @@ End Function
 ' return the label of choice, if not not found return the original choice value
 Function choice_label(question As String, choice As String) As String
 
-    On Error GoTo errHandler
+    On Error GoTo ErrorHandler
     
     Dim ws_sc As Worksheet
     Set ws_sc = ThisWorkbook.sheets("xsurvey_choices")
@@ -465,7 +425,7 @@ Function choice_label(question As String, choice As String) As String
 
     Exit Function
 
-errHandler:
+ErrorHandler:
     choice_label = choice
 
 End Function
@@ -601,10 +561,6 @@ Function check_null_dis_levels() As String
     check_null_dis_levels = vbNullString
 End Function
 
-Private Function show_sheet()
-    sheets("dissagregation_setting").Visible = True
-End Function
-
 Function ColumnNumberToLetter(colNumber As Integer) As String
     Dim dividend As Integer
     Dim columnLetter As String
@@ -662,6 +618,7 @@ Sub ExportAllModulesAndForms()
     
     Set VBProj = ThisWorkbook.VBProject
     For Each VBComp In VBProj.VBComponents
+        Debug.Print VBComp.Type
         If VBComp.Type = 1 Then 'Standard module
             FileName = filePath & VBComp.Name & ".bas"
             VBComp.Export FileName
@@ -671,12 +628,15 @@ Sub ExportAllModulesAndForms()
         ElseIf VBComp.Type = 3 Then 'UserForm
             FileName = filePath & VBComp.Name & ".frm"
             VBComp.Export FileName
+        ElseIf VBComp.Type = 100 Then
+            FileName = filePath & VBComp.Name & ".cls"
+            VBComp.Export FileName
         End If
     Next VBComp
     MsgBox "All modules and forms exported successfully!", vbInformation
 End Sub
 
-Sub iinitialTheApp()
+Sub initialTheApp()
     Dim strFolder As String
     Dim strFile As String
     Dim VBProj As Object
@@ -707,7 +667,7 @@ End Sub
 Sub CreateMainSheets()
     Dim ws As Worksheet
     
-    Set ws = wb.sheets(1)
+    Set ws = sheets(1)
     ws.Name = "xsurvey"
     
     Set ws = ThisWorkbook.sheets.Add(after:=ThisWorkbook.sheets(ThisWorkbook.sheets.count))
@@ -731,5 +691,8 @@ Sub CheckAndCreateDirectory(pathDir As String)
     End If
 End Sub
 
+Private Function show_sheet()
+    sheets("temp_sheet").Visible = True
+End Function
 
 

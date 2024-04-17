@@ -1,13 +1,10 @@
 Attribute VB_Name = "Consistency_check_module"
 Option Explicit
 
-
-
-
 Global SKIP_QUESTION As Boolean
 
 Sub consistency_check()
-    On Error GoTo errHandler
+    On Error GoTo ErrorHandler
     Application.DisplayAlerts = False
     Dim t As Date
     Dim last_question As Long
@@ -52,7 +49,6 @@ Sub consistency_check()
     For i = 11 To last_question
         DoEvents
         wait_form.note = "Proccesing " & tmp_ws.Cells(i, 1)
-'        Application.StatusBar = tmp_ws.Cells(i, 1)
         SKIP_QUESTION = False
         If no_value(tmp_ws.Cells(i, 1)) Then GoTo resume_loop
         
@@ -76,16 +72,16 @@ resume_loop:
     Application.DisplayAlerts = True
     Exit Sub
     
-errHandler:
+ErrorHandler:
 
     If worksheet_exists("temp_sheet") Then
+        Application.DisplayAlerts = False
         sheets("temp_sheet").Visible = xlSheetHidden
         sheets("temp_sheet").Delete
     End If
     
     Unload wait_form
     Application.ScreenUpdating = True
-    Application.StatusBar = False
     Application.DisplayAlerts = True
     MsgBox "Checking failed!       ", vbInformation
 
@@ -159,15 +155,12 @@ Sub data_injection(question As String)
     temp_ws.Columns("G:G").value = dt_ws.Columns(uuid_col).value
     temp_ws.Columns("H:H").value = dt_ws.Columns(c1).value
     temp_ws.Columns("E:E").value = dt_ws.Columns(c1).value
-    
     temp_ws.Range("E1").value = temp_ws.Range("E1").value & "_unique"
     
     If c2 > 0 Then
 
         temp_ws.Columns("I:I").value = dt_ws.Columns(c2).value
-        
         temp_ws.Range("I1") = question & "_labelX"
-               
         temp_ws.Activate
         Call add_question_label(question)
         

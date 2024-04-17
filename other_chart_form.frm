@@ -17,6 +17,8 @@ Attribute VB_Exposed = False
 
 
 
+
+
 Option Explicit
 
 Private Sub ComboBoxDis_Change()
@@ -90,7 +92,7 @@ Private Sub CommandNext_Click()
     
 End Sub
 
-Function count_selected_items(list_box As MSForms.listBox) As Integer
+Function count_selected_items(list_box As MSForms.ListBox) As Integer
     Dim count As Integer
     Dim i As Integer
     
@@ -110,7 +112,7 @@ Function get_selected_items() As Collection
     Dim i As Integer
     Dim maximum_seleted As Integer
     Dim seleted_options As Integer
-    Dim list_box As MSForms.listBox
+    Dim list_box As MSForms.ListBox
     
     Set list_box = Me.ListBoxVars
     

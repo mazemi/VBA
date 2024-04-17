@@ -14,6 +14,8 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
+
 Option Explicit
 
 Private Sub CommandBack_Click()
@@ -22,7 +24,7 @@ Private Sub CommandBack_Click()
 End Sub
 
 Private Sub CommandRun_Click()
-    On Error GoTo erHandler
+    On Error GoTo ErrorHandler
     Application.ScreenUpdating = False
     Dim SelectedItemIndex As Integer
     Dim i As Integer
@@ -115,7 +117,7 @@ Private Sub CommandRun_Click()
     Application.ScreenUpdating = True
     Exit Sub
     
-erHandler:
+ErrorHandler:
     MsgBox " Oops!, Something went wrong!  ", vbInformation
     Unload single_chart_form
 

@@ -19,6 +19,8 @@ Attribute VB_Exposed = False
 
 
 
+
+
 Sub set_indicator_validator()
 '    On Error Resume Next
     Dim dt_name As String
@@ -207,7 +209,7 @@ End Sub
 
 Private Sub UserForm_Initialize()
     
-    On Error GoTo err_handler
+    On Error GoTo ErrorHandler
 
     With Me
         .StartUpPosition = 0
@@ -268,7 +270,7 @@ Private Sub UserForm_Initialize()
     Application.ScreenUpdating = True
     Exit Sub
 
-err_handler:
+ErrorHandler:
 
     If Not worksheet_exists("disaggregation_setting") Then
         Call create_sheet(main_ws.Name, "disaggregation_setting")

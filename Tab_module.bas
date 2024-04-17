@@ -2,7 +2,7 @@ Attribute VB_Name = "Tab_module"
 
 'Callback for KOBOSetting onAction
 Sub KOBOSetting(control As IRibbonControl)
-'    On Error Resume Next
+    On Error Resume Next
     setting_form.Show
 End Sub
 
@@ -68,6 +68,11 @@ Sub CheckDuplicates(control As IRibbonControl)
     Call find_duplicate
 End Sub
 
+'Callback for ConsistencyCheck onAction
+Sub ConsistencyCheck(control As IRibbonControl)
+    Call consistency_check
+End Sub
+
 'Callback for AddLabel onAction
 Sub addLabel(control As IRibbonControl)
     On Error Resume Next
@@ -110,19 +115,11 @@ Sub ExportLogicalChekc(control As IRibbonControl)
     Call export_plan
 End Sub
 
-
-'Callback for ConsistencyCheck onAction
-Sub ConsistencyCheck(control As IRibbonControl)
-    On Error Resume Next
-    Call consistency_check
-End Sub
-
 'Callback for AddToLogs onAction
 Sub AddToLogs(control As IRibbonControl)
     On Error Resume Next
     Call pattern_check(False)
 End Sub
-
 
 'Callback for AddToLogsMore onAction
 Sub AddToLogsMore(control As IRibbonControl)
@@ -170,7 +167,6 @@ End Sub
 Sub Figures(control As IRibbonControl)
     On Error Resume Next
     chart_form.Show
-'    Call generate_data_chart
 End Sub
 
 'Callback for SingleChart onAction
