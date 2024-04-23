@@ -22,6 +22,13 @@ Sub newImportTool(the_path As String, sheetName As String)
         
     Set externalWorkbook = Workbooks.Open(the_path)
     Set sourceSheet = externalWorkbook.sheets(sheetName)
+    
+    If sourceSheet.AutoFilterMode Then
+        sourceSheet.AutoFilterMode = False
+    End If
+
+    sourceSheet.Rows.Hidden = False
+    
     Set sourceHeaderRow = sourceSheet.Rows(1)
     headerArr = sourceHeaderRow.value
     
@@ -80,7 +87,12 @@ Sub newImportTool(the_path As String, sheetName As String)
     End If
     
     externalWorkbook.Close SaveChanges:=False
-    targetSheet.Range("C1") = "label"
+    
+    If sheetName = "survey" Then
+        targetSheet.Range("A1:C1") = Array("type", "name", "label")
+    ElseIf sheetName = "choices" Then
+        targetSheet.Range("A1:C1") = Array("list_name", "name", "label")
+    End If
     
     Call DeleteEmptyRows("x" & sheetName)
 

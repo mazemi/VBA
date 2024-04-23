@@ -126,6 +126,14 @@ Private Sub LabelReset_Click()
         ThisWorkbook.sheets("xlogical_checks").Cells.Clear
         
         Me.tooLabel.Caption = ""
+        
+        Call set_basic_config
+        
+            Me.ComboData = ""
+    
+        MsgBox "The application has been reset successfully.", vbInformation
+        Unload Me
+        
     End If
     
     Application.StatusBar = False
@@ -133,10 +141,7 @@ Private Sub LabelReset_Click()
     Application.DisplayAlerts = True
     Application.ScreenUpdating = True
     
-    Me.ComboData = ""
-    
-    MsgBox "The application has been reset successfully.", vbInformation
-    Unload Me
+
     
 End Sub
 
@@ -149,6 +154,9 @@ Private Sub UserForm_Initialize()
     End With
     
     Dim dt_sheet As String
+    
+    Call set_basic_config
+    
     Me.Label_import.Visible = False
     Me.TextUser.value = GetRegistrySetting("ramSetting", "koboUserReg")
     Me.TextPassword.value = GetRegistrySetting("ramSetting", "koboPasswordReg")
@@ -236,7 +244,7 @@ Private Sub CommandTools_Click()
         .AllowMultiSelect = False
         .Filters.Clear
         .Filters.Add "Excel Files", "*.xls; *.xlsx"
-        .InitialFileName = ThisWorkbook.path & "\"
+        .InitialFileName = ActiveWorkbook.path & "\"
         If .Show <> -1 Then
             Exit Sub
         End If

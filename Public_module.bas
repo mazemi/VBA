@@ -695,4 +695,19 @@ Private Function show_sheet()
     sheets("temp_sheet").Visible = True
 End Function
 
+Sub set_basic_config()
+    Application.ReferenceStyle = xlA1
+    Application.Calculation = xlAutomatic
+End Sub
+
+Sub SaveAsAddIn()
+    Dim savePath As String
+    savePath = Application.GetSaveAsFilename(FileFilter:="Excel Add-In (*.xlam), *.xlam")
+    
+    ' Check if the user canceled the save dialog
+    If savePath <> "False" Then
+        ' Save the current workbook as an add-in
+        ThisWorkbook.SaveAs FileName:=savePath, FileFormat:=xlAddIn
+    End If
+End Sub
 
