@@ -36,11 +36,11 @@ Sub CreateTrustedLocation()
 
 	Set oWS = WScript.CreateObject("WScript.Shell")
 	userProfile = oWS.ExpandEnvironmentStrings( "%userprofile%" )
-	Dim strFolder : strFolder =  userProfile & "\AppData\Roaming\Microsoft\AddIns\" & "direct.xlam"
+	Dim strFolder : strFolder =  userProfile & "\AppData\Roaming\Microsoft\AddIns\" & "REACH_addin.xlam"
 	Dim objFSO
 	Set objFSO = CreateObject("Scripting.FileSystemObject")
 	currentFolder = objFSO.GetParentFolderName(WScript.ScriptFullName)
-	Dim strFile : strFile = currentFolder & "\direct.xlam"
+	Dim strFile : strFile = currentFolder & "\REACH_addin.xlam"
 	Const Overwrite = True
 	Dim oFSO
 	Set oFSO = CreateObject("Scripting.FileSystemObject")
@@ -50,9 +50,12 @@ Sub CreateTrustedLocation()
 	oFSO.CopyFile strFile, strFolder, True
 
 	If Err.Number <> 0 Then
-		MsgBox "Installation failed."  & vbCrLf  & _
-			"- Please make sure the MS Excel application 2016 (64 bit) or higher is installed."  & vbCrLf  & _
-			"- Please close the MS Excel application and try again.",,"Fail" 
+
+		MsgBox "Oops! Something went wrong." & vbCrLf & _
+       vbCrLf & _
+       "Please ensure that you have Microsoft Excel 2016 (64-bit) or a newer version installed on your machine." & vbCrLf & _
+       vbCrLf & _
+       "Also, make sure to close any open instances of Excel and try again.", "Operation Failed"
 		Exit Sub
 		'WScript.Echo "Error in DoStep1: " & Err.Description
 		'Err.Clear
@@ -113,7 +116,7 @@ Sub CreateTrustedLocation()
 		End If
 	End If
 
-	MsgBox "Direct utility has been installed.",,"Success" 
+	MsgBox "The REACH add-in has been installed successfully.",,"Installation Successful"
 
 End Sub
 	
