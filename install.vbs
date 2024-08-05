@@ -116,6 +116,19 @@ Sub CreateTrustedLocation()
 		End If
 	End If
 
+	Set excelApp = CreateObject("Excel.Application")
+	excelApp.Visible = True
+
+	Set addin = excelApp.AddIns("Reach_Addin")
+
+	If Not addin.Installed Then
+		addin.Installed = True
+	End If
+
+	excelApp.Quit
+	Set addin = Nothing
+	Set excelApp = Nothing
+
 	MsgBox "The REACH add-in has been installed successfully.",,"Installation Successful"
 
 End Sub
