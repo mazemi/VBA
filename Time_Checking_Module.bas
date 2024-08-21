@@ -1,16 +1,28 @@
 Attribute VB_Name = "Time_Checking_Module"
+Option Explicit
 Sub time_check()
 
-    On Error Resume Next
+'    On Error Resume Next
     Application.DisplayAlerts = False
     Set CURRENT_WORK_BOOK = ActiveWorkbook
     Dim s_collection As New Collection
     Dim e_collection As New Collection
     Dim record_count As Long
     Dim ws As Worksheet
+
+    Dim uuid_col As String
+    Dim uuid_col_number As Long
+    Dim parts As Long
+    Dim i As Long
+    Dim new_col As Long
     
     sheets(find_main_data).Select
     Call remove_auto_filter
+    
+    If check_audit_folder = False Then
+        Call calculate_simple_duration
+        Exit Sub
+    End If
     
     uuid_col = column_letter("_uuid")
     uuid_col_number = column_number("_uuid")
@@ -63,6 +75,21 @@ End Sub
 Sub partial_time_check(start_point As Long, end_point As Long)
     On Error Resume Next
     Dim ws As Worksheet
+    Dim Counter As Long
+    Dim start_col_number As Long
+    Dim end_col_number As Long
+    Dim uuid_col As String
+    Dim uuid_col_number As Long
+    Dim main_sheet As String
+    Dim duration_col_number As Long
+    Dim new_col As Long
+    Dim new_col_letter As String
+    Dim base_path As String
+    Dim record_count As Long
+    Dim percentage_value As Single
+    Dim progress_value As Single
+    Dim Duration As Long
+    
     Counter = 0
 
     On Error GoTo ErrorHandler:
@@ -168,6 +195,9 @@ Private Sub csv_audit_import(path As String)
     On Error Resume Next
     
     Dim ws As Worksheet, strFile As String
+    Dim cn As WorkbookConnection
+    Dim qt As QueryTable
+    
     Set ws = CURRENT_WORK_BOOK.sheets("temp_sheet")
 
     With ws.QueryTables.Add(Connection:="TEXT;" & path, Destination:=ws.Range("A1"))
@@ -202,6 +232,8 @@ End Sub
 
 Private Function add_calculation()
     On Error Resume Next
+    
+    Dim lRow As Long
    
     With CURRENT_WORK_BOOK.sheets("temp_sheet")
         If WorksheetFunction.CountA(.UsedRange) = 0 And .Shapes.count = 0 Then
@@ -223,6 +255,7 @@ End Sub
 
 Sub check_uuid()
     On Error GoTo ErrorHandler:
+    Dim col As Long
     col = WorksheetFunction.Match("_uuid", sheets(ActiveSheet.Name).Rows(1), 0)
     Exit Sub
 
@@ -239,6 +272,71 @@ Function is_divisible(X As Long, d As Long) As Boolean
     End If
 End Function
 
+Sub calculate_simple_duration()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+    Dim startTime As Date
+    Dim endTime As Date
+    Dim diffMinutes As Double
+    Dim start_col_number As Long
+    Dim end_col_number As Long
+    Dim last_col As Long
+    Dim new_col As Long
+    
+    Set ws = sheets(find_main_data)
+    
+    lastRow = ws.Cells(Rows.count, find_uuid_coln).End(xlUp).Row
+    last_col = ws.Cells(1, Columns.count).End(xlToLeft).Column
+    start_col_number = column_number("start")
+    end_col_number = column_number("end")
+
+    
+    If start_col_number = 0 Or end_col_number = 0 Then
+        MsgBox "start or end columns do not exist.     ", vbInformation
+        Exit Sub
+    End If
+      
+    If column_number("duration") = 0 Then
+        new_col = ws.Cells(1, Columns.count).End(xlToLeft).Column + 1
+    Else
+        new_col = column_number("duration")
+    End If
+    
+    ws.Cells(1, new_col).value = "duration"
+    ws.Cells(1, new_col + 1).value = "duration_remark"
+    
+    
+    For i = 2 To lastRow
+        startTime = CDate(ws.Cells(i, start_col_number).value)
+        endTime = CDate(ws.Cells(i, end_col_number).value)
+
+        ' Calculate the difference in minutes
+        diffMinutes = (endTime - startTime) * 1440
+        ws.Cells(i, new_col).value = diffMinutes
+        ws.Cells(i, new_col + 1).value = "no audit file"
+    Next i
+    
+    MsgBox "The interview durations have been calculated.     ", vbInformation
+End Sub
+
+Function check_audit_folder() As Boolean
+    Dim folderPath As String
+    Dim folderName As String
+    Dim fullFolderPath As String
+    
+    folderName = "audit"
+    
+    folderPath = ActiveWorkbook.path
+    
+    fullFolderPath = folderPath & "\" & folderName
+    
+    If Dir(fullFolderPath, vbDirectory) <> "" Then
+        check_audit_folder = True
+    Else
+        check_audit_folder = False
+    End If
+End Function
 
 
 
